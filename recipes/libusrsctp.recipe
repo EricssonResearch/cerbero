@@ -1,0 +1,37 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+import shutil
+from cerbero.utils import shell
+
+class Recipe(recipe.Recipe):
+    name = 'libusrsctp'
+    version = 'master'
+    url = 'http://sctp-refimpl.googlecode.com/svn/trunk/KERN/usrsctp'
+    revision = 8932
+    stype = SourceType.SVN
+    autoreconf = True
+    autoreconf_sh = "sh ./bootstrap"
+    licenses = [License.BSD_like]
+    configure_options = '--disable-debug --enable-static --enable-shared'
+
+    def configure(self):
+        if self.config.target_platform == Platform.ANDROID:
+            # ifaddrs is a GNU extension that isn't available on Android
+            usrsctplib_path = os.path.join(self.build_dir, 'usrsctplib')
+            ifaddrs_path = os.path.join(self.config.recipes_dir, self.name)
+            shutil.copy(os.path.join(ifaddrs_path, "ifaddrs.c"),
+                        usrsctplib_path)
+            shutil.copy(os.path.join(ifaddrs_path, "ifaddrs.h"),
+                        usrsctplib_path)
+            shell.replace(os.path.join(usrsctplib_path, 'Makefile.am'),
+                          {'sctp_os_userspace.h':
+                           'sctp_os_userspace.h ifaddrs.c ifaddrs.h'})
+        # Disable compilation of examples
+        shell.replace(os.path.join(self.build_dir, 'Makefile.am'),
+                      {'SUBDIRS = usrsctplib programs':
+                       'SUBDIRS = usrsctplib'})
+        # Disable -Werror
+        shell.replace(os.path.join(self.build_dir, 'configure.ac'),
+                      {'-Werror':
+                       '-Wno-error'})
+        super(recipe.Recipe, self).configure()
