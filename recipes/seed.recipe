@@ -1,0 +1,48 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(recipe.Recipe):
+    name = 'seed'
+    version = '3.8.2_cf772e'
+    stype = SourceType.GIT
+    licenses = [License.LGPLv2Plus]
+    remotes = { 'origin': 'git://git.gnome.org/seed' }
+    commit = 'origin/master'
+    autoreconf = True
+    configure_options = '--with-pic --disable-static --enable-shared \
+            --with-webkit=3.0 \
+            --disable-cairo-module \
+            --disable-canvas-module \
+            --disable-dbus-module \
+            --disable-example-module \
+            --disable-ffi-module \
+            --disable-gettext-module \
+            --disable-gtkbuilder-module \
+            --disable-libxml-module \
+            --disable-mpfr-module \
+            --disable-multiprocessing-module \
+            --disable-os-module \
+            --disable-readline-module \
+            --disable-sqlite-module \
+            --disable-xorg-module'
+    deps = ['glib', 'gnome-js-common', 'javascriptcoregtk']
+    platform_deps = {
+        Platform.ANDROID: ['openwebrtc-girepository'],
+        Platform.IOS: ['openwebrtc-girepository'],
+    }
+    
+    def prepare(self):
+        if self.config.target_platform in (Platform.ANDROID, Platform.IOS):
+            self.configure_options += ' --enable-static --disable-shared'
+        # self.append_env and new_env are broken!
+        # So we run autogen.sh (without configure).
+        ac_sh = 'env ACLOCAL_PATH="{0}" sh ./autogen.sh --help'
+        self.autoreconf_sh = ac_sh.format(os.path.join(self.config.install_dir,
+                                                       'share', 'aclocal'))
+
+    def configure(self):
+        shell.replace(os.path.join(self.build_dir, 'Makefile.am'),
+                      # Disable building of documentation since it
+                      # executes seed to run a JS script
+                      {'	tests \\': '	tests',
+                       '	doc': '',})
+        super(recipe.Recipe, self).configure()

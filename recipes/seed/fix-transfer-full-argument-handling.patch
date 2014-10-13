@@ -1,0 +1,145 @@
+From 4a325e2107eeb4cc8fad489929a5a6ef52bc67dd Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Sebastian=20Dr=C3=B6ge?= <sebastian@centricular.com>
+Date: Mon, 10 Nov 2014 14:09:13 +0100
+Subject: [PATCH] seed-types: Keep another reference around for seed when
+ handling (transfer full) function arguments
+
+https://bugzilla.gnome.org/show_bug.cgi?id=739879
+---
+ libseed/seed-closure.c | 2 +-
+ libseed/seed-engine.c  | 4 +++-
+ libseed/seed-structs.c | 6 +++---
+ libseed/seed-types.c   | 5 +++++
+ libseed/seed-types.h   | 1 +
+ libseed/seed.h         | 1 +
+ 6 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/libseed/seed-closure.c b/libseed/seed-closure.c
+index 62241c8..d3a44ba 100644
+--- a/libseed/seed-closure.c
++++ b/libseed/seed-closure.c
+@@ -193,7 +193,7 @@ seed_handle_closure (ffi_cif * cif, void *result, void **args, gpointer userdata
+       exception = 0;
+     }
+ 
+-  seed_value_to_gi_argument (ctx, (JSValueRef) return_value, return_type,
++  seed_value_to_gi_argument (ctx, (JSValueRef) return_value, return_type, GI_TRANSFER_NOTHING,
+ 			 &return_arg, 0);
+   switch (return_tag)
+     {
+diff --git a/libseed/seed-engine.c b/libseed/seed-engine.c
+index 461198f..12e3358 100644
+--- a/libseed/seed-engine.c
++++ b/libseed/seed-engine.c
+@@ -489,6 +489,7 @@ seed_gobject_method_invoked (JSContextRef ctx,
+   GITypeInfo *type_info = NULL;
+   GITypeTag tag;
+   GIDirection dir;
++  GITransfer transfer;
+   JSValueRef retval_ref;
+   GError *error = 0;
+   gint length_arg_pos = 0;
+@@ -525,6 +526,7 @@ seed_gobject_method_invoked (JSContextRef ctx,
+       arg_info 		= g_callable_info_get_arg ((GICallableInfo *) info, i);
+       dir 		= g_arg_info_get_direction (arg_info);
+       type_info       	= g_arg_info_get_type (arg_info);
++      transfer       	= g_arg_info_get_ownership_transfer (arg_info);
+       is_caller_allocates = FALSE;
+       
+ #if GOBJECT_INTROSPECTION_VERSION > 0x000613
+@@ -644,7 +646,7 @@ seed_gobject_method_invoked (JSContextRef ctx,
+                 }
+             }
+ 
+-          if (!seed_value_to_gi_argument (ctx, arguments[i], type_info,
++          if (!seed_value_to_gi_argument (ctx, arguments[i], type_info, transfer,
+ 					  &in_args[n_in_args++], exception))
+ 	    {
+ 	      seed_make_exception (ctx, exception,
+diff --git a/libseed/seed-structs.c b/libseed/seed-structs.c
+index 793e754..b1960f8 100644
+--- a/libseed/seed-structs.c
++++ b/libseed/seed-structs.c
+@@ -241,7 +241,7 @@ seed_union_set_property (JSContextRef context,
+ 
+   field_type = g_field_info_get_type (field);
+ 
+-  seed_value_to_gi_argument (context, value, field_type, &field_value, exception);
++  seed_value_to_gi_argument (context, value, field_type, GI_TRANSFER_NOTHING, &field_value, exception);
+   ret = g_field_info_set_field (field, priv->pointer, &field_value);
+ 
+   g_base_info_unref ((GIBaseInfo *) field_type);
+@@ -283,7 +283,7 @@ seed_struct_set_property (JSContextRef context,
+ 
+   field_type = g_field_info_get_type (field);
+ 
+-  seed_value_to_gi_argument (context, value, field_type, &field_value, exception);
++  seed_value_to_gi_argument (context, value, field_type, GI_TRANSFER_NOTHING, &field_value, exception);
+   ret = g_field_info_set_field (field, priv->pointer, &field_value);
+ 
+   if (!ret) 
+@@ -785,7 +785,7 @@ seed_construct_struct_type_with_parameters (JSContextRef ctx,
+ 					  (JSObjectRef) parameters,
+ 					  jsprop_name, NULL);
+ 
+-      seed_value_to_gi_argument (ctx, jsprop_value, field_type, &field_value,
++      seed_value_to_gi_argument (ctx, jsprop_value, field_type, GI_TRANSFER_NOTHING, &field_value,
+ 				 exception);
+       set_ret = g_field_info_set_field (field, object, &field_value);
+ 
+diff --git a/libseed/seed-types.c b/libseed/seed-types.c
+index 17bb29c..76b94a3 100644
+--- a/libseed/seed-types.c
++++ b/libseed/seed-types.c
+@@ -516,6 +516,7 @@ gboolean
+ seed_value_to_gi_argument (JSContextRef ctx,
+ 			   JSValueRef value,
+ 			   GITypeInfo * type_info,
++                           GITransfer   transfer,
+ 			   GArgument * arg,
+ 			   JSValueRef * exception)
+ {
+@@ -654,6 +655,9 @@ seed_value_to_gi_argument (JSContextRef ctx,
+ 	      }
+ 
+ 	    arg->v_pointer = gobject;
++            // FIXME: This has to be done for other types too
++            if (transfer == GI_TRANSFER_EVERYTHING)
++              g_object_ref (gobject);
+ 	    g_base_info_unref (interface);
+ 	    break;
+ 	  }
+@@ -890,6 +894,7 @@ seed_value_to_gi_argument (JSContextRef ctx,
+ 
+             if (!seed_value_to_gi_argument (ctx, jsprop_value,
+                                         val_param_info,
++                                        GI_TRANSFER_NOTHING,
+                                         &hash_arg,
+                                         exception))
+               {
+diff --git a/libseed/seed-types.h b/libseed/seed-types.h
+index 1ffdac3..bb76c5c 100644
+--- a/libseed/seed-types.h
++++ b/libseed/seed-types.h
+@@ -44,6 +44,7 @@ gboolean seed_object_set_property (JSContextRef ctx, JSObjectRef object,
+ gboolean seed_value_to_gi_argument (JSContextRef ctx,
+ 				    JSValueRef value,
+ 				    GITypeInfo * type_info,
++                                    GITransfer   transfer,
+ 				    GArgument * arg, JSValueRef * exception);
+ 
+ JSValueRef seed_value_from_gi_argument (JSContextRef ctx,
+diff --git a/libseed/seed.h b/libseed/seed.h
+index defdef4..591753b 100644
+--- a/libseed/seed.h
++++ b/libseed/seed.h
+@@ -170,6 +170,7 @@ SeedValue seed_value_from_gvalue (SeedContext ctx,
+ gboolean seed_value_to_gi_argument (SeedContext ctx,
+ 				    SeedValue value,
+ 				    GITypeInfo * type_info,
++                                    GITransfer   transfer,
+ 				    GArgument * arg, SeedValue * exception);
+ 
+ SeedValue seed_value_from_gi_argument (SeedContext ctx,
+-- 
+2.1.3
