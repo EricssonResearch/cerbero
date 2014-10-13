@@ -1,0 +1,28 @@
+From daef1154f3751f6c7a61b5629ad19aee71b6f946 Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Mon, 10 Nov 2014 21:13:00 +0530
+Subject: [PATCH 2/2] video-source: Substitute gst libs and cflags
+
+---
+ sys/androidvideo/video-source/Makefile.am | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sys/androidvideo/video-source/Makefile.am b/sys/androidvideo/video-source/Makefile.am
+index b7d28b0..ad207e8 100644
+--- a/sys/androidvideo/video-source/Makefile.am
++++ b/sys/androidvideo/video-source/Makefile.am
+@@ -10,9 +10,9 @@ libgstandroidvideosrc_la_SOURCES = \
+ BUILT_SOURCES = \
+     classes_dex.h
+ 
+-libgstandroidvideosrc_la_LIBADD = -ldl -llog
++libgstandroidvideosrc_la_LIBADD = -ldl -llog $(GST_LIBS)
+ 
+-libgstandroidvideosrc_la_CFLAGS = -I$(srcdir)/jni
++libgstandroidvideosrc_la_CFLAGS = -I$(srcdir)/jni $(GST_CFLAGS)
+ 
+ classes_dex.h: classes_dex.jar
+ 	$(XXD) -i $< > $@
+-- 
+2.1.0
+

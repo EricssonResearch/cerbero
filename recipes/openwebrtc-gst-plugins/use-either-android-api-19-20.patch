@@ -1,0 +1,28 @@
+From 7210522c67762b60c7528a3a686eba47f73d183f Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Mon, 10 Nov 2014 21:21:44 +0530
+Subject: [PATCH] configure: Look for either Android API level 19 or 20
+
+---
+ configure.ac | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index f0edce3..5764cec 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -140,7 +140,10 @@ if test "x$enable_android_plugins" = xyes; then
+   dx_path=`AS_DIRNAME(["$DX"])`
+   ANDROID_CLASSPATH="$dx_path/../../platforms/android-19/android.jar"
+   if ! test -f "$ANDROID_CLASSPATH"; then
+-    AC_MSG_ERROR([Android API level 19 not found in the SDK])
++    ANDROID_CLASSPATH="$dx_path/../../platforms/android-20/android.jar"
++    if ! test -f "$ANDROID_CLASSPATH"; then
++      AC_MSG_ERROR([Android API level 19 or 20 not found in the SDK])
++    fi
+   fi
+   AC_SUBST(ANDROID_CLASSPATH)
+ fi
+-- 
+2.1.0
+

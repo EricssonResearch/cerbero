@@ -1,0 +1,37 @@
+From ec9469b95aeb0ed7722be68578523c83a4daf35c Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Mon, 10 Nov 2014 21:11:52 +0530
+Subject: [PATCH 1/2] configure: Use the pkg-config file for finding openssl
+
+---
+ configure.ac | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 11c5487..f0edce3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -87,18 +87,10 @@ AM_CONDITIONAL([BUILD_OPENH264], [test "$with_openh264" != no])
+ AM_COND_IF([BUILD_OPENH264],
+    AC_CONFIG_FILES([ext/openh264/Makefile ext/openh264/src/Makefile]))
+ 
+-AC_CHECK_HEADERS([openssl/ssl.h],
+-  [AC_CHECK_LIB([ssl], [SSL_library_init],
+-    [with_openssl="yes"; OPENSSL_LIBS="-lssl"],
+-    [with_openssl="no"]
+-  )],[with_openssl="no"]
+-)
++dnl check for openssl
++PKG_CHECK_MODULES(OPENSSL, [openssl])
+ AC_SUBST(OPENSSL_LIBS)
+ 
+-if test "x$with_openssl" != "xyes"; then
+-  AC_MSG_ERROR([You need OpenSSL for the build])
+-fi
+-
+ dnl build static plugins or not
+ AC_MSG_CHECKING([whether to build static plugins or not])
+ AC_ARG_ENABLE(
+-- 
+2.1.0
+

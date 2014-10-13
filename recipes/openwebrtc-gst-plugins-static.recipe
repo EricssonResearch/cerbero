@@ -1,0 +1,57 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(custom.GStreamerStatic):
+    name = 'openwebrtc-gst-plugins-static'
+    _name = name.replace('-static', '')
+    version = '0.0.1'
+    gstreamer_version = '1.0'
+    stype = SourceType.GIT
+    licenses = [License.BSD_like]
+    remotes = { 'origin': 'https://github.com/EricssonResearch/openwebrtc-gst-plugins.git' }
+    commit = 'origin/master'
+    autoreconf = True
+    autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
+    patches = [_name + '/video-source-gst-libs-cflags.patch',
+               _name + '/use-openssl-pkg-config.patch',
+               _name + '/use-either-android-api-19-20.patch',]
+    deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
+            'orc', 'libxml2']
+    # Parallel make fails randomly due to .gitignore generation by git.mk
+    allow_parallel_build = False
+
+    files_plugins_net_devel = [
+        'libgstvideorepair',
+        'libgsterdtls',
+    ]
+    platform_files_plugins_capture_devel = {
+        Platform.ANDROID: ['libgstandroidvideosrc'],
+    }
+    platform_files_plugins_core_devel = {
+        Platform.IOS: ['libgstercolorspace'],
+    }
+
+    def prepare(self):
+        # OpenH264 has been moved to gst-plugins-bad
+        self.configure_options += ' --without-openh264 \
+            --disable-debug \
+            --disable-android-plugins \
+            --disable-osx-plugins \
+            --disable-linux-plugins \
+            --disable-colorspace-converter'
+        if self.config.target_platform == Platform.IOS:
+            self.configure_options += ' --enable-colorspace-converter'
+        elif self.config.target_platform == Platform.ANDROID:
+            android_dx_path = os.path.join(self.config.build_tools_prefix,
+                                           'opt', 'android-sdk', 'build-tools',
+                                           'android-4.4W', 'dx')
+            # We do not build ercolorspace on Android because not all Android
+            # devices have NEON support
+            self.configure_options += ' --enable-android-plugins \
+                DX="{0}"'.format(android_dx_path)
+        elif self.config.target_platform == Platform.DARWIN:
+            # No-op right now
+            self.configure_options += ' --enable-osx-plugins'
+        elif self.config.target_platform == Platform.LINUX:
+            # No-op right now
+            self.configure_options += ' --enable-linux-plugins'
+        super(Recipe, self).prepare()
