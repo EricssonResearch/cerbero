@@ -1,0 +1,78 @@
+From 8fab42156fd58d9c7521f6ca5bf6a00b7864c1a8 Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Mon, 10 Nov 2014 21:29:47 +0530
+Subject: [PATCH] Owr: Use videoconvert instead of ercolorspace on Android
+
+Not all Android devices have NEON support, and videconvert will do the right
+thing using ORC
+---
+ local/owr_image_renderer.c     | 2 +-
+ local/owr_local_media_source.c | 2 +-
+ local/owr_video_renderer.c     | 2 +-
+ owr/owr.c                      | 4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/local/owr_image_renderer.c b/local/owr_image_renderer.c
+index 2d65255..a55a50a 100644
+--- a/local/owr_image_renderer.c
++++ b/local/owr_image_renderer.c
+@@ -45,7 +45,7 @@
+ #define DEFAULT_WIDTH 0
+ #define DEFAULT_HEIGHT 0
+ 
+-#if defined(__ANDROID__) || (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
++#if (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
+ #define VIDEO_CONVERT "ercolorspace"
+ #else
+ #define VIDEO_CONVERT "videoconvert"
+diff --git a/local/owr_local_media_source.c b/local/owr_local_media_source.c
+index 5b8ded3..b4a8499 100644
+--- a/local/owr_local_media_source.c
++++ b/local/owr_local_media_source.c
+@@ -57,7 +57,7 @@
+ #elif defined(__ANDROID__)
+ #define AUDIO_SRC "openslessrc"
+ #define VIDEO_SRC "androidvideosource"
+-#define VIDEO_CONVERT "ercolorspace"
++#define VIDEO_CONVERT "videoconvert"
+ 
+ #elif defined(__linux__)
+ #define AUDIO_SRC  "pulsesrc"
+diff --git a/local/owr_video_renderer.c b/local/owr_video_renderer.c
+index 25c9c84..2f21665 100644
+--- a/local/owr_video_renderer.c
++++ b/local/owr_video_renderer.c
+@@ -44,7 +44,7 @@
+ 
+ #define VIDEO_SINK "glimagesink"
+ 
+-#if defined(__ANDROID__) || (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
++#if (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
+ #define VIDEO_CONVERT "ercolorspace"
+ #else
+ #define VIDEO_CONVERT "videoconvert"
+diff --git a/owr/owr.c b/owr/owr.c
+index 9b725e2..e0ff8ca 100644
+--- a/owr/owr.c
++++ b/owr/owr.c
+@@ -106,7 +106,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
+ GST_PLUGIN_STATIC_DECLARE(video4linux2);
+ #endif
+ 
+-#if defined(__ANDROID__) || (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
++#if (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
+ GST_PLUGIN_STATIC_DECLARE(ercolorspace);
+ #endif
+ #endif
+@@ -227,7 +227,7 @@ void owr_init()
+     GST_PLUGIN_STATIC_REGISTER(pulseaudio);
+     GST_PLUGIN_STATIC_REGISTER(video4linux2);
+ #endif
+-#if defined(__ANDROID__) || (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
++#if (defined(__APPLE__) && TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
+     GST_PLUGIN_STATIC_REGISTER(ercolorspace);
+ #endif
+ 
+-- 
+2.1.0
+

@@ -1,0 +1,52 @@
+From 91f7d1c6f1394818a0b3dbb1c3dad51d3719ddd3 Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Mon, 10 Nov 2014 22:26:09 +0530
+Subject: [PATCH] owr/owr.c: Register gstnice as an ordinary gst plugin
+
+---
+ owr/owr.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/owr/owr.c b/owr/owr.c
+index e0ff8ca..c9f615b 100644
+--- a/owr/owr.c
++++ b/owr/owr.c
+@@ -44,10 +44,6 @@
+ 
+ #include <gst/gst.h>
+ 
+-#ifdef OWR_STATIC
+-#include <gstnice.h>
+-#endif
+-
+ #ifdef __APPLE__
+ #include <TargetConditionals.h>
+ #endif
+@@ -76,6 +72,7 @@ GST_PLUGIN_STATIC_DECLARE(audiotestsrc);
+ GST_PLUGIN_STATIC_DECLARE(coreelements);
+ GST_PLUGIN_STATIC_DECLARE(erdtls);
+ GST_PLUGIN_STATIC_DECLARE(mulaw);
++GST_PLUGIN_STATIC_DECLARE(nice);
+ GST_PLUGIN_STATIC_DECLARE(opengl);
+ GST_PLUGIN_STATIC_DECLARE(openh264);
+ GST_PLUGIN_STATIC_DECLARE(opus);
+@@ -198,6 +195,7 @@ void owr_init()
+     GST_PLUGIN_STATIC_REGISTER(coreelements);
+     GST_PLUGIN_STATIC_REGISTER(erdtls);
+     GST_PLUGIN_STATIC_REGISTER(mulaw);
++    GST_PLUGIN_STATIC_REGISTER(nice);
+     GST_PLUGIN_STATIC_REGISTER(opengl);
+     GST_PLUGIN_STATIC_REGISTER(openh264);
+     GST_PLUGIN_STATIC_REGISTER(opus);
+@@ -231,8 +229,6 @@ void owr_init()
+     GST_PLUGIN_STATIC_REGISTER(ercolorspace);
+ #endif
+ 
+-    gst_element_register(NULL, "nicesrc", GST_RANK_NONE, GST_TYPE_NICE_SRC);
+-    gst_element_register(NULL, "nicesink", GST_RANK_NONE, GST_TYPE_NICE_SINK);
+ #endif
+ 
+     owr_main_context_is_external = !!owr_main_context;
+-- 
+2.1.0
+

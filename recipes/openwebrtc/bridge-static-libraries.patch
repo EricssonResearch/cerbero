@@ -1,0 +1,31 @@
+From 4bc9ab661b30a0b1722b8e0f5808332ffc94b0b2 Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Thu, 13 Nov 2014 01:23:12 +0530
+Subject: [PATCH] bridge/Makefile.am: Use static libraries for
+ openwebrtc-bridge
+
+When requested, use as many static libraries for the bridge as possible
+---
+ bridge/Makefile.am | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/bridge/Makefile.am b/bridge/Makefile.am
+index 2597a18..6c7d11a 100644
+--- a/bridge/Makefile.am
++++ b/bridge/Makefile.am
+@@ -36,7 +36,11 @@ libopenwebrtc_bridge_la_LDFLAGS = -export-dynamic
+ 
+ bin_PROGRAMS = openwebrtc-daemon
+ openwebrtc_daemon_SOURCES = daemon.c
+-openwebrtc_daemon_LDFLAGS = -static -export-dynamic $(SEED_LIBS)
++openwebrtc_daemon_LDFLAGS = 
++if OWR_STATIC
++openwebrtc_daemon_LDFLAGS += -static-libtool-libs
++endif
++openwebrtc_daemon_LDFLAGS += -static -export-dynamic $(SEED_LIBS)
+ openwebrtc_daemon_LDADD = libopenwebrtc_bridge.la
+ 
+ includedir = $(prefix)/include/owr
+-- 
+2.1.0
+

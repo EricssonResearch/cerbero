@@ -1,0 +1,79 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+from cerbero.utils import shell
+from custom import generate_gir_h_from_gir
+
+class Recipe(recipe.Recipe):
+    name = 'openwebrtc'
+    version = '0.0.1'
+    stype = SourceType.GIT
+    licenses = [License.BSD_like]
+    remotes = { 'origin': 'https://github.com/EricssonResearch/openwebrtc.git' }
+    commit = 'origin/master'
+    autoreconf = True
+    autoreconf_sh = 'mkdir -p m4 && gtkdocize && autoreconf -fiv'
+    patches = [name + '/android-use-videoconvert.patch',
+               name + '/bridge-static-libraries.patch',
+               name + '/register-gstnice-as-ordinary-plugin.patch']
+    # Dependencies used in the dynamic (shared) build of OWRTC
+    _dynamic_deps = ['libnice', 'gstreamer-1.0', 'gst-plugins-base-1.0',
+                     'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
+                     'openwebrtc-gst-plugins']
+    # Dependencies used in the static build of OWRTC
+    _static_deps = [i + '-static' for i in _dynamic_deps] + \
+                   ['openwebrtc-girepository']
+    # OpenH264 has been moved to gst-plugins-bad
+    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed'] + _dynamic_deps
+    platform_deps = {Platform.IOS: _static_deps,
+                     Platform.ANDROID: _static_deps}
+    # Parallel make fails randomly due to .gitignore generation by git.mk
+    allow_parallel_build = False
+
+    def prepare(self):
+        if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
+            self.configure_options += ' --disable-gtk-doc --enable-static \
+                --enable-owr-static --disable-shared'
+            # We're using internal gir symbols for the static build, but the 
+            # build system doesn't add this because it's stupid
+            self.new_env['PKG_CONFIG'] = 'pkg-config --static'
+            self.append_env['LDFLAGS'] = ' -lgirepository-internals '
+            # Since we're linking statically, we need all these plugins at link
+            # time. However, the build system is foobar and doesn't add them.
+            libdir = self.config.prefix + '/lib' + self.config.lib_suffix
+            self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = ' \
+                -L' + libdir + '/gstreamer-1.0/static \
+                -lgstalaw -lgstapp -lgstaudioconvert -lgstaudioresample \
+                -lgstaudiotestsrc -lgstcoreelements -lgsterdtls -lgstmulaw \
+                -lgstnice -lgstopengl -lgstopenh264 -lgstopus -lgstrtp \
+                -lgstrtpmanager -lgstsrtp -lgstvideoconvert -lgstvideocrop \
+                -lgstvideofilter -lgstvideoparsersbad -lgstvideorate \
+                -lgstvideorepair -lgstvideoscale -lgstvideotestsrc \
+                -lgstvolume -lgstvpx -lgstandroidvideosrc -lgstopensles ' + \
+                shell.check_call('$PKG_CONFIG --libs --cflags openssl',
+                                 shell=True, split=False)
+        elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
+            # XXX: gtk-doc is disabled because it looks for the pkg-config
+            # file and can't find it because we use the system-installed gtk-doc
+            self.configure_options += ' --disable-gtk-doc --disable-static \
+                --disable-owr-static --enable-shared'
+        else:
+            # Windows?
+            pass
+
+    def configure(self):
+        shell.replace(os.path.join(self.build_dir, 'Makefile.am'),
+                      {'tests ': ''})
+        if self.config.target_platform != self.config.platform and \
+           self.config.target_platform in (Platform.IOS, Platform.ANDROID):
+            # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build, 
+            # if it exists. If not, error out because that's the only way we 
+            # have sorry this is a bad hack kill me please.
+            gir_file_path = os.path.join(self.config.prefix, '..',
+                                         '{0}_{1}'.format(self.config.platform,
+                                                          self.config.arch),
+                                         'share', 'gir-1.0')
+            os.chdir(gir_file_path)
+            gir_file = 'Owr-0.1.gir'
+            gir_h_file = os.path.join(self.build_dir, 'Owr-0.1.gir.h')
+            generate_gir_h_from_gir(gir_file, gir_h_file)
+        super(Recipe, self).configure()
