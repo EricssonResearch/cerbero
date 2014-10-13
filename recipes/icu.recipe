@@ -1,0 +1,117 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+import os
+import copy
+import cerbero.config 
+from cerbero.build.build import modify_environment
+from cerbero.tools.libtool import LibtoolLibrary
+from cerbero.utils import shell
+from cerbero.utils import messages
+
+class Recipe(recipe.Recipe):
+    name = 'icu'
+    version = '53.1'
+    (major_ver, minor_ver) = version.split('.')
+    url = 'http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src.tgz'.format(version, version.replace(".", "_"))
+    stype = SourceType.TARBALL
+    autoreconf = True
+    # Source directory is icu/source, not icu-53.1
+    srcdir = "../{0}/source".format(name)
+    licenses = [License.BSD]
+    configure_options = '--enable-shared --enable-static \
+        --disable-renaming --disable-samples --disable-debug \
+        --disable-layout --disable-extras'
+
+    def prepare(self):
+        # Build directory is icu/source, not icu-53.1
+        self.build_dir = os.path.join(os.path.dirname(self.build_dir),
+                                      self.name, "source")
+        if self.config.target_platform == Platform.ANDROID:
+            # Some headers/objs aren't found include/lib paths aren't set:
+            # * typefind
+            # * bits/c++config.h
+            android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
+                                          "cxx-stl", "gnu-libstdc++", "4.8");
+            cxxflags1 = os.path.join(android_cxxstl, 'include')
+            cxxflags2 = os.path.join(android_cxxstl, 'libs', 'armeabi-v7a',
+                                     'include')
+            # crtbegin_so.o and crtend_so.o
+            ldflags1 = os.path.join(self.config.toolchain_prefix, "platforms",
+                                    "android-9", "arch-arm", "usr", "lib")
+            # GNU STL is needed for full STL support
+            # http://www.kandroid.org/ndk/docs/CPLUSPLUS-SUPPORT.html
+            ldflags2 = os.path.join(android_cxxstl, "libs", "armeabi-v7a")
+            self.append_env['CXXFLAGS'] = ' -I' + cxxflags1 + ' -I' + cxxflags2
+            self.append_env['LDFLAGS'] = ' -B' + ldflags1 + ' -L' + ldflags2 + \
+                ' -lgnustl_shared'
+
+    @modify_environment
+    def configure(self):
+        # Disable symbol renaming properly
+        shell.replace(os.path.join(self.build_dir, 'common', 'unicode',
+                                   'uconfig.h'),
+                      {'#define U_DISABLE_RENAMING 0':
+                       '#define U_DISABLE_RENAMING 1'})
+        if self.config.target_platform != self.config.platform:
+            # If we're cross-compiling, we first need to build ICU 
+            # inside icu/source/host and then inside icu/source
+            cross_build_dir = os.path.join(self.build_dir, "host")
+            try:
+                os.mkdir(cross_build_dir)
+            except OSError:
+                # Already exists
+                pass
+            self_copy = copy.deepcopy(self)
+            old_env = os.environ.copy()
+            # Set everything to be the same as the host platform
+            for each in ['CPPFLAGS', 'CFLAGS', 'CCASFLAGS', 'CXXFLAGS',
+                         'LDFLAGS', 'OBJCFLAGS']:
+                os.environ[each] = ''
+            self_copy.config = cerbero.config.Config()
+            self_copy.config.load()
+            self_copy.build_dir = cross_build_dir
+            self_copy.make_dir = cross_build_dir
+            self_copy.config_sh = "../configure"
+            messages.action("Configuring icu on the host platform")
+            super(recipe.Recipe, self_copy).configure()
+            messages.action("Compiling icu on the host platform")
+            super(recipe.Recipe, self_copy).compile()
+            os.environ = old_env
+            self.configure_options += ' --with-cross-build={0}'.format(cross_build_dir)
+        messages.action("Configuring icu on the target platform")
+        super(recipe.Recipe, self).configure()
+
+    def post_install(self):
+        common_deps = ['-lm', '-lc', '-ldl', '-lstdc++']
+        libtool_la = LibtoolLibrary('icudata', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform)
+        libtool_la.save()
+        libtool_la = LibtoolLibrary('icuuc', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform,
+                                    deps=['icudata'] + common_deps)
+        libtool_la.save()
+        libtool_la = LibtoolLibrary('icui18n', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform,
+                                    deps=['icuuc', 'icudata'] + common_deps)
+        libtool_la.save()
+        libtool_la = LibtoolLibrary('icuio', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform,
+                                    deps=['icuuc', 'icudata', 'icui18n'] \
+                                         + common_deps)
+        libtool_la.save()
+        libtool_la = LibtoolLibrary('icutu', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform,
+                                    deps=['icuuc', 'icudata', 'icui18n'] \
+                                         + common_deps)
+        libtool_la.save()
+        libtool_la = LibtoolLibrary('icutest', self.major_ver, self.minor_ver,
+                                    None, self.config.libdir,
+                                    self.config.target_platform,
+                                    deps=['icuuc', 'icudata', 'icui18n',
+                                          'icutu'] + common_deps)
+        libtool_la.save()
