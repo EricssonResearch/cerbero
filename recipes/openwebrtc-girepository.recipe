@@ -1,0 +1,78 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+import glob
+import shutil
+from cerbero.utils import shell
+from custom import generate_gir_h_from_gir
+
+class Recipe(recipe.Recipe):
+    """
+    This recipe is only used when cross-compiling OpenWebRTC
+    It ships custom .gir.h files (which are hexdumps of .girs) and ships the
+    internal g-i headers/static libs used for compiling gir to typelib
+    """
+    _name = 'gobject-introspection'
+    name = 'openwebrtc-girepository'
+    version = '1.40.0'
+    maj_ver = '.'.join(version.split('.')[:2])
+    stype = SourceType.TARBALL
+    url = 'http://ftp.gnome.org/pub/GNOME/sources/{0}/{1}/{0}-{2}.tar.xz'.format(_name, maj_ver, version)
+    srcdir = os.path.join('..', _name + '-' + version)
+    licenses = [License.GPLv2Plus]
+    configure_options = ' --enable-static --disable-shared'
+    deps = ['glib']
+    patches = [name + '/disable-python-checks.patch']
+    autoreconf = True
+
+    files_libs = ['libgirepository-1.0']
+    files_devel = [
+        'include/gobject-introspection-1.0',
+        'lib/pkgconfig/gobject-introspection-1.0.pc',
+        'lib/pkgconfig/gobject-introspection-no-export-1.0.pc',
+        'share/gobject-introspection-1.0'
+    ]
+
+    def prepare(self):
+        self.build_dir = os.path.join(os.path.dirname(self.build_dir),
+                                      self._name + '-' + self.version)
+        if self.config.variants.python3:
+            # cerbero is python2 only, same as gobject-introspection,
+            # make sure gobject-introspection is built against the same interpretter
+            # as we are
+            self.config_sh = "PYTHON=%s %s" %(sys.executable, self.config_sh)
+
+    def configure(self):
+        # Don't compile tools, examples, or GIRs.
+        # We won't use tools or examples, and can't compile GIRs since it
+        # involves executing binaries compiled for the target
+        shell.replace(os.path.join(self.build_dir, 'Makefile.am'),
+                      {'include Makefile-examples.am': '',
+                       'include Makefile-giscanner.am': '',
+                       'include Makefile-tools.am': '',
+                       'include Makefile-gir.am': '',
+                       'SUBDIRS = . docs tests build': 'SUBDIRS = . build',})
+        super(recipe.Recipe, self).configure()
+
+    def install(self):
+        super(recipe.Recipe, self).install()
+        # Install internally-used headers
+        for f in ('gitypelib-internal.h', 'girmodule.h', 'girparser.h',):
+            shutil.copy(os.path.join(self.build_dir, 'girepository', f),
+                        os.path.join(self.config.install_dir, 'include',
+                                     'gobject-introspection-1.0'))
+        # Install libgirepository-internals.a
+        shutil.copy(os.path.join(self.build_dir, '.libs',
+                                 'libgirepository-internals.a'),
+                    os.path.join(self.config.install_dir, 'lib'))
+        # Generate custom .gir.h files used by OWRTC
+        os.chdir(os.path.join(self.config.build_tools_prefix, 'share',
+                              'gir-1.0'))
+        outdir = os.path.join(self.config.install_dir, 'include',
+                              'gobject-introspection-1.0', 'gir')
+        try:
+            os.mkdir(outdir)
+        except OSError:
+            pass
+        for gir_file in glob.glob('G*-2.0.gir'):
+            gir_h_file = os.path.join(outdir, gir_file + '.h')
+            generate_gir_h_from_gir(gir_file, gir_h_file)
