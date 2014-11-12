@@ -1,0 +1,53 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+import os
+import shutil
+
+class Recipe(recipe.Recipe):
+    """
+    Ships the ADT Bundle (Android SDK)
+    """
+    _name = 'adt-bundle'
+    name = 'android-sdk'
+    version = '20140702'
+    stype = SourceType.TARBALL
+    url = 'https://dl.google.com/android/adt/' + _name + \
+          '-{0}-{1}-' + version + '.zip'
+    licenses = [License.Apachev2]
+    btype = BuildType.CUSTOM
+
+    def prepare(self):
+        platform = self.config.platform
+        if self.config.platform == Platform.DARWIN:
+            platform = 'mac'
+        self.url = self.url.format(platform, self.config.arch)
+        self.tarball_name = "{0}-{1}-{2}-{3}.zip".format(self._name, platform,
+                                                        self.config.arch,
+                                                        self.version)
+        self.build_dir = os.path.join(os.path.dirname(self.build_dir),
+                                      self.tarball_name.replace('.zip', ''))
+        self.download_path = os.path.join(self.repo_dir, self.tarball_name)
+
+    def configure(self):
+        # Re-set executable permissions
+        # The zipfile module completely ignores perms
+        sdk_dir = os.path.join(self.build_dir, 'sdk')
+        for t_path in (os.path.join(sdk_dir, 'tools'),
+                       os.path.join(sdk_dir, 'platform-tools'),
+                       os.path.join(sdk_dir, 'build-tools', 'android-4.4W')):
+            tools = [os.path.join(t_path, f) for f in os.listdir(t_path) if \
+                        os.path.isfile(os.path.join(t_path, f))]
+            for t in tools:
+                if t.endswith('.exe') or \
+                    os.path.basename(t).find('.') == -1:
+                    # Only chmod +x files without extensions (OS X/Linux)
+                    # or .exe files (Windows)
+                    os.chmod(t, 0755)
+
+    def install(self):
+        shutil.rmtree(os.path.join(self.config.install_dir,
+                                   'opt', 'android-sdk'),
+                      True)
+        shutil.copytree(os.path.join(self.build_dir, 'sdk'),
+                        os.path.join(self.config.install_dir,
+                                     'opt', 'android-sdk'))
