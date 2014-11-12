@@ -7,7 +7,7 @@ from cerbero.build import recipe
 from cerbero.build.source import SourceType
 from cerbero.build.cookbook import CookBook
 from cerbero.config import Platform
-from cerbero.utils import to_unixpath
+from cerbero.utils import to_unixpath, shell
 
 
 class GStreamerStatic(recipe.Recipe):
@@ -157,3 +157,30 @@ def list_gstreamer_1_0_plugins_by_category(config):
                         e = e[3:-8]
                     plugins[cat_name].append(e)
         return plugins, replacements
+
+def generate_gir_h_from_gir(gir_file, gir_h_file):
+    """
+    Generate a .gir.h file from the specified .gir file, and write to the
+    specified gir.h file location
+
+    @gir_file: The .gir file
+    @gir_h_file: The location to write the generated .gir.h file to
+    """
+    outfname = gir_h_file
+    # FIXME: xxd is provided by vim-common, and not installed by
+    # bootstrap/build-tools
+    hexdump = shell.check_call('xxd -i ' + gir_file, shell=True, split=False)
+    outf = open(outfname, 'w')
+    outf.write(hexdump)
+    # Append checksum to .gir.h file
+    shasum = shell.check_call('shasum -a 1 -b < ' + gir_file, shell=True,
+                              split=False)[:40]
+    sha1fname = gir_file + '.sha1'
+    sha1f = open(sha1fname, 'w')
+    sha1f.write(shasum)
+    sha1f.close()
+    hexdump = shell.check_call('xxd -i ' + sha1fname, shell=True,
+                               split=False)
+    outf.write(hexdump)
+    outf.close()
+    os.unlink(sha1fname)
