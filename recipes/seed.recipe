@@ -25,8 +25,7 @@ class Recipe(recipe.Recipe):
             --disable-sqlite-module \
             --disable-xorg-module'
     deps = ['glib', 'gnome-js-common']
-    patches = ['seed/fix-transfer-full-argument-handling.patch',
-               'seed/javascriptcore-osx-ios.pc.patch']
+    patches = []
     platform_deps = {
         Platform.WINDOWS: ['javascriptcoregtk', 'gobject-introspection'],
         Platform.DARWIN: ['gobject-introspection'],
