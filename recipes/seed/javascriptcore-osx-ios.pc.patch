@@ -1,0 +1,27 @@
+From ff19d91f4c25075e8e5460937efcb3a0aad0bbba Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Sebastian=20Dr=C3=B6ge?= <sebastian@centricular.com>
+Date: Tue, 25 Nov 2014 13:57:32 +0100
+Subject: [PATCH] Use JavaScriptCore in the pkg-config file for OSX/iOS
+
+---
+ seed.pc.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/seed.pc.in b/seed.pc.in
+index 380b750..edc56eb 100644
+--- a/seed.pc.in
++++ b/seed.pc.in
+@@ -5,8 +5,8 @@ bindir=@bindir@
+ includedir=@includedir@
+ 
+ Cflags: -I${includedir}/seed@SEED_GTK_VERSION@
+-Requires: @WEBKIT_PC@ gobject-introspection-1.0 glib-2.0 gobject-2.0 gmodule-2.0 gthread-2.0
+-Libs: -L${libdir} -lseed@SEED_GTK_VERSION@
++Requires: gobject-introspection-1.0 glib-2.0 gobject-2.0 gmodule-2.0 gthread-2.0
++Libs: -L${libdir} -lseed@SEED_GTK_VERSION@ -framework JavaScriptCore
+ 
+ Name: Seed
+ Description: Seed Javascript Interpreter.
+-- 
+1.9.3 (Apple Git-50)
+

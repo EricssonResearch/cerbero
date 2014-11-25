@@ -25,6 +25,8 @@ class Recipe(recipe.Recipe):
             --disable-sqlite-module \
             --disable-xorg-module'
     deps = ['glib', 'gnome-js-common']
+    patches = ['seed/fix-transfer-full-argument-handling.patch',
+               'seed/javascriptcore-osx-ios.pc.patch']
     platform_deps = {
         Platform.WINDOWS: ['javascriptcoregtk', 'gobject-introspection'],
         Platform.DARWIN: ['gobject-introspection'],
@@ -39,6 +41,7 @@ class Recipe(recipe.Recipe):
         if self.config.target_platform in (Platform.DARWIN, Platform.IOS):
             self.append_env['WEBKIT_CFLAGS'] = " "
             self.append_env['WEBKIT_LIBS'] = " -framework JavaScriptCore "
+            self.patches.append('seed/javascriptcore-osx-ios.pc.patch')
         # self.append_env and new_env are broken!
         # So we run autogen.sh (without configure).
         ac_sh = 'env ACLOCAL_PATH="{0}" sh ./autogen.sh --help'
