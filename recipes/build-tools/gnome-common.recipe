@@ -1,0 +1,9 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+
+class Recipe(recipe.Recipe):
+    name = 'gnome-common'
+    version = '3.14.0'
+    licenses = [License.GPLv2]
+    stype = SourceType.TARBALL
+    url = 'https://download.gnome.org/sources/gnome-common/3.14/gnome-common-3.14.0.tar.xz'
