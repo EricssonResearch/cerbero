@@ -24,15 +24,21 @@ class Recipe(recipe.Recipe):
             --disable-readline-module \
             --disable-sqlite-module \
             --disable-xorg-module'
-    deps = ['glib', 'gnome-js-common', 'javascriptcoregtk']
+    deps = ['glib', 'gnome-js-common']
     platform_deps = {
-        Platform.ANDROID: ['openwebrtc-girepository'],
+        Platform.WINDOWS: ['javascriptcoregtk', 'gobject-introspection'],
+        Platform.DARWIN: ['gobject-introspection'],
+        Platform.ANDROID: ['openwebrtc-girepository', 'javascriptcoregtk'],
+        Platform.LINUX: ['javascriptcoregtk', 'gobject-introspection'],
         Platform.IOS: ['openwebrtc-girepository'],
     }
-    
+
     def prepare(self):
         if self.config.target_platform in (Platform.ANDROID, Platform.IOS):
             self.configure_options += ' --enable-static --disable-shared'
+        if self.config.target_platform in (Platform.DARWIN, Platform.IOS):
+            self.append_env['WEBKIT_CFLAGS'] = " "
+            self.append_env['WEBKIT_LIBS'] = " -framework JavaScriptCore "
         # self.append_env and new_env are broken!
         # So we run autogen.sh (without configure).
         ac_sh = 'env ACLOCAL_PATH="{0}" sh ./autogen.sh --help'
