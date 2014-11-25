@@ -35,24 +35,34 @@ class Recipe(recipe.Recipe):
 
     def prepare(self):
         if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
-            android_sdk = os.path.join(self.config.build_tools_prefix,
-                                       'opt', 'android-sdk')
             self.configure_options += ' --disable-gtk-doc --enable-static \
-                --enable-owr-static --enable-owr-java --enable-shared \
-                --with-android-sdk=' + android_sdk + ' \
-                --with-android-ndk=' + self.config.toolchain_prefix
+                --enable-owr-static '
+            if self.config.target_platform == Platform.ANDROID:
+                android_sdk = os.path.join(self.config.build_tools_prefix,
+                                           'opt', 'android-sdk')
+                self.configure_options += '--enable-owr-java --enable-shared \
+                    --with-android-sdk=' + android_sdk + ' \
+                    --with-android-ndk=' + self.config.toolchain_prefix
+
+                # Since we're linking statically, we need all these plugins at link
+                # time. However, the build system is foobar and doesn't add them.
+                android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
+                                              "cxx-stl", "gnu-libstdc++", "4.8");
+                cxxL = '-L'
+                cxxL += os.path.join(android_cxxstl, "libs", "armeabi-v7a")
+                cxxL += ' -lgnustl_shared '
+
+            else:
+                self.configure_options += '--disable-shared '
+                cxxL = ''
+
+            libdir = self.config.prefix + '/lib' + self.config.lib_suffix
             # We're using internal gir symbols for the static build, but the 
             # build system doesn't add this because it's stupid
             self.new_env['PKG_CONFIG'] = 'pkg-config --static'
-            # Since we're linking statically, we need all these plugins at link
-            # time. However, the build system is foobar and doesn't add them.
-            android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                          "cxx-stl", "gnu-libstdc++", "4.8");
-            cxxL = os.path.join(android_cxxstl, "libs", "armeabi-v7a")
-            libdir = self.config.prefix + '/lib' + self.config.lib_suffix
             self.append_env['LDFLAGS'] = ' -lgirepository-internals '
-            self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = ' -L' + cxxL + \
-                ' -lgnustl_shared -L' + libdir + '/gstreamer-1.0/static \
+            self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = \
+                '-L' + libdir + '/gstreamer-1.0/static \
                 -lgstalaw -lgstapp -lgstaudioconvert -lgstaudioresample \
                 -lgstaudiotestsrc -lgstcoreelements -lgsterdtls -lgstmulaw \
                 -lgstnice -lgstopengl -lgstopenh264 -lgstopus -lgstrtp \
