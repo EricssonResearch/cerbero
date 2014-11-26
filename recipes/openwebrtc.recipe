@@ -67,7 +67,7 @@ class Recipe(recipe.Recipe):
             if self.config.target_platform == Platform.ANDROID:
                 platform_libs = ' -lgstandroidvideosrc -lgstopensles '
             else:
-                platform_libs = ' -lgstapplemedia -lgstosxaudio '
+                platform_libs = ' -lgstapplemedia -lgstosxaudio -lgstercolorspace -framework AssetsLibrary -framework CoreMedia -framework CoreVideo -framework AVFoundation -framework Foundation -framework OpenGLES -framework CoreAudio -framework AudioToolbox -weak_framework VideoToolbox -lc++ '
             self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = platformL + \
                 '-L' + libdir + '/gstreamer-1.0/static \
                 -lgstalaw -lgstapp -lgstaudioconvert -lgstaudioresample \
