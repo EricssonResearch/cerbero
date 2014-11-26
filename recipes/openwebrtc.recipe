@@ -95,9 +95,13 @@ class Recipe(recipe.Recipe):
                                          '{0}_{1}'.format(self.config.platform,
                                                           self.config.arch),
                                          'share', 'gir-1.0')
+            # This is going to be fun if something causes an exception before
+            # we reset the path
+            old_cwd = os.getcwd()
             os.chdir(gir_file_path)
             gir_file = 'Owr-0.1.gir'
             gir_h_file = os.path.join(self.build_dir, 'Owr-0.1.gir.h')
             generate_gir_h_from_gir(gir_file, gir_h_file)
             shutil.copy(gir_file, os.path.join(self.build_dir))
+            os.chdir(old_cwd)
         super(Recipe, self).configure()

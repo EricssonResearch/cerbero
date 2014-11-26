@@ -64,6 +64,11 @@ class Recipe(recipe.Recipe):
         shutil.copy(os.path.join(self.build_dir, '.libs',
                                  'libgirepository-internals.a'),
                     os.path.join(self.config.install_dir, 'lib'))
+
+        # This is going to be fun if something causes an exception before
+        # we reset the path
+        old_cwd = os.getcwd()
+
         # Generate custom .gir.h files used by OWRTC
         os.chdir(os.path.join(self.config.build_tools_prefix, 'share',
                               'gir-1.0'))
@@ -76,3 +81,5 @@ class Recipe(recipe.Recipe):
         for gir_file in glob.glob('G*-2.0.gir'):
             gir_h_file = os.path.join(outdir, gir_file + '.h')
             generate_gir_h_from_gir(gir_file, gir_h_file)
+
+        os.chdir(old_cwd)
