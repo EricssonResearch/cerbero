@@ -74,7 +74,11 @@ class Recipe(recipe.Recipe):
             if self.config.target_platform == Platform.ANDROID:
                 gst_plugins += ['androidvideosrc', 'opensles', 'videoconvert']
             else:
-                gst_plugins += ['applemedia', 'osxaudio', 'ercolorspace']
+                gst_plugins += ['applemedia', 'osxaudio']
+                if self.config.target_arch in [Architecture.ARMv7, Architecture.ARMv7S]:
+                    gst_plugins += ['ercolorspace']
+                else:
+                    gst_plugins += ['videoconvert']
             # Convert the array of plugin names to a string of library names
             libdir = self.config.prefix + '/lib' + self.config.lib_suffix
             gst_plugins_path = '-L' + libdir + '/gstreamer-1.0/static '
