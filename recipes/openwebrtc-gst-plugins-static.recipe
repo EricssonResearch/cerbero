@@ -26,9 +26,6 @@ class Recipe(custom.GStreamerStatic):
     platform_files_plugins_capture_devel = {
         Platform.ANDROID: ['libgstandroidvideosrc'],
     }
-    platform_files_plugins_core_devel = {
-        Platform.IOS: ['libgstercolorspace'],
-    }
 
     def prepare(self):
         # OpenH264 has been moved to gst-plugins-bad
@@ -39,7 +36,9 @@ class Recipe(custom.GStreamerStatic):
             --disable-linux-plugins \
             --disable-colorspace-converter'
         if self.config.target_platform == Platform.IOS:
-            self.configure_options += ' --enable-colorspace-converter'
+            if self.config.target_arch in [Architecture.ARMv7, Architecture.ARMv7S]:
+                self.configure_options += ' --enable-colorspace-converter'
+                self.files_plugins_core_devel += ['libgstercolorspace']
         elif self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',
