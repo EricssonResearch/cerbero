@@ -40,7 +40,7 @@ class Recipe(recipe.Recipe):
         if self.config.target_platform == Platform.IOS:
             if self.config.target_arch in [Architecture.ARMv7, Architecture.ARMv7S]:
                 self.configure_options += ' --enable-colorspace-converter '
-                self.files_plugins_core += ['lib/gstreamer-1.0/libgstercolorspace%(mext)s']
+                self.files_plugins_core = ['lib/gstreamer-1.0/libgstercolorspace%(mext)s']
         elif self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',
