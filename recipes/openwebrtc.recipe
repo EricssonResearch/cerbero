@@ -145,8 +145,6 @@ class Recipe(recipe.Recipe):
                                         'jni', each + '.jar')
                 gst_plugins_libs = self.gst_plugins_libs
                 if each == 'openwebrtc_bridge':
-                    # openwebrtc_bridge.jar contains this library too
-                    jar_libs += ' ' + 'libopenwebrtc_jni.so'
                     # FIXME: For some reason, this is missing from
                     # libopenwebrtc_bridge.la, so we add it manually here.
                     # This needs to be fixed in the la file.
