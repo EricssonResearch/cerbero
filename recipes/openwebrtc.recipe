@@ -54,29 +54,34 @@ class Recipe(recipe.Recipe):
 
             else:
                 self.configure_options += '--disable-shared '
-                platformL = ''
+                platformL = '-framework AssetsLibrary -framework CoreMedia \
+                    -framework CoreVideo -framework AVFoundation \
+                    -framework Foundation -framework OpenGLES \
+                    -framework CoreAudio -framework AudioToolbox \
+                    -weak_framework VideoToolbox -lc++ '
 
-            libdir = self.config.prefix + '/lib' + self.config.lib_suffix
             # We're using internal gir symbols for the static build, but the 
             # build system doesn't add this because it's stupid
             self.new_env['PKG_CONFIG'] = 'pkg-config --static'
             self.append_env['LDFLAGS'] = ' -lgirepository-internals '
             # Since we're linking statically, we need all these plugins at link
             # time. However, the build system is foobar and doesn't add them.
-
+            gst_plugins = ['alaw', 'app', 'audioconvert', 'audioresample',
+                'audiotestsrc', 'coreelements', 'erdtls', 'mulaw', 'nice',
+                'opengl', 'openh264', 'opus', 'rtp', 'rtpmanager', 'srtp',
+                'videocrop', 'videofilter', 'videoparsersbad', 'videorate',
+                'videorepair', 'videoscale', 'videotestsrc', 'volume', 'vpx']
             if self.config.target_platform == Platform.ANDROID:
-                platform_libs = ' -lgstandroidvideosrc -lgstopensles '
+                gst_plugins += ['androidvideosrc', 'opensles', 'videoconvert']
             else:
-                platform_libs = ' -lgstapplemedia -lgstosxaudio -lgstercolorspace -framework AssetsLibrary -framework CoreMedia -framework CoreVideo -framework AVFoundation -framework Foundation -framework OpenGLES -framework CoreAudio -framework AudioToolbox -weak_framework VideoToolbox -lc++ '
-            self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = platformL + \
-                '-L' + libdir + '/gstreamer-1.0/static \
-                -lgstalaw -lgstapp -lgstaudioconvert -lgstaudioresample \
-                -lgstaudiotestsrc -lgstcoreelements -lgsterdtls -lgstmulaw \
-                -lgstnice -lgstopengl -lgstopenh264 -lgstopus -lgstrtp \
-                -lgstrtpmanager -lgstsrtp -lgstvideoconvert -lgstvideocrop \
-                -lgstvideofilter -lgstvideoparsersbad -lgstvideorate \
-                -lgstvideorepair -lgstvideoscale -lgstvideotestsrc \
-                -lgstvolume -lgstvpx ' + platform_libs + \
+                gst_plugins += ['applemedia', 'osxaudio', 'ercolorspace']
+            # Convert the array of plugin names to a string of library names
+            libdir = self.config.prefix + '/lib' + self.config.lib_suffix
+            gst_plugins_path = '-L' + libdir + '/gstreamer-1.0/static '
+            self.gst_plugins_libs = ' '.join(['-lgst' + l for l in gst_plugins])
+            # This env variable will get substituted in the Makefile
+            self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = \
+                platformL + gst_plugins_path + self.gst_plugins_libs + ' ' + \
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
@@ -110,3 +115,41 @@ class Recipe(recipe.Recipe):
             shutil.copy(gir_file, os.path.join(self.build_dir))
             os.chdir(old_cwd)
         super(Recipe, self).configure()
+
+    def post_install(self):
+        # On Android, we want a 'fat' library that contains all the dependencies
+        # not provided by the system within itself using static libraries.
+        # However, libtool gives us no way to generate that, so we use the
+        # 'libtool-link' command inside data/ndk-build/tools.mk to generate a 
+        # linker command that does that for us, re-create the library, and then
+        # add it to the JAR file
+        if self.config.target_platform == Platform.ANDROID:
+            make_cmd = 'make -f "{0}" INPUT_LIBRARY="{1}" OUTPUT_LIBRARY="{2}" \
+                        JAR_LIBS="{3}" JAR_FILE="{4}" CERBERO_DATA_PATH="{5}" \
+                        PREFIX="{6}" GSTREAMER_STATIC_PLUGINS="{7}"'
+            makefile = os.path.join(self.config.recipes_dir, self.name,
+                                    'Makefile.bundled-shared')
+            for each in ('openwebrtc', 'openwebrtc_bridge'):
+                input_library = each + '_jni'
+                jar_libs = 'lib' + input_library + '.so'
+                output_library = os.path.join(self.config.prefix,
+                                              'lib' + self.config.lib_suffix,
+                                              jar_libs)
+                output_library = os.path.realpath(output_library)
+                jar_file = os.path.join(self.config.prefix,
+                                        'lib' + self.config.lib_suffix,
+                                        'jni', each + '.jar')
+                gst_plugins_libs = self.gst_plugins_libs
+                if each == 'openwebrtc_bridge':
+                    # openwebrtc_bridge.jar contains this library too
+                    jar_libs += ' ' + 'libopenwebrtc_jni.so'
+                    # FIXME: For some reason, this is missing from
+                    # libopenwebrtc_bridge.la, so we add it manually here.
+                    # This needs to be fixed in the la file.
+                    gst_plugins_libs += ' -lseed-gtk3'
+                cmd = make_cmd.format(makefile, input_library, output_library,
+                                      jar_libs, jar_file,
+                                      self.config.data_dir,
+                                      self.config.prefix,
+                                      gst_plugins_libs)
+                shell.call(cmd)
