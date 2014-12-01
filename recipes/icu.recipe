@@ -21,6 +21,12 @@ class Recipe(recipe.Recipe):
     configure_options = '--enable-shared --enable-static \
         --disable-renaming --disable-samples --disable-debug \
         --disable-layout --disable-extras'
+    files_devel = ['bin/icu-config', 'lib/pkgconfig/icu-i18n.pc',
+                   'lib/pkgconfig/icu-io.pc', 'lib/pkgconfig/icu-uc.pc',
+                   'include/unicode']
+    files_libs = ['libicudata', 'libicui18n', 'libicuio',
+                  'libicutest', 'libicutu', 'libicuuc']
+    files_share = ['share/icu']
 
     def prepare(self):
         # Build directory is icu/source, not icu-53.1
