@@ -35,8 +35,7 @@ class Recipe(recipe.Recipe):
     }
 
     files_bins = ['seed']
-    files_libs = ['libseed-gtk3']
-    files_private_libs = ['lib/seed-gtk3/libseed_sandbox%(mext)s', 'lib/seed-gtk3/libseed_DynamicObject%(mext)s']
+    files_libs = ['libseed-gtk3', 'seed-gtk3/libseed_sandbox', 'seed-gtk3/libseed_DynamicObject']
     files_devel = ['lib/pkgconfig/seed.pc', 'include/seed-gtk3']
     files_share = ['share/seed-gtk3']
 
