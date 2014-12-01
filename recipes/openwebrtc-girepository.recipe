@@ -29,6 +29,7 @@ class Recipe(recipe.Recipe):
         'include/gobject-introspection-1.0',
         'lib/pkgconfig/gobject-introspection-1.0.pc',
         'lib/pkgconfig/gobject-introspection-no-export-1.0.pc',
+        'lib/libgirepository-internals.a',
         'share/gobject-introspection-1.0'
     ]
 
