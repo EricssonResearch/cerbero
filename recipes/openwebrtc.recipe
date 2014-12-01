@@ -33,6 +33,12 @@ class Recipe(recipe.Recipe):
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
+    files_bins = ['openwebrtc-daemon']
+    files_libs = ['libopenwebrtc', 'libopenwebrtc_bridge']
+    files_devel = ['lib/pkgconfig/openwebrtc-0.1.pc',
+                   'lib/pkgconfig/openwebrtc-bridge-0.1.pc',
+                   'include/owr']
+
     def prepare(self):
         if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
             self.configure_options += ' --disable-gtk-doc --enable-static \
