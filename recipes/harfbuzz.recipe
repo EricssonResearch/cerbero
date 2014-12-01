@@ -7,17 +7,21 @@ class Recipe(recipe.Recipe):
     stype = SourceType.TARBALL
     url = 'http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-%(version)s.tar.bz2'
     licenses = [License.LGPLv2Plus]
-    deps = ['fontconfig', 'cairo', 'glib', 'icu']
-    configure_options = '--enable-static --enable-glib --enable-gobject \
-        --with-icu'
+    deps = ['fontconfig', 'cairo', 'glib']
+    platform_deps = {
+        Platform.LINUX: ['icu'],
+        Platform.ANDROID: ['icu'],
+        Platform.WINDOWS: ['icu']
+    }
+    configure_options = '--enable-static --enable-glib --enable-gobject '
     files_bins = ['hb-ot-shape-closure', 'hb-view', 'hb-shape']
     files_libs = ['libharfbuzz']
     files_devel = ['include/harfbuzz/*.h', 'lib/pkgconfig/harfbuzz.pc']
 
     def prepare(self):
-        if self.config.target_platform != Platform.LINUX or \
-           self.config.target_distro == Distro.NONE:
-            self.configure_options += '--with-icu=no '
-        else:
+        if self.config.target_platform in [Platform.LINUX, Platform.ANDROID, Platform.WINDOWS]:
+            self.configure_options += ' --with-icu '
             self.files_devel.append('lib/pkgconfig/harfbuzz-icu.pc')
             self.files_libs.append('libharfbuzz-icu')
+        else:
+            self.configure_options += ' --without-icu '
