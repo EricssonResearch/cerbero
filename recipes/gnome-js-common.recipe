@@ -11,3 +11,6 @@ class Recipe(recipe.Recipe):
     # Disable building of tests
     configure_options = ' --disable-seed --disable-gjs'
     deps = ['gettext', 'intltool']
+
+    files_devel = ['lib/gnome-js',
+                   'lib/pkgconfig/gnome-js-common.pc']
