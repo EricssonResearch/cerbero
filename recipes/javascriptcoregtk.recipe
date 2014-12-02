@@ -21,6 +21,10 @@ class Recipe(recipe.Recipe):
             --disable-web-audio"
     deps = ['glib', 'icu']
 
+    files_libs = ['libjavascriptcoregtk-3.0']
+    files_devel = ['include/webkitgtk-3.0/JavaScriptCore',
+                   'lib/pkgconfig/javascriptcoregtk-3.0.pc']
+
     def prepare(self):
         self.make_install = 'make install-libjavascriptcoregtk_3_0_laHEADERS'
         self.make += ' jsc'

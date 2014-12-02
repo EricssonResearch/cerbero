@@ -14,6 +14,9 @@ class Recipe(recipe.Recipe):
     licenses = [License.BSD_like]
     configure_options = '--disable-debug --enable-static --enable-shared'
 
+    files_libs = ['libusrsctp']
+    files_devel = ['include/usrsctp.h']
+
     def configure(self):
         if self.config.target_platform == Platform.ANDROID:
             # ifaddrs is a GNU extension that isn't available on Android
