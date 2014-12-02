@@ -1,0 +1,34 @@
+# vi:si:et:sw=4:sts=4:ts=4:syntax=python
+# -*- Mode: Python -*-
+
+
+class Package(package.Package):
+
+    name = 'openwebrtc-base'
+    shortdesc = 'OpenWebRTC'
+    longdesc = 'OpenWebRTC'
+    url = "http://www.openwebrtc.org"
+    version = '0.0.1'
+    codename = 'Congo'
+    license = License.LGPL
+    vendor = 'Ericsson Research'
+    org = 'org.openwebrtc'
+    uuid = 'cf9531c5-f936-4f56-9cea-8cf1f61398d1'
+    deps = ['gstreamer-1.0-core',
+            'gstreamer-1.0-system',
+            'gstreamer-1.0-playback',
+            'gstreamer-1.0-codecs',
+            'gstreamer-1.0-effects',
+            'gstreamer-1.0-net',
+            'gstreamer-1.0-capture',
+           ]
+
+    files = ['openwebrtc', 'openwebrtc-gst-plugins',
+             'openssl:libs', 'seed:libs',
+            ]
+    files_devel = ['openwebrtc-gst-plugins-static',
+                   ]
+    platform_files = {
+            #Platform.DARWIN: ['openwebrtc-osx-framework'],
+            Platform.IOS: ['openwebrtc-girepository']
+    }

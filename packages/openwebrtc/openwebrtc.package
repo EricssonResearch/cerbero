@@ -1,0 +1,43 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class SDKPackage(package.SDKPackage):
+
+    name = "openwebrtc"
+    shortdesc = "OpenWebRTC"
+    longdesc = "OpenWebRTC"
+    title = "OpenWebRTC"
+    url = "http://www.openwebrtc.org"
+    version = '0.0.1'
+    sdk_version = '1.0'
+    codename = 'Congo'
+    license = License.LGPL
+    uuid = '16cadbc8-3033-4a9e-87a0-92e05f54ae06'
+    vendor = "Ericsson Research"
+    org = "org.openwebrtc"
+    ignore_package_prefix = True
+    packages =[
+               # (name, required, selected)
+               ('openwebrtc-base', True, True),
+              ]
+
+    install_dir = {
+        Platform.WINDOWS: 'openwebrtc',
+        Platform.LINUX: '/opt/openwebrtc/',
+        Platform.DARWIN: '/Library/Frameworks/OpenWebRTC.framework/',
+        Platform.IOS: '/Library/Developer/OpenWebRTC/iPhone.sdk'}
+
+    root_env_var = 'GSTREAMER_1_0_ROOT_%(arch)s'
+    wix_upgrade_code = {
+        PackageType.DEVEL: {
+            Architecture.X86 : '5c6ed70c-399e-4ea8-b6b5-33070042ad48',
+            Architecture.X86_64: '3076252c-45a4-4e80-84fc-b9fb21cb3aef',
+            },
+        PackageType.RUNTIME: {
+            Architecture.X86 : 'a4c8de30-1f68-48c4-b0f6-a4de9a2222b1',
+            Architecture.X86_64: '020e6f63-37c7-4e1f-899a-1b6069e273c7',
+            },
+        }
+    osx_framework_library = ('OpenWebRTC', 'lib/OpenWebRTC')
+    ios_framework_library = ('OpenWebRTC', 'lib/OpenWebRTC')
+
+
