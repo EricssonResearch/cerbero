@@ -18,6 +18,8 @@ class Recipe(recipe.Recipe):
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
+    files_plugins_core = ['lib/gstreamer-1.0/libgstercolorspace%(mext)s']
+
     files_plugins_net = [
         'lib/gstreamer-1.0/libgstvideorepair%(mext)s',
         'lib/gstreamer-1.0/libgsterdtls%(mext)s',
@@ -38,9 +40,7 @@ class Recipe(recipe.Recipe):
             --disable-linux-plugins \
             --disable-colorspace-converter'
         if self.config.target_platform == Platform.IOS:
-            if self.config.target_arch in [Architecture.ARMv7, Architecture.ARMv7S]:
-                self.configure_options += ' --enable-colorspace-converter '
-                self.files_plugins_core = ['lib/gstreamer-1.0/libgstercolorspace%(mext)s']
+            self.configure_options += ' --enable-colorspace-converter '
         elif self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',
