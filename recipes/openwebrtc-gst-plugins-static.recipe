@@ -11,8 +11,7 @@ class Recipe(custom.GStreamerStatic):
     commit = 'origin/master'
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
-    patches = [_name + '/video-source-gst-libs-cflags.patch',
-               _name + '/use-openssl-pkg-config.patch',
+    patches = [_name + '/use-openssl-pkg-config.patch',
                _name + '/use-either-android-api-19-20.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
             'orc', 'libxml2']

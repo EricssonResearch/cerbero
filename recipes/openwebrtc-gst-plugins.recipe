@@ -10,8 +10,7 @@ class Recipe(recipe.Recipe):
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
     configure_options = ''
-    patches = [name + '/video-source-gst-libs-cflags.patch',
-               name + '/use-openssl-pkg-config.patch',
+    patches = [name + '/use-openssl-pkg-config.patch',
                name + '/use-either-android-api-19-20.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
             'orc', 'libxml2']
