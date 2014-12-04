@@ -77,7 +77,7 @@ class Recipe(recipe.Recipe):
                 'opengl', 'openh264', 'opus', 'rtp', 'rtpmanager', 'srtp',
                 'videocrop', 'videofilter', 'videoparsersbad', 'videorate',
                 'videorepair', 'videoscale', 'videotestsrc', 'volume', 'vpx',
-                'videoconvert']
+                'videoconvert', 'inter']
             if self.config.target_platform == Platform.ANDROID:
                 gst_plugins += ['androidvideosrc', 'opensles']
             else:
