@@ -18,7 +18,9 @@ class Recipe(recipe.Recipe):
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
-    files_plugins_core = ['lib/gstreamer-1.0/libgstercolorspace%(mext)s']
+    platform_files_plugins_core = {
+        Platform.IOS: ['lib/gstreamer-1.0/libgstercolorspace%(mext)s'],
+    }
 
     files_plugins_net = [
         'lib/gstreamer-1.0/libgstvideorepair%(mext)s',
