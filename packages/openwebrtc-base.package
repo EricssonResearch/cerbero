@@ -29,6 +29,6 @@ class Package(package.Package):
     files_devel = ['openwebrtc-gst-plugins-static',
                    ]
     platform_files = {
-            #Platform.DARWIN: ['openwebrtc-osx-framework'],
+            Platform.DARWIN: ['openwebrtc-osx-framework'],
             Platform.IOS: ['openwebrtc-girepository']
     }
