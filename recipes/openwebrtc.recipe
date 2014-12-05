@@ -39,6 +39,12 @@ class Recipe(recipe.Recipe):
                    'lib/pkgconfig/openwebrtc-bridge-0.1.pc',
                    'include/owr']
 
+    platform_files_typelibs = {
+        Platform.DARWIN: ['Owr-0.1'],
+        Platform.LINUX: ['Owr-0.1'],
+        Platform.WINDOWS: ['Owr-0.1'],
+    }
+
     def prepare(self):
         if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
             self.configure_options += ' --disable-gtk-doc --enable-static \
