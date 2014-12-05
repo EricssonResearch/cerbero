@@ -8,7 +8,7 @@ class Package(package.Package):
     shortdesc = 'OpenWebRTC'
     longdesc = 'OpenWebRTC'
     url = "http://www.openwebrtc.org"
-    version = '0.0.1'
+    version = '0.1.0'
     codename = 'Congo'
     license = License.LGPL
     vendor = 'Ericsson Research'
@@ -21,6 +21,7 @@ class Package(package.Package):
             'gstreamer-1.0-effects',
             'gstreamer-1.0-net',
             'gstreamer-1.0-capture',
+            'base-system-1.0',
            ]
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',

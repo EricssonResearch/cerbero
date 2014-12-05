@@ -7,8 +7,8 @@ class SDKPackage(package.SDKPackage):
     longdesc = "OpenWebRTC"
     title = "OpenWebRTC"
     url = "http://www.openwebrtc.org"
-    version = '0.0.1'
-    sdk_version = '1.0'
+    version = '0.1.0'
+    sdk_version = '0.1'
     codename = 'Congo'
     license = License.LGPL
     uuid = '16cadbc8-3033-4a9e-87a0-92e05f54ae06'
