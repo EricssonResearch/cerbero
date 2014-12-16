@@ -15,12 +15,6 @@ class Package(package.Package):
     org = 'org.openwebrtc'
     uuid = 'cf9531c5-f936-4f56-9cea-8cf1f61398d1'
     deps = ['gstreamer-1.0-core',
-            'gstreamer-1.0-system',
-            'gstreamer-1.0-playback',
-            'gstreamer-1.0-codecs',
-            'gstreamer-1.0-effects',
-            'gstreamer-1.0-net',
-            'gstreamer-1.0-capture',
             'base-system-1.0',
            ]
 
@@ -32,4 +26,5 @@ class Package(package.Package):
     platform_files = {
             Platform.DARWIN: ['openwebrtc-osx-framework'],
             Platform.IOS: ['openwebrtc-girepository']
+            # TODO: Needs javascriptcore and stuff on others
     }

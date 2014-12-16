@@ -19,144 +19,72 @@ class Recipe(custom.GStreamerStatic):
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
         --disable-xvid --disable-zbar --disable-sdi'
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'bzip2', 'libass',
-            'faad2', 'libkate', 'zlib', 'openh264', 'opus', 'nettle', 'librtmp',
-            'libsrtp', 'schroedinger', 'libdca', 'libmms', 'libdvdnav',
-            'soundtouch', 'vo-aacenc', 'librsvg', 'openjpeg']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
+            'libsrtp']
     use_system_libs = True
 
     files_plugins_effects_devel = [
-             'libgstaccurip',
-             'libgstaiff',
-             'libgstaudiofxbad',
-             'libgstautoconvert',
-             'libgstbayer',
-             'libgstcoloreffects',
-             'libgstdebugutilsbad',
-             'libgstfieldanalysis',
-             'libgstfreeverb',
-             'libgstfrei0r',
-             'libgstgaudieffects',
-             'libgstgeometrictransform',
              'libgstinter',
-             'libgstinterlace',
-             'libgstivtc',
-             'libgstliveadder',
-             'libgstrawparse',
-             'libgstremovesilence',
-             'libgstsegmentclip',
-             'libgstsmooth',
-             'libgstspeed',
-             'libgstvideofiltersbad',
-             'libgstaudiomixer',
-             'libgstcompositor',
     ]
 
     files_plugins_codecs_devel = [
-             'libgstadpcmdec',
-             'libgstadpcmenc',
-             'libgstdashdemux',
-             'libgstdvbsuboverlay',
-             'libgstdvdspu',
-             'libgstfragmented',
-             'libgstid3tag',
-             'libgstkate',
-             'libgstmidi',
-             'libgstmxf',
              'libgstopenh264',
              'libgstopus',
-             'libgstpcapparse',
-             'libgstpnm',
-             'libgstrfbsrc',
-             'libgstschro',
-             'libgstsiren',
-             'libgstsmoothstreaming',
-             'libgstsubenc',
              'libgstvideoparsersbad',
-             'libgsty4mdec',
-             'libgstjpegformat',
-             'libgstgdp',
-             'libgstrsvg',
-             'libgstopenjpeg',
     ]
 
     platform_files_plugins_codecs_devel = {
         Platform.ANDROID: [
-             'libgstandroidmedia',
             ]
     }
 
     files_plugins_codecs_gpl_devel = [
-             'libgstassrender',
     ]
 
     files_plugins_codecs_restricted_devel = [
-             'libgstasfmux',
-             'libgstdtsdec',
-             'libgstfaad',
-             'libgstmpegpsdemux',
-             'libgstmpegpsmux',
-             'libgstmpegtsdemux',
-             'libgstmpegtsmux',
-             'libgstvoaacenc'
     ]
 
     files_plugins_dvd_devel = [
-             'libgstresindvd',
     ]
 
     files_plugins_net_devel = [
-             'libgstdataurisrc',
-             'libgstsdpelem',
              'libgstsrtp',
     ]
 
     files_plugins_net_restricted_devel = [
-             'libgstmms',
-             'libgstrtmp',
     ]
 
     files_plugins_capture_devel = [
-             'libgstcamerabin2',
             ]
 
 
     platform_files_plugins_capture_devel = {
         Platform.LINUX: [
-             'libgstdvb',
             ],
         Platform.WINDOWS: [
-             'libgstwinscreencap',
              'libgstdirectsoundsrc',
              'libgstwinks',
             ]
     }
 
     files_plugins_vis_devel = [
-             'libgstaudiovisualizers',
             ]
 
     platform_files_plugins_sys_devel = {
         Platform.LINUX: [
-             'libgstshm',
              'libgstopengl',
             ],
         Platform.WINDOWS: [
              'libgstd3dvideosink',
-             'libgstwasapi',
              'libgstopengl',
             ],
         Platform.DARWIN: [
              'libgstapplemedia',
-             'libgstapplemedia_nonpublic',
-             'libgstshm',
              'libgstopengl',
             ],
         Platform.IOS: [
              'libgstapplemedia',
-             #'libgstapplemedia_nonpublic',
              'libgstopengl',
-             'libgstshm',
             ],
         Platform.ANDROID: [
              'libgstopensles',
@@ -171,19 +99,9 @@ class Recipe(custom.GStreamerStatic):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
-        if self.config.target_platform == Platform.WINDOWS:
-            self.configure_options += \
-                ' --disable-cog --disable-sdl '\
-                '--disable-cdaudio'
-        if self.config.target_platform in [ Platform.ANDROID, Platform.IOS ]:
-            for d in ['libdvdnav']:
-                self.deps.remove(d)
-            self.files_plugins_dvd_devel.remove('libgstresindvd')
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'
 
-        if self.config.target_distro_version in [DistroVersion.DEBIAN_SQUEEZE, DistroVersion.DEBIAN_WHEEZY]:
-            self.platform_files_plugins_capture_devel[Platform.LINUX].remove("libgstdvb")
         super(Recipe, self).prepare()
 
         self.remotes['origin'] = ('%s/%s' % ('git://anongit.freedesktop.org/gstreamer', 'gst-plugins-bad'))

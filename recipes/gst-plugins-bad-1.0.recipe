@@ -20,161 +20,83 @@ class Recipe(recipe.Recipe):
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
         --disable-xvid --disable-zbar --disable-sdi'
     # Explicitly enable plugins
-    configure_options += ' --enable-bz2 --enable-assrender \
-        --enable-faad --enable-kate --enable-openh264 --enable-opus \
-        --enable-hls --enable-rtmp --enable-srtp --enable-schro --enable-dts \
-        --enable-libmms --enable-resindvd --enable-soundtouch \
-        --enable-voaacenc --enable-rsvg --enable-openjpeg'
+    configure_options += ' --enable-openh264 --enable-opus \
+        --enable-srtp'
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'bzip2', 'libass',
-            'faad2', 'libkate', 'zlib', 'openh264', 'opus', 'nettle', 'librtmp',
-            'libsrtp', 'schroedinger', 'libdca', 'libmms', 'libdvdnav',
-            'soundtouch', 'vo-aacenc', 'librsvg', 'openjpeg']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
+            'libsrtp']
     use_system_libs = True
 
     files_lang = ['gst-plugins-bad-1.0']
 
-    files_libs = ['libgstcodecparsers-1.0', 'libgstmpegts-1.0', 'libgsturidownloader-1.0',
-                  'libgstbasecamerabinsrc-1.0', 'libgstphotography-1.0',
-                  'libgstgl-1.0', 'libgstbadbase-1.0', 'libgstbadvideo-1.0',
-                  'libgstinsertbin-1.0', 'libgstadaptivedemux-1.0']
+    files_libs = ['libgstcodecparsers-1.0',
+                  'libgstgl-1.0']
 
     files_plugins_devel = [
         'include/gstreamer-1.0/gst/gl',
-        'include/gstreamer-1.0/gst/mpegts'
     ]
 
     files_plugins_effects = [
-             'lib/gstreamer-1.0/libgstaccurip%(mext)s',
-             'lib/gstreamer-1.0/libgstaiff%(mext)s',
-             'lib/gstreamer-1.0/libgstaudiofxbad%(mext)s',
-             'lib/gstreamer-1.0/libgstautoconvert%(mext)s',
-             'lib/gstreamer-1.0/libgstbayer%(mext)s',
-             'lib/gstreamer-1.0/libgstcoloreffects%(mext)s',
-             'lib/gstreamer-1.0/libgstdebugutilsbad%(mext)s',
-             'lib/gstreamer-1.0/libgstfieldanalysis%(mext)s',
-             'lib/gstreamer-1.0/libgstfreeverb%(mext)s',
-             'lib/gstreamer-1.0/libgstfrei0r%(mext)s',
-             'lib/gstreamer-1.0/libgstgaudieffects%(mext)s',
-             'lib/gstreamer-1.0/libgstgeometrictransform%(mext)s',
              'lib/gstreamer-1.0/libgstinter%(mext)s',
-             'lib/gstreamer-1.0/libgstinterlace%(mext)s',
-             'lib/gstreamer-1.0/libgstivtc%(mext)s',
-             'lib/gstreamer-1.0/libgstliveadder%(mext)s',
-             'lib/gstreamer-1.0/libgstrawparse%(mext)s',
-             'lib/gstreamer-1.0/libgstremovesilence%(mext)s',
-             'lib/gstreamer-1.0/libgstsegmentclip%(mext)s',
-             'lib/gstreamer-1.0/libgstsmooth%(mext)s',
-             'lib/gstreamer-1.0/libgstspeed%(mext)s',
-             'lib/gstreamer-1.0/libgstvideofiltersbad%(mext)s',
-             'lib/gstreamer-1.0/libgstaudiomixer%(mext)s',
-             'lib/gstreamer-1.0/libgstcompositor%(mext)s',
     ]
 
     files_plugins_codecs = [
-             'lib/gstreamer-1.0/libgstadpcmdec%(mext)s',
-             'lib/gstreamer-1.0/libgstadpcmenc%(mext)s',
-             'lib/gstreamer-1.0/libgstdashdemux%(mext)s',
-             'lib/gstreamer-1.0/libgstdvbsuboverlay%(mext)s',
-             'lib/gstreamer-1.0/libgstdvdspu%(mext)s',
-             'lib/gstreamer-1.0/libgstfragmented%(mext)s',
-             'lib/gstreamer-1.0/libgstid3tag%(mext)s',
-             'lib/gstreamer-1.0/libgstkate%(mext)s',
-             'lib/gstreamer-1.0/libgstmidi%(mext)s',
-             'lib/gstreamer-1.0/libgstmxf%(mext)s',
              'lib/gstreamer-1.0/libgstopenh264%(mext)s',
              'lib/gstreamer-1.0/libgstopus%(mext)s',
-             'lib/gstreamer-1.0/libgstpcapparse%(mext)s',
-             'lib/gstreamer-1.0/libgstpnm%(mext)s',
-             'lib/gstreamer-1.0/libgstrfbsrc%(mext)s',
-             'lib/gstreamer-1.0/libgstschro%(mext)s',
-             'lib/gstreamer-1.0/libgstsiren%(mext)s',
-             'lib/gstreamer-1.0/libgstsmoothstreaming%(mext)s',
-             'lib/gstreamer-1.0/libgstsubenc%(mext)s',
              'lib/gstreamer-1.0/libgstvideoparsersbad%(mext)s',
-             'lib/gstreamer-1.0/libgsty4mdec%(mext)s',
-             'lib/gstreamer-1.0/libgstjpegformat%(mext)s',
-             'lib/gstreamer-1.0/libgstgdp%(mext)s',
-             'lib/gstreamer-1.0/libgstrsvg%(mext)s',
-             'lib/gstreamer-1.0/libgstopenjpeg%(mext)s',
     ]
 
     platform_files_plugins_codecs = {
         Platform.ANDROID: [
-             'lib/gstreamer-1.0/libgstandroidmedia%(mext)s',
             ]
     }
 
     files_plugins_codecs_gpl = [
-             'lib/gstreamer-1.0/libgstassrender%(mext)s',
     ]
 
     files_plugins_codecs_restricted = [
-             'lib/gstreamer-1.0/libgstasfmux%(mext)s',
-             'lib/gstreamer-1.0/libgstdtsdec%(mext)s',
-             'lib/gstreamer-1.0/libgstfaad%(mext)s',
-             'lib/gstreamer-1.0/libgstmpegpsdemux%(mext)s',
-             'lib/gstreamer-1.0/libgstmpegpsmux%(mext)s',
-             'lib/gstreamer-1.0/libgstmpegtsdemux%(mext)s',
-             'lib/gstreamer-1.0/libgstmpegtsmux%(mext)s',
-             'lib/gstreamer-1.0/libgstvoaacenc%(mext)s'
     ]
 
     files_plugins_dvd = [
-             'lib/gstreamer-1.0/libgstresindvd%(mext)s',
     ]
 
     files_plugins_net = [
-             'lib/gstreamer-1.0/libgstdataurisrc%(mext)s',
-             'lib/gstreamer-1.0/libgstsdpelem%(mext)s',
              'lib/gstreamer-1.0/libgstsrtp%(mext)s',
     ]
 
     files_plugins_net_restricted = [
-             'lib/gstreamer-1.0/libgstmms%(mext)s',
-             'lib/gstreamer-1.0/libgstrtmp%(mext)s',
     ]
 
     files_plugins_capture = [
-             'lib/gstreamer-1.0/libgstcamerabin2%(mext)s'
             ]
 
 
     platform_files_plugins_capture = {
         Platform.LINUX: [
-             'lib/gstreamer-1.0/libgstdvb%(mext)s',
             ],
         Platform.WINDOWS: [
-             'lib/gstreamer-1.0/libgstwinscreencap%(mext)s',
              'lib/gstreamer-1.0/libgstdirectsoundsrc%(mext)s',
              'lib/gstreamer-1.0/libgstwinks%(mext)s',
             ]
     }
 
     files_plugins_vis = [
-             'lib/gstreamer-1.0/libgstaudiovisualizers%(mext)s',
             ]
 
     platform_files_plugins_sys = {
         Platform.LINUX: [
-             'lib/gstreamer-1.0/libgstshm%(mext)s',
              'lib/gstreamer-1.0/libgstopengl%(mext)s'
             ],
         Platform.WINDOWS: [
              'lib/gstreamer-1.0/libgstd3dvideosink%(mext)s',
-             'lib/gstreamer-1.0/libgstwasapi%(mext)s',
              'lib/gstreamer-1.0/libgstopengl%(mext)s'
             ],
         Platform.DARWIN: [
              'lib/gstreamer-1.0/libgstapplemedia%(mext)s',
-             'lib/gstreamer-1.0/libgstapplemedia_nonpublic%(mext)s',
-             'lib/gstreamer-1.0/libgstshm%(mext)s',
              'lib/gstreamer-1.0/libgstopengl%(mext)s'
             ],
         Platform.IOS: [
              'lib/gstreamer-1.0/libgstapplemedia%(mext)s',
-             #'lib/gstreamer-1.0/libgstapplemedia_nonpublic%(mext)s',
-             'lib/gstreamer-1.0/libgstshm%(mext)s',
              'lib/gstreamer-1.0/libgstopengl%(mext)s'
             ],
         Platform.ANDROID: [
@@ -184,8 +106,6 @@ class Recipe(recipe.Recipe):
     }
     files_typelibs = [
         'GstGL-1.0',
-        'GstInsertBin-1.0',
-        'GstMpegts-1.0'
         ]
 
     def prepare(self):
@@ -198,14 +118,6 @@ class Recipe(recipe.Recipe):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
-        if self.config.target_platform == Platform.WINDOWS:
-            self.configure_options += \
-                ' --disable-cog --disable-sdl '\
-                '--disable-cdaudio'
-        if self.config.target_platform in [ Platform.ANDROID, Platform.IOS ]:
-            for d in ['libdvdnav']:
-                self.deps.remove(d)
-            self.files_plugins_dvd.remove('lib/gstreamer-1.0/libgstresindvd%(mext)s')
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'
 

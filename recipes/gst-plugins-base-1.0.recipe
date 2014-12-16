@@ -8,12 +8,8 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
     commit = 'origin/master'
-    deps = ['glib', 'gstreamer-1.0', 'libxml2', 'libogg', 'pango', 'libtheora',
-            'libvisual', 'libvorbis', 'zlib', 'orc']
-    platform_deps = {Platform.ANDROID: [ 'tremor' ], Platform.IOS: [ 'tremor' ] }
+    deps = ['glib', 'gstreamer-1.0', 'libxml2', 'pango', 'zlib', 'orc']
     use_system_libs = True
-
-    files_bins = ['gst-discoverer-1.0']
 
     files_libs = ['libgstallocators-1.0',
                  'libgstapp-1.0', 'libgstaudio-1.0',
@@ -22,13 +18,11 @@ class Recipe(recipe.Recipe):
                  'libgstvideo-1.0',]
 
     files_plugins_core = [
-             'lib/gstreamer-1.0/libgstadder%(mext)s',
              'lib/gstreamer-1.0/libgstapp%(mext)s',
              'lib/gstreamer-1.0/libgstaudioconvert%(mext)s',
              'lib/gstreamer-1.0/libgstaudiorate%(mext)s',
              'lib/gstreamer-1.0/libgstaudioresample%(mext)s',
              'lib/gstreamer-1.0/libgstaudiotestsrc%(mext)s',
-             'lib/gstreamer-1.0/libgstgio%(mext)s',
              'lib/gstreamer-1.0/libgstpango%(mext)s',
              'lib/gstreamer-1.0/libgsttypefindfunctions%(mext)s',
              'lib/gstreamer-1.0/libgstvideoconvert%(mext)s',
@@ -37,26 +31,6 @@ class Recipe(recipe.Recipe):
              'lib/gstreamer-1.0/libgstvideotestsrc%(mext)s',
              'lib/gstreamer-1.0/libgstvolume%(mext)s',
     ]
-
-    files_plugins_playback = [
-             'lib/gstreamer-1.0/libgstplayback%(mext)s',
-            ]
-
-    # Not used currently
-    files_plugins_encoding = [
-             'lib/gstreamer-1.0/libgstencodebin%(mext)s',
-            ]
-
-    files_plugins_codecs = [
-             'lib/gstreamer-1.0/libgstsubparse%(mext)s',
-             'lib/gstreamer-1.0/libgstogg%(mext)s',
-             'lib/gstreamer-1.0/libgsttheora%(mext)s',
-             'lib/gstreamer-1.0/libgstvorbis%(mext)s',
-            ]
-
-    files_plugins_vis = [
-             'lib/gstreamer-1.0/libgstlibvisual%(mext)s',
-            ]
 
     files_plugins_devel = [
             'include/gstreamer-1.0/gst/allocators',
@@ -84,21 +58,6 @@ class Recipe(recipe.Recipe):
             'lib/pkgconfig/gstreamer-plugins-base-1.0.pc',
     ]
 
-    files_plugins_net = [
-            'lib/gstreamer-1.0/libgsttcp%(mext)s',
-            ]
-    files_plugins_sys = []
-
-
-    platform_files_plugins_codecs = {
-        Platform.ANDROID: [
-             'lib/gstreamer-1.0/libgstivorbisdec%(mext)s',
-            ],
-        Platform.IOS: [
-             'lib/gstreamer-1.0/libgstivorbisdec%(mext)s',
-            ]
-    }
-
     files_lang = ['gst-plugins-base-1.0']
 
     files_typelibs = [
@@ -125,24 +84,9 @@ class Recipe(recipe.Recipe):
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
 
-        if self.config.variants.cdparanoia:
-            self.deps.append('cdparanoia')
-            self.files_plugins_sys += ['lib/gstreamer-1.0/libgstcdparanoia%(mext)s']
-        else:
-            self.configure_options += ' --disable-cdparanoia'
-
-        if self.config.variants.x11:
-            self.files_plugins_sys += [
-                 'lib/gstreamer-1.0/libgstximagesink%(mext)s',
-                 'lib/gstreamer-1.0/libgstxvimagesink%(mext)s',
-                ]
-        else:
-            self.configure_options += ' --disable-x --disable-xvideo '
-
-        if self.config.variants.alsa:
-            self.files_plugins_sys += ['lib/gstreamer-1.0/libgstalsa%(mext)s']
-        else:
-            self.configure_options += ' --disable-alsa'
+        self.configure_options += ' --disable-cdparanoia'
+        self.configure_options += ' --disable-x --disable-xvideo '
+        self.configure_options += ' --disable-alsa'
 
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'

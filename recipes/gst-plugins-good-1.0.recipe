@@ -8,82 +8,33 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = '--disable-examples --disable-oss4 --disable-oss --disable-dv1394 --disable-aalib --disable-libcaca --disable-jack --disable-shout2 '
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'libjpeg-turbo', 'libpng',
-            'speex', 'gdk-pixbuf', 'libsoup',
-            'orc', 'wavpack', 'flac', 'taglib', 'bzip2', 'zlib',
-            'libvpx', 'libdv', 'cairo']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'orc', 'bzip2', 'zlib',
+            'libvpx']
 
 
     files_lang = ['gst-plugins-good-1.0']
 
     files_plugins_core = [
-             'lib/gstreamer-1.0/libgstautodetect%(mext)s',
              'lib/gstreamer-1.0/libgstvideofilter%(mext)s',
     ]
 
     files_plugins_effects = [
-             'lib/gstreamer-1.0/libgstalpha%(mext)s',
-             'lib/gstreamer-1.0/libgstalphacolor%(mext)s',
-             'lib/gstreamer-1.0/libgstaudiofx%(mext)s',
-             'lib/gstreamer-1.0/libgstcairo%(mext)s',
-             'lib/gstreamer-1.0/libgstcutter%(mext)s',
-             'lib/gstreamer-1.0/libgstdebug%(mext)s',
-             'lib/gstreamer-1.0/libgstdeinterlace%(mext)s',
-             'lib/gstreamer-1.0/libgstdtmf%(mext)s',
-             'lib/gstreamer-1.0/libgsteffectv%(mext)s',
-             'lib/gstreamer-1.0/libgstequalizer%(mext)s',
-             'lib/gstreamer-1.0/libgstgdkpixbuf%(mext)s',
-             'lib/gstreamer-1.0/libgstimagefreeze%(mext)s',
-             'lib/gstreamer-1.0/libgstinterleave%(mext)s',
-             'lib/gstreamer-1.0/libgstlevel%(mext)s',
-             'lib/gstreamer-1.0/libgstmultifile%(mext)s',
-             'lib/gstreamer-1.0/libgstreplaygain%(mext)s',
-             'lib/gstreamer-1.0/libgstshapewipe%(mext)s',
-             'lib/gstreamer-1.0/libgstsmpte%(mext)s',
-             'lib/gstreamer-1.0/libgstspectrum%(mext)s',
-             'lib/gstreamer-1.0/libgstvideobox%(mext)s',
              'lib/gstreamer-1.0/libgstvideocrop%(mext)s',
-             'lib/gstreamer-1.0/libgstvideomixer%(mext)s',
     ]
 
     files_plugins_codecs = [
              'lib/gstreamer-1.0/libgstalaw%(mext)s',
-             'lib/gstreamer-1.0/libgstapetag%(mext)s',
-             'lib/gstreamer-1.0/libgstaudioparsers%(mext)s',
-             'lib/gstreamer-1.0/libgstauparse%(mext)s',
-             'lib/gstreamer-1.0/libgstavi%(mext)s',
-             'lib/gstreamer-1.0/libgstdv%(mext)s',
-             'lib/gstreamer-1.0/libgstflac%(mext)s',
-             'lib/gstreamer-1.0/libgstflv%(mext)s',
-             'lib/gstreamer-1.0/libgstflxdec%(mext)s',
-             'lib/gstreamer-1.0/libgsticydemux%(mext)s',
-             'lib/gstreamer-1.0/libgstid3demux%(mext)s',
-             'lib/gstreamer-1.0/libgstisomp4%(mext)s',
-             'lib/gstreamer-1.0/libgstjpeg%(mext)s',
-             'lib/gstreamer-1.0/libgstmatroska%(mext)s',
              'lib/gstreamer-1.0/libgstmulaw%(mext)s',
-             'lib/gstreamer-1.0/libgstmultipart%(mext)s',
-             'lib/gstreamer-1.0/libgstpng%(mext)s',
-             'lib/gstreamer-1.0/libgstspeex%(mext)s',
-             'lib/gstreamer-1.0/libgsttaglib%(mext)s',
              'lib/gstreamer-1.0/libgstvpx%(mext)s',
-             'lib/gstreamer-1.0/libgstwavenc%(mext)s',
-             'lib/gstreamer-1.0/libgstwavpack%(mext)s',
-             'lib/gstreamer-1.0/libgstwavparse%(mext)s',
-             'lib/gstreamer-1.0/libgsty4menc%(mext)s',
     ]
 
     files_plugins_net = [
-             'lib/gstreamer-1.0/libgstrtsp%(mext)s',
              'lib/gstreamer-1.0/libgstrtp%(mext)s',
              'lib/gstreamer-1.0/libgstrtpmanager%(mext)s',
-             'lib/gstreamer-1.0/libgstsouphttpsrc%(mext)s',
              'lib/gstreamer-1.0/libgstudp%(mext)s',
     ]
 
     files_plugins_vis = [
-             'lib/gstreamer-1.0/libgstgoom%(mext)s',
-             'lib/gstreamer-1.0/libgstgoom2k1%(mext)s',
             ]
 
     files_plugins_capture = []
@@ -96,7 +47,6 @@ class Recipe(recipe.Recipe):
             ],
         Platform.DARWIN: [
              'lib/gstreamer-1.0/libgstosxaudio%(mext)s',
-             'lib/gstreamer-1.0/libgstosxvideosink%(mext)s',
             ],
         Platform.IOS: [
              'lib/gstreamer-1.0/libgstosxaudio%(mext)s'
@@ -118,19 +68,12 @@ class Recipe(recipe.Recipe):
             self.configure_options += ' --disable-aalib --disable-esd '
         if self.config.target_platform == Platform.LINUX:
             self.use_system_libs = True
-        if self.config.variants.v4l2:
             self.files_plugins_capture += ['lib/gstreamer-1.0/libgstvideo4linux2%(mext)s']
-        else:
-            self.configure_options += ' --disable-gst_v4l2'
-        if self.config.variants.x11:
-            self.files_plugins_capture += ['lib/gstreamer-1.0/libgstximagesrc%(mext)s']
-        else:
-            self.configure_options += ' --disable-x --disable-xvideo'
-
-        if self.config.variants.pulse:
             self.files_plugins_sys += ['lib/gstreamer-1.0/libgstpulse%(mext)s']
         else:
+            self.configure_options += ' --disable-gst_v4l2'
             self.configure_options += ' --disable-pulse'
+        self.configure_options += ' --disable-x --disable-xvideo'
 
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'

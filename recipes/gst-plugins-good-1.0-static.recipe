@@ -8,80 +8,31 @@ class Recipe(custom.GStreamerStatic):
     licenses = [License.LGPLv2Plus]
     extra_configure_options = '--enable-static --disable-oss4 --disable-oss --disable-dv1394 --disable-aalib --disable-libcaca --disable-jack --disable-shout2'
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'libjpeg-turbo', 'libpng',
-            'speex', 'gdk-pixbuf', 'libsoup',
-            'orc', 'wavpack', 'flac', 'taglib', 'bzip2', 'zlib',
-            'libvpx', 'libdv', 'cairo']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'orc', 'bzip2', 'zlib',
+            'libvpx']
 
 
     files_plugins_core_devel = [
-             'libgstautodetect',
              'libgstvideofilter',
     ]
 
     files_plugins_effects_devel = [
-             'libgstalpha',
-             'libgstalphacolor',
-             'libgstaudiofx',
-             'libgstcairo',
-             'libgstcutter',
-             'libgstdebug',
-             'libgstdeinterlace',
-             'libgstdtmf',
-             'libgsteffectv',
-             'libgstequalizer',
-             'libgstgdkpixbuf',
-             'libgstimagefreeze',
-             'libgstinterleave',
-             'libgstlevel',
-             'libgstmultifile',
-             'libgstreplaygain',
-             'libgstshapewipe',
-             'libgstsmpte',
-             'libgstspectrum',
-             'libgstvideobox',
              'libgstvideocrop',
-             'libgstvideomixer',
     ]
 
     files_plugins_codecs_devel = [
              'libgstalaw',
-             'libgstapetag',
-             'libgstaudioparsers',
-             'libgstauparse',
-             'libgstavi',
-             'libgstdv',
-             'libgstflac',
-             'libgstflv',
-             'libgstflxdec',
-             'libgsticydemux',
-             'libgstid3demux',
-             'libgstisomp4',
-             'libgstjpeg',
-             'libgstmatroska',
              'libgstmulaw',
-             'libgstmultipart',
-             'libgstpng',
-             'libgstspeex',
-             'libgsttaglib',
              'libgstvpx',
-             'libgstwavenc',
-             'libgstwavpack',
-             'libgstwavparse',
-             'libgsty4menc',
     ]
 
     files_plugins_net_devel = [
-             'libgstrtsp',
              'libgstrtp',
              'libgstrtpmanager',
-             'libgstsouphttpsrc',
              'libgstudp',
     ]
 
     files_plugins_vis_devel = [
-             'libgstgoom',
-             'libgstgoom2k1',
             ]
 
     files_plugins_capture_devel = []
@@ -94,7 +45,6 @@ class Recipe(custom.GStreamerStatic):
             ],
         Platform.DARWIN: [
              'libgstosxaudio',
-             'libgstosxvideosink',
             ],
         Platform.IOS: [
              'libgstosxaudio'
@@ -109,22 +59,15 @@ class Recipe(custom.GStreamerStatic):
         self.append_env['CPPFLAGS'] = " -Wno-error -Wno-error=deprecated-declarations "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '  --disable-gtk-doc'
-        if self.config.target_platform == Platform.WINDOWS:
-            self.configure_options += '  --disable-aalib --disable-esd'
+        self.configure_options += '  --disable-aalib --disable-esd'
         if self.config.target_platform == Platform.LINUX:
             self.use_system_libs = True
-        if self.config.variants.v4l2:
             self.files_plugins_capture_devel += ['libgstvideo4linux2']
-        else:
-            self.configure_options += ' --disable-gst_v4l2'
-        if self.config.variants.x11:
-            self.files_plugins_capture_devel += ['libgstximagesrc']
-        else:
-            self.configure_options += '  --disable-x'
-        if self.config.variants.pulse:
             self.files_plugins_sys_devel += ['libgstpulse']
         else:
-            self.configure_options += '  --disable-pulse'
+            self.configure_options += ' --disable-gst_v4l2'
+            self.configure_options += ' --disable-pulse'
+        self.configure_options += '  --disable-x'
 
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'
