@@ -16,7 +16,7 @@ class Package(package.Package):
     uuid = 'fae6046d-5a39-4d54-93ee-3770d2f316f5'
 
     files = ['cairo:libs', 'expat:libs', 'fontconfig:libs:etc',
-             'libffi:libs', 'freetype:libs',
+             'libffi:libs', 'freetype:libs', 'libpng:libs',
              'glib:libs:lang:bins:schemas', 'orc:libs', 'pango:libs:modules',
              'libxml2:libs', 'pixman:libs',
              'zlib:libs', 'bzip2:libs', 'harfbuzz:libs']
