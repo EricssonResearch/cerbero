@@ -14,7 +14,7 @@ class Recipe(custom.GStreamerStatic):
     patches = [_name + '/use-openssl-pkg-config.patch',
                _name + '/use-either-android-api-19-20.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
-            'orc', 'libxml2']
+            'orc']
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
