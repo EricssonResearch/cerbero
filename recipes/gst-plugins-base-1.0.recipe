@@ -8,7 +8,7 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
     commit = 'origin/master'
-    deps = ['glib', 'gstreamer-1.0', 'libxml2', 'pango', 'zlib', 'orc']
+    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
     files_libs = ['libgstallocators-1.0',
@@ -23,7 +23,6 @@ class Recipe(recipe.Recipe):
              'lib/gstreamer-1.0/libgstaudiorate%(mext)s',
              'lib/gstreamer-1.0/libgstaudioresample%(mext)s',
              'lib/gstreamer-1.0/libgstaudiotestsrc%(mext)s',
-             'lib/gstreamer-1.0/libgstpango%(mext)s',
              'lib/gstreamer-1.0/libgsttypefindfunctions%(mext)s',
              'lib/gstreamer-1.0/libgstvideoconvert%(mext)s',
              'lib/gstreamer-1.0/libgstvideorate%(mext)s',
@@ -83,6 +82,10 @@ class Recipe(recipe.Recipe):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
+
+        if self.config.variants.owr_testing:
+            self.deps += ['pango']
+            self.files_plugins_core += ['lib/gstreamer-1.0/libgstpango%(mext)s']
 
         self.configure_options += ' --disable-cdparanoia'
         self.configure_options += ' --disable-x --disable-xvideo '

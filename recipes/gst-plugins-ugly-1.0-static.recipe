@@ -8,26 +8,13 @@ class Recipe(custom.GStreamerStatic):
     licenses = [License.LGPLv2Plus]
     extra_configure_options = "--enable-static --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame"
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'a52dec', 'opencore-amr',
-            'libdvdread', 'libmpeg2', 'libmad', 'x264', 'lame']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'x264']
 
     files_plugins_codecs_restricted_devel = [
-             'libgsta52dec',
-             'libgstamrnb',
-             'libgstamrwbdec',
-             'libgstasf',
-             'libgstdvdsub',
-             'libgstdvdlpcmdec',
-             'libgstmad',
-             'libgstmpeg2dec',
-             'libgstxingmux',
-             'libgstrmdemux',
              'libgstx264',
-             'libgstlame',
     ]
 
     files_plugins_dvd_devel = [
-             'libgstdvdread',
     ]
 
     def prepare(self):
@@ -38,11 +25,6 @@ class Recipe(custom.GStreamerStatic):
             self.configure_options += ' --disable-gtk-doc'
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'
-
-        if self.config.target_platform in [ Platform.ANDROID, Platform.IOS ]:
-            for d in ['libdvdread']:
-                self.deps.remove(d)
-            self.files_plugins_dvd_devel.remove('libgstdvdread')
 
         custom.GStreamerStatic.prepare(self)
 

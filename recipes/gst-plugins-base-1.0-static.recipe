@@ -8,7 +8,7 @@ class Recipe(custom.GStreamerStatic):
     licenses = [License.LGPLv2Plus]
     extra_configure_options = "--enable-static"
     commit = 'origin/master'
-    deps = ['glib', 'gstreamer-1.0', 'pango', 'zlib', 'orc']
+    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
     files_plugins_core_devel = [
@@ -39,6 +39,10 @@ class Recipe(custom.GStreamerStatic):
 
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'
+
+        if self.config.variants.owr_testing:
+            self.deps += ['pango']
+            self.files_plugins_core_devel += ['libgstpango']
 
         custom.GStreamerStatic.prepare(self)
 

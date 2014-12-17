@@ -8,26 +8,13 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--disable-examples --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame "
     commit = 'origin/master'
-    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'a52dec', 'opencore-amr',
-            'libdvdread', 'libmpeg2', 'libmad', 'x264', 'lame']
+    deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'x264']
 
     files_plugins_codecs_restricted = [
-             'lib/gstreamer-1.0/libgsta52dec%(mext)s',
-             'lib/gstreamer-1.0/libgstamrnb%(mext)s',
-             'lib/gstreamer-1.0/libgstamrwbdec%(mext)s',
-             'lib/gstreamer-1.0/libgstasf%(mext)s',
-             'lib/gstreamer-1.0/libgstdvdsub%(mext)s',
-             'lib/gstreamer-1.0/libgstdvdlpcmdec%(mext)s',
-             'lib/gstreamer-1.0/libgstmad%(mext)s',
-             'lib/gstreamer-1.0/libgstmpeg2dec%(mext)s',
-             'lib/gstreamer-1.0/libgstxingmux%(mext)s',
-             'lib/gstreamer-1.0/libgstrmdemux%(mext)s',
              'lib/gstreamer-1.0/libgstx264%(mext)s',
-             'lib/gstreamer-1.0/libgstlame%(mext)s',
     ]
 
     files_plugins_dvd = [
-             'lib/gstreamer-1.0/libgstdvdread%(mext)s',
     ]
 
     files_lang = ['gst-plugins-ugly-1.0']
@@ -41,11 +28,6 @@ class Recipe(recipe.Recipe):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += ' --disable-gtk-doc'
-
-        if self.config.target_platform in [ Platform.ANDROID, Platform.IOS ]:
-            for d in ['libdvdread']:
-                self.deps.remove(d)
-            self.files_plugins_dvd.remove('lib/gstreamer-1.0/libgstdvdread%(mext)s')
 
         if self.config.variants.nodebug:
             self.configure_options += ' --disable-gst-debug'

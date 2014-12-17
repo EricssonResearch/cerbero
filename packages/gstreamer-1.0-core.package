@@ -23,3 +23,10 @@ class Package(package.Package):
     files_devel = ['gstreamer-1.0-static', 'gst-plugins-base-1.0-static',
             'gst-plugins-good-1.0-static', 'gst-plugins-bad-1.0-static',
             'libnice-static:plugins_net_devel']
+
+    def prepare(self):
+        if self.config.variants.owr_extra_codecs:
+            self.files += ['x264:libs', 'gst-plugins-ugly-1.0', 'gst-libav-1.0']
+            self.files_devel += ['gst-plugins-ugly-1.0-static', 'gst-libav-1.0-static']
+
+

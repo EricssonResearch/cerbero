@@ -15,11 +15,8 @@ class Package(package.Package):
     org = 'org.freedesktop.gstreamer'
     uuid = 'fae6046d-5a39-4d54-93ee-3770d2f316f5'
 
-    files = ['cairo:libs', 'expat:libs', 'fontconfig:libs:etc',
-             'libffi:libs', 'freetype:libs', 'libpng:libs',
-             'glib:libs:lang:bins:schemas', 'orc:libs', 'pango:libs:modules',
-             'libxml2:libs', 'pixman:libs',
-             'zlib:libs', 'bzip2:libs', 'harfbuzz:libs']
+    files = ['libffi:libs', 'glib:libs:lang:bins:schemas',
+             'orc:libs', 'zlib:libs', 'bzip2:libs']
 
     platform_files = {
         Platform.WINDOWS: ['gettext:libs:lang', 'libiconv:libs:lang',
@@ -35,3 +32,8 @@ class Package(package.Package):
     def prepare(self):
         if self.config.variants.gi:
             self.files.append('gobject-introspection:libs:typelibs')
+
+        if self.config.variants.owr_testing:
+            self.files += ['cairo:libs', 'expat:libs', 'fontconfig:libs:etc',
+                           'freetype:libs', 'libpng:libs', 'pango:libs:modules',
+                           'pixman:libs', 'harfbuzz:libs', 'libxml2:libs']
