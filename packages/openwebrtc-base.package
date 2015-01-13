@@ -25,6 +25,7 @@ class Package(package.Package):
                    ]
     platform_files = {
             Platform.DARWIN: ['openwebrtc-osx-framework'],
-            Platform.IOS: ['openwebrtc-girepository']
+            Platform.IOS: ['openwebrtc-girepository'],
+            Platform.LINUX: ['javascriptcoregtk:libs', 'icu:libs']
             # TODO: Needs javascriptcore and stuff on others
     }
