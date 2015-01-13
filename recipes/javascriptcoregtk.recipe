@@ -11,7 +11,7 @@ class Recipe(recipe.Recipe):
     stype = SourceType.TARBALL
     srcdir = os.path.join('..', _name + '-' + version)
     licenses = [License.LGPLv2Plus, License.BSD]
-    configure_options = "--enable-shared --disable-static --disable-debug \
+    configure_options = "--enable-shared --enable-static --disable-debug \
             --disable-x11-target \
             --disable-wayland-target \
             --disable-glibtest \
@@ -30,8 +30,6 @@ class Recipe(recipe.Recipe):
         self.make += ' jsc'
         self.build_dir = os.path.join(os.path.dirname(self.build_dir),
                                       self._name + '-' + self.version)
-        if self.config.target_platform in (Platform.ANDROID, Platform.IOS):
-            self.configure_options += ' --enable-static'
         # XXX: When Blink was moved outside of WebKit, support for building on
         # Android was removed. So we hack it all back in now. This will all be
         # a massive pain if someone decides to upgrade WebKit to 2.6.x
