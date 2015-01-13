@@ -76,7 +76,7 @@ class Recipe(recipe.Recipe):
             else:
                 raise NotImplementedError
         # CFLAG is no typo!
-        self.make += ' LDFLAGS+="$LDFLAGS" CFLAG+="$CFLAGS"'
+        self.make += ' LDFLAGS+="$LDFLAGS -fPIC" CFLAG+="$CFLAGS -fPIC -DOPENSSL_PIC"'
         self.make_install = 'make install_sw'
 
     @modify_environment
