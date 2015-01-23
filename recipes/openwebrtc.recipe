@@ -100,11 +100,9 @@ class Recipe(recipe.Recipe):
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
-            # Use system libraries for libpulse and libv4l2
+            # Use system libraries for libpulse, libv4l2, and gtk-doc
             self.use_system_libs = True
-            # XXX: gtk-doc is disabled because it looks for the pkg-config
-            # file and can't find it because we use the system-installed gtk-doc
-            self.configure_options += ' --disable-gtk-doc --disable-static \
+            self.configure_options += ' --enable-gtk-doc --disable-static \
                 --disable-owr-static --enable-shared'
         else:
             # Windows?
