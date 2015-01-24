@@ -13,7 +13,8 @@ class Recipe(recipe.Recipe):
         'origin': 'https://github.com/EricssonResearch/openwebrtc.git',
         'nirbheek': 'https://github.com/nirbheek/openwebrtc.git'
     }
-    commit = 'nirbheek/android_gir_autotools'
+    #commit = 'nirbheek/android_gir_autotools'
+    commit = 'origin/master'
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && gtkdocize && autoreconf -fiv'
     #patches = [name + '/android-use-videoconvert.patch',
