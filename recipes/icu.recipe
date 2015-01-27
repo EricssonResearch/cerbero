@@ -71,7 +71,7 @@ class Recipe(recipe.Recipe):
             old_env = os.environ.copy()
             # Set everything to be the same as the host platform
             for each in ['CPPFLAGS', 'CFLAGS', 'CCASFLAGS', 'CXXFLAGS',
-                         'LDFLAGS', 'OBJCFLAGS']:
+                         'LDFLAGS', 'OBJCFLAGS', 'CXX', 'CC', 'CPP']:
                 os.environ[each] = ''
             self_copy.config = cerbero.config.Config()
             self_copy.config.load()
