@@ -96,8 +96,10 @@ class Recipe(recipe.Recipe):
         shell.replace(os.path.join(self.build_dir, 'configure'),
                       # Remove check for jpeglib.h
                       {'#include <jpeglib.h>': '',
-                      # Not building video, also disable video-track
-                      'ENABLE_VIDEO_TRACK=1': 'ENABLE_VIDEO_TRACK=0'})
+                       # Look for png.h in the current dir, to fake the check
+                       '#include <png.h>': '#include "png.h"',
+                       # Not building video, also disable video-track
+                       'ENABLE_VIDEO_TRACK=1': 'ENABLE_VIDEO_TRACK=0'})
         with open(os.path.join(self.build_dir, "png.h"), 'w') as f:
             f.write("typedef void* png_structp; typedef void* png_infop;")
             f.write("typedef void* png_colorp;")
