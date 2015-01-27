@@ -1,0 +1,1236 @@
+From f8ee0621b5a895bcf030ed7f3388a26935038cfb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Olivier=20Cr=C3=AAte?= <olivier.crete@collabora.com>
+Date: Thu, 9 Oct 2014 17:37:49 -0400
+Subject: [PATCH 01/20] Version 0.1.8.1
+
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index ee83428..d915b27 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -5,8 +5,8 @@ dnl Always compile with -Wall; if --enable-compile-warnings=error is passed,
+ dnl also use -Werror. git and pre-releases default to -Werror
+ 
+ dnl use a three digit version number for releases, and four for cvs/prerelease
+-AC_INIT([libnice],[0.1.8])
+-LIBNICE_RELEASE="yes"
++AC_INIT([libnice],[0.1.8.1])
++LIBNICE_RELEASE="no"
+ 
+ AC_CANONICAL_TARGET
+ 
+-- 
+2.1.0
+
+
+From 4e24bdd2f9d6a186a5a7c895c40cf69a0007c780 Mon Sep 17 00:00:00 2001
+From: Youness Alaoui <kakaroto@kakaroto.homelinux.net>
+Date: Thu, 18 Sep 2014 19:30:08 -0400
+Subject: [PATCH 02/20] agent: ignore externally set peer-reflexive candidates
+
+All discovered peer-reflexive candidates should be added internally in
+conncheck.c and should have the sockptr set. We ignore any prflx
+candidates added by an external application because their NULL sockptr
+could cause a crash in conn_check_send().
+---
+ agent/agent.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/agent/agent.c b/agent/agent.c
+index 79651ba..a2fd46d 100644
+--- a/agent/agent.c
++++ b/agent/agent.c
+@@ -3054,6 +3054,10 @@ static gboolean priv_add_remote_candidate (
+   else {
+     /* case 2: add a new candidate */
+ 
++    if (type == NICE_CANDIDATE_TYPE_PEER_REFLEXIVE) {
++      nice_debug("Agent %p : Warning: ignoring externally set peer-reflexive candidate!", agent);
++      return FALSE;
++    }
+     candidate = nice_candidate_new (type);
+     component->remote_candidates = g_slist_append (component->remote_candidates,
+         candidate);
+-- 
+2.1.0
+
+
+From 705ad1df7bf2faac29db9cd49a3248f871d9e149 Mon Sep 17 00:00:00 2001
+From: Youness Alaoui <kakaroto@kakaroto.homelinux.net>
+Date: Thu, 18 Sep 2014 19:42:53 -0400
+Subject: [PATCH 03/20] Fix documentation relating to how remote crendentials
+ should be set for new ICE format
+
+---
+ agent/agent.h | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/agent/agent.h b/agent/agent.h
+index cceb79a..7fab69a 100644
+--- a/agent/agent.h
++++ b/agent/agent.h
+@@ -73,6 +73,8 @@
+  *   <programlisting>
+  *   guint stream_id;
+  *   gchar buffer[] = "hello world!";
++ *   gchar *ufrag = NULL, *pwd = NULL;
++ *   gchar *remote_ufrag, *remote_pwd;
+  *   GSList *lcands = NULL;
+  *
+  *   // Create a nice agent
+@@ -96,8 +98,13 @@
+  *
+  *   // ... Wait until the signal candidate-gathering-done is fired ...
+  *   lcands = nice_agent_get_local_candidates(agent, stream_id, 1);
++
++ *   nice_agent_get_local_credentials(agent, stream_id, &ufrag, &pwd);
++ *
++ *   // ... Send local candidates and credentials to the peer
+  *
+- *   // ... Send local candidates to the peer and set the peer's remote candidates
++ *   // Set the peer's remote credentials and remote candidates
++ *   nice_agent_set_remote_credentials (agent, stream_id, remote_ufrag, remote_pwd);
+  *   nice_agent_set_remote_candidates (agent, stream_id, 1, rcands);
+  *
+  *   // ... Wait until the signal new-selected-pair is fired ...
+@@ -559,6 +566,13 @@ nice_agent_gather_candidates (
+    <para>
+      Stream credentials do not override per-candidate credentials if set
+    </para>
++   <para>
++     Due to the native of peer-reflexive candidates, any agent using a per-stream
++     credentials (RFC5245, WLM2009, OC2007R2 and DRAFT19) instead of
++     per-candidate credentials (GOOGLE, MSN, OC2007), must
++     use the nice_agent_set_remote_credentials() API instead of setting the
++     username and password on the candidates.
++   </para>
+  </note>
+  *
+  * Returns: %TRUE on success, %FALSE on error.
+-- 
+2.1.0
+
+
+From 3bc28d43a5189e561087f9340467ef2bd314c7fb Mon Sep 17 00:00:00 2001
+From: Curieux Tres <trescurieux@yahoo.fr>
+Date: Mon, 27 Oct 2014 11:32:17 +0000
+Subject: [PATCH 04/20] stun: Rename a symbol to avoid a naming clash with
+ OpenSSL
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The symbol is not exported, but nevertheless leaks in the static version
+of libnice, due to limitations on symbol visibilities with static
+libraries. OpenSSL has a symbol named RAND_bytes(), which ours clashes
+with if the two are linked together statically.
+
+Avoid this by prefixing ours with ‘nice_’.
+---
+ stun/rand.c     | 4 ++--
+ stun/rand.h     | 2 +-
+ stun/stunhmac.c | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/stun/rand.c b/stun/rand.c
+index 0de7f6e..fd08283 100644
+--- a/stun/rand.c
++++ b/stun/rand.c
+@@ -45,7 +45,7 @@
+ #include <windows.h>
+ #include <wincrypt.h>
+ 
+-void RAND_bytes (uint8_t *dst, int len)
++void nice_RAND_bytes (uint8_t *dst, int len)
+ {
+   HCRYPTPROV hCryptProv;
+   LPCSTR container = "Libnice key container";
+@@ -215,7 +215,7 @@ static unsigned long genrand_int32(void)
+ 
+ static int initialized = 0;
+ 
+-void RAND_bytes (uint8_t *dst, int len)
++void nice_RAND_bytes (uint8_t *dst, int len)
+ {
+   int i;
+ 
+diff --git a/stun/rand.h b/stun/rand.h
+index 07c5fb5..0ed0263 100644
+--- a/stun/rand.h
++++ b/stun/rand.h
+@@ -45,6 +45,6 @@
+ #include <stdint.h>
+ #endif
+ 
+-void RAND_bytes (uint8_t *dst, int len);
++void nice_RAND_bytes (uint8_t *dst, int len);
+ 
+ #endif /* RAND_H */
+diff --git a/stun/stunhmac.c b/stun/stunhmac.c
+index db6fb16..df5deb6 100644
+--- a/stun/stunhmac.c
++++ b/stun/stunhmac.c
+@@ -122,5 +122,5 @@ void stun_hash_creds (const uint8_t *realm, size_t realm_len,
+ 
+ void stun_make_transid (StunTransactionId id)
+ {
+-  RAND_bytes (id, 16);
++  nice_RAND_bytes (id, 16);
+ }
+-- 
+2.1.0
+
+
+From 88cd37a4ffbe4bc623eda2c0ac01565d467976f3 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Thu, 30 Oct 2014 09:10:51 +0000
+Subject: [PATCH 05/20] agent: Close pseudo-TCP socket earlier in
+ component_close()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This tries to mitigate the race condition between finishing the TCP FIN
+handshake and closing the underlying sockets, but it’s impossible to
+mitigate properly without API changes. See the comment.
+---
+ agent/component.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/agent/component.c b/agent/component.c
+index c6a5601..8a1d064 100644
+--- a/agent/component.c
++++ b/agent/component.c
+@@ -228,6 +228,20 @@ component_close (Component *cmp)
+   IOCallbackData *data;
+   GOutputVector *vec;
+ 
++  /* Start closing the pseudo-TCP socket first. FIXME: There is a very big and
++   * reliably triggerable race here. pseudo_tcp_socket_close() does not block
++   * on the socket closing — it only sends the first packet of the FIN
++   * handshake. component_close() will immediately afterwards close the
++   * underlying component sockets, aborting the handshake.
++   *
++   * On the principle that starting the FIN handshake is better than not
++   * starting it, even if it’s later truncated, call pseudo_tcp_socket_close().
++   * A long-term fix is needed in the form of making component_close() (and all
++   * its callers) async, so we can properly block on closure. */
++  if (cmp->tcp) {
++    pseudo_tcp_socket_close (cmp->tcp, TRUE);
++  }
++
+   if (cmp->restart_candidate)
+     nice_candidate_free (cmp->restart_candidate),
+       cmp->restart_candidate = NULL;
+@@ -262,9 +276,6 @@ component_close (Component *cmp)
+     g_cancellable_cancel (cmp->tcp_writable_cancellable);
+     g_clear_object (&cmp->tcp_writable_cancellable);
+   }
+-  if (cmp->tcp) {
+-    pseudo_tcp_socket_close (cmp->tcp, TRUE);
+-  }
+ 
+   while ((data = g_queue_pop_head (&cmp->pending_io_messages)) != NULL)
+     io_callback_data_free (data);
+-- 
+2.1.0
+
+
+From 3528654e7d2082d5bdda1e6f47357105f91af68c Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Thu, 30 Oct 2014 17:20:43 +0000
+Subject: [PATCH 06/20] agent: Expand simple example in documentation to
+ mention GMainContext
+
+wrt the ML thread:
+http://lists.freedesktop.org/archives/nice/2014-October/000981.html
+---
+ agent/agent.h | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/agent/agent.h b/agent/agent.h
+index 7fab69a..d96ce6a 100644
+--- a/agent/agent.h
++++ b/agent/agent.h
+@@ -52,6 +52,11 @@
+  * It will take care of discovering your local candidates and do
+  *  connectivity checks to create a stream of data between you and your peer.
+  *
++ * A #NiceAgent must always be used with a #GMainLoop running the #GMainContext
++ * passed into nice_agent_new() (or nice_agent_new_reliable()). Without the
++ * #GMainContext being iterated, the agent’s timers will not fire and, if
++ * nice_agent_attach_recv() is used, packets will not be received.
++ *
+  * Streams and their components are referenced by integer IDs (with respect to a
+  * given #NiceAgent). These IDs are guaranteed to be positive (i.e. non-zero)
+  * for valid streams/components.
+@@ -77,8 +82,9 @@
+  *   gchar *remote_ufrag, *remote_pwd;
+  *   GSList *lcands = NULL;
+  *
+- *   // Create a nice agent
++ *   // Create a nice agent, passing in the global default GMainContext.
+  *   NiceAgent *agent = nice_agent_new (NULL, NICE_COMPATIBILITY_RFC5245);
++ *   spawn_thread_to_run_main_loop (g_main_loop_new (NULL, FALSE));
+  *
+  *   // Connect the signals
+  *   g_signal_connect (G_OBJECT (agent), "candidate-gathering-done",
+@@ -111,7 +117,9 @@
+  *   // Send our message!
+  *   nice_agent_send (agent, stream_id, 1, sizeof(buffer), buffer);
+  *
+- *   // Anything received will be received through the cb_nice_recv callback
++ *   // Anything received will be received through the cb_nice_recv callback.
++ *   // You must be running a GMainLoop on the global default GMainContext in
++ *   // another thread for this to work.
+  *
+  *   // Destroy the object
+  *   g_object_unref(agent);
+-- 
+2.1.0
+
+
+From 44e7ea310559b9dbea0bae27fce60e602913f316 Mon Sep 17 00:00:00 2001
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Thu, 30 Oct 2014 17:09:41 -0400
+Subject: [PATCH 07/20] Add ability to build static GST plugins
+
+Note that this only works for 1.0 plugin.
+
+https://bugs.freedesktop.org/show_bug.cgi?id=85929
+---
+ configure.ac | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index d915b27..4c942fd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -301,6 +301,24 @@ AS_IF([test "${enable_coverage}" != "no"], [
+ ])
+ AC_SUBST(CCACHE_DISABLE)
+ 
++dnl build static plugins or not
++AC_MSG_CHECKING([whether to build static plugins or not])
++AC_ARG_ENABLE(
++  static-plugins,
++  AC_HELP_STRING(
++    [--enable-static-plugins],
++    [build static plugins @<:@default=no@:>@]),
++  [AS_CASE(
++    [$enableval], [no], [], [yes], [],
++    [AC_MSG_ERROR([bad value "$enableval" for --enable-static-plugins])])],
++  [enable_static_plugins=no])
++AC_MSG_RESULT([$enable_static_plugins])
++if test "x$enable_static_plugins" = xyes; then
++  AC_DEFINE(GST_PLUGIN_BUILD_STATIC, 1,
++    [Define if static plugins should be built])
++fi
++AM_CONDITIONAL(GST_PLUGIN_BUILD_STATIC, test "x$enable_static_plugins" = "xyes")
++
+ case $host_os in
+   solaris*)
+     LDFLAGS="$LDFLAGS -lsocket -lnls"
+-- 
+2.1.0
+
+
+From 8afd815d98cc25db1063715109957333db1f4574 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Thu, 6 Nov 2014 10:40:53 +0000
+Subject: [PATCH 08/20] tests: Fix a memory leak in test-send-recv
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+If n_messages ≠ n_valid_messages.
+---
+ tests/test-send-recv.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/tests/test-send-recv.c b/tests/test-send-recv.c
+index c633655..eac5b91 100644
+--- a/tests/test-send-recv.c
++++ b/tests/test-send-recv.c
+@@ -488,8 +488,6 @@ validate_received_messages (TestIOStreamThreadData *data, gsize buffer_offset,
+         message_len_remaining -= valid_len;
+       }
+       test_data->received_bytes += valid_len;
+-
+-      g_free (buffer->buffer);
+     }
+ 
+     g_assert_cmpuint (message->length, <=, total_buf_len);
+@@ -505,6 +503,18 @@ validate_received_messages (TestIOStreamThreadData *data, gsize buffer_offset,
+       g_assert_cmpuint (message->length, ==, total_buf_len);
+ 
+     g_assert (message->from == NULL);
++  }
++
++  /* Free all messages. */
++  for (i = 0; i < (guint) n_messages; i++) {
++    NiceInputMessage *message = &messages[i];
++    guint j;
++
++    for (j = 0; j < (guint) message->n_buffers; j++) {
++      GInputVector *buffer = &message->buffers[j];
++
++      g_free (buffer->buffer);
++    }
+ 
+     g_free (message->buffers);
+   }
+-- 
+2.1.0
+
+
+From 28d1c100c1bdfa123bf8a64706640ee8dbd18247 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Thu, 6 Nov 2014 10:41:57 +0000
+Subject: [PATCH 09/20] tests: Use G_SOURCE_[CONTINUE|REMOVE] instead of
+ booleans
+
+Makes the test code a little clearer. Introduces no functional changes.
+---
+ tests/test-send-recv.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/tests/test-send-recv.c b/tests/test-send-recv.c
+index eac5b91..55e6002 100644
+--- a/tests/test-send-recv.c
++++ b/tests/test-send-recv.c
+@@ -916,7 +916,7 @@ read_stream_cb (GObject *pollable_stream, gpointer _user_data)
+     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK);
+     g_error_free (error);
+     g_free (buf);
+-    return TRUE;
++    return G_SOURCE_CONTINUE;
+   }
+ 
+   g_assert_no_error (error);
+@@ -928,10 +928,10 @@ read_stream_cb (GObject *pollable_stream, gpointer _user_data)
+   /* Termination time? */
+   if (test_data->received_bytes == test_data->n_bytes) {
+     g_main_loop_quit (gsource_data->main_loop);
+-    return FALSE;
++    return G_SOURCE_REMOVE;
+   }
+ 
+-  return TRUE;
++  return G_SOURCE_CONTINUE;
+ }
+ 
+ static void
+@@ -994,7 +994,7 @@ write_stream_cb (GObject *pollable_stream, gpointer _user_data)
+   if (len == -1) {
+     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK);
+     g_free (buf);
+-    return TRUE;
++    return G_SOURCE_CONTINUE;
+   }
+ 
+   g_assert_no_error (error);
+@@ -1006,10 +1006,10 @@ write_stream_cb (GObject *pollable_stream, gpointer _user_data)
+   /* Termination time? */
+   if (test_data->transmitted_bytes == test_data->n_bytes) {
+     g_main_loop_quit (gsource_data->main_loop);
+-    return FALSE;
++    return G_SOURCE_REMOVE;
+   }
+ 
+-  return TRUE;
++  return G_SOURCE_CONTINUE;
+ }
+ 
+ static void
+-- 
+2.1.0
+
+
+From 20a5868eb8b3d30a86b0603b56b49e1f70736868 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 14 Nov 2014 10:06:21 +0000
+Subject: [PATCH 10/20] agent: Add debug output for lifetime of Components and
+ Streams
+
+---
+ agent/component.c | 13 +++++++++++++
+ agent/stream.c    | 13 +++++++++++++
+ 2 files changed, 26 insertions(+)
+
+diff --git a/agent/component.c b/agent/component.c
+index 8a1d064..1a1f84a 100644
+--- a/agent/component.c
++++ b/agent/component.c
+@@ -42,6 +42,11 @@
+  * @brief ICE component functions
+  */
+ 
++/* Simple tracking for the number of alive components. These must be accessed
++ * atomically. */
++static volatile unsigned int n_components_created = 0;
++static volatile unsigned int n_components_destroyed = 0;
++
+ #ifdef HAVE_CONFIG_H
+ # include <config.h>
+ #endif
+@@ -121,6 +126,10 @@ component_new (guint id, NiceAgent *agent, Stream *stream)
+ {
+   Component *component;
+ 
++  g_atomic_int_inc (&n_components_created);
++  nice_debug ("Created NiceComponent (%u created, %u destroyed)",
++      n_components_created, n_components_destroyed);
++
+   component = g_slice_new0 (Component);
+   component->id = id;
+   component->state = NICE_COMPONENT_STATE_DISCONNECTED;
+@@ -318,6 +327,10 @@ component_free (Component *cmp)
+   g_main_context_unref (cmp->own_ctx);
+ 
+   g_slice_free (Component, cmp);
++
++  g_atomic_int_inc (&n_components_destroyed);
++  nice_debug ("Destroyed NiceComponent (%u created, %u destroyed)",
++      n_components_created, n_components_destroyed);
+ }
+ 
+ /*
+diff --git a/agent/stream.c b/agent/stream.c
+index 2ce1668..09f79b5 100644
+--- a/agent/stream.c
++++ b/agent/stream.c
+@@ -43,6 +43,11 @@
+ 
+ #include "stream.h"
+ 
++/* Simple tracking for the number of alive streams. These must be accessed
++ * atomically. */
++static volatile unsigned int n_streams_created = 0;
++static volatile unsigned int n_streams_destroyed = 0;
++
+ /*
+  * @file stream.c
+  * @brief ICE stream functionality
+@@ -54,6 +59,10 @@ stream_new (guint n_components, NiceAgent *agent)
+   guint n;
+   Component *component;
+ 
++  g_atomic_int_inc (&n_streams_created);
++  nice_debug ("Created NiceStream (%u created, %u destroyed)",
++      n_streams_created, n_streams_destroyed);
++
+   stream = g_slice_new0 (Stream);
+   for (n = 0; n < n_components; n++) {
+     component = component_new (n + 1, agent, stream);
+@@ -83,6 +92,10 @@ stream_free (Stream *stream)
+   g_free (stream->name);
+   g_slist_free_full (stream->components, (GDestroyNotify) component_free);
+   g_slice_free (Stream, stream);
++
++  g_atomic_int_inc (&n_streams_destroyed);
++  nice_debug ("Destroyed NiceStream (%u created, %u destroyed)",
++      n_streams_created, n_streams_destroyed);
+ }
+ 
+ Component *
+-- 
+2.1.0
+
+
+From 49f0f8f7e65ff816775387b5a33b27565beaf3f5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Olivier=20Cr=C3=AAte?= <olivier.crete@collabora.com>
+Date: Mon, 8 Dec 2014 10:22:21 -0500
+Subject: [PATCH 11/20] pseudotcp: Do roll-over safe assertion
+
+In case of a roll-over, only the difference matters.
+---
+ agent/pseudotcp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/agent/pseudotcp.c b/agent/pseudotcp.c
+index ec38f42..eb91e3c 100644
+--- a/agent/pseudotcp.c
++++ b/agent/pseudotcp.c
+@@ -1961,7 +1961,7 @@ transmit(PseudoTcpSocket *self, SSegment *segment, guint32 now)
+     PseudoTcpWriteResult wres;
+ 
+     /* The packet must not have already been acknowledged. */
+-    g_assert_cmpuint (segment->seq, >=, priv->snd_una);
++    g_assert_cmpuint (segment->seq - priv->snd_una, <=, 1024 * 1024 * 64);
+ 
+     /* Write out the packet. */
+     wres = packet(self, seq, flags,
+-- 
+2.1.0
+
+
+From 8ecd6b89a815856b52d5931dd3a6d90fa9e85757 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip@tecnocode.co.uk>
+Date: Mon, 15 Dec 2014 23:35:13 +0000
+Subject: [PATCH 12/20] agent: Handle EWOULDBLOCK when transmitting pseudo-TCP
+ segments
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The pseudo-TCP code previously didn’t handle EAGAIN or EWOULDBLOCK
+errors from the low-level NiceSocket code. This caused pseudo-TCP
+connections to be dropped if the transmitting socket ever filled up,
+which could cause problems on high bandwidth connections.
+
+Fix the issue by effectively dropping the packet on EWOULDBLOCK. This
+will eventually get picked up by the pseudo-TCP recovery mechanism,
+retransmitting the packet and throttling the sender. This should
+hopefully reduce the system resource usage which caused EWOULDBLOCK in
+the first place.
+
+Spotted and debugged by Radosław Kołodziejczyk
+<radek.kolodziejczyk@gmail.com>.
+
+https://bugs.freedesktop.org/show_bug.cgi?id=87344
+---
+ agent/agent.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/agent/agent.c b/agent/agent.c
+index a2fd46d..c0efd76 100644
+--- a/agent/agent.c
++++ b/agent/agent.c
+@@ -1754,8 +1754,15 @@ pseudo_tcp_socket_write_packet (PseudoTcpSocket *psocket,
+           nice_address_get_port (addr));
+     }
+ 
+-    if (nice_socket_send (sock, addr, len, buffer))
++    /* Send the segment. nice_socket_send() returns 0 on EWOULDBLOCK; in that
++     * case the segment is not sent on the wire, but we return WR_SUCCESS
++     * anyway. This effectively drops the segment. The pseudo-TCP state machine
++     * will eventually pick up this loss and go into recovery mode, reducing
++     * its transmission rate and, hopefully, the usage of system resources
++     * which caused the EWOULDBLOCK in the first place. */
++    if (nice_socket_send (sock, addr, len, buffer) >= 0) {
+       return WR_SUCCESS;
++    }
+   } else {
+     nice_debug ("%s: WARNING: Failed to send pseudo-TCP packet from agent %p "
+         "as no pair has been selected yet.", G_STRFUNC, component->agent);
+-- 
+2.1.0
+
+
+From c6fa14f4fe10f04e1b9a4c231caa8054e0c7224d Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Sat, 27 Dec 2014 09:49:37 +0000
+Subject: [PATCH 13/20] agent: Document G_MESSAGES_DEBUG and NICE_DEBUG
+
+As requested on the mailing list, expand the documentation for
+nice_debug_enable() to mention them.
+---
+ agent/debug.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/agent/debug.h b/agent/debug.h
+index 22c22f6..20816e8 100644
+--- a/agent/debug.h
++++ b/agent/debug.h
+@@ -75,9 +75,19 @@ G_BEGIN_DECLS
+ 
+ /**
+  * nice_debug_enable:
+- * @with_stun: Also enable stun debugging messages
++ * @with_stun: Also enable STUN debugging messages
+  *
+- * Enables libnice debug output to the terminal
++ * Enables libnice debug output to the terminal. Note that the
++ * `G_MESSAGES_DEBUG` and `NICE_DEBUG` environment variables must be set to the
++ * set of logging domains to print, in order for any output to be printed. Set
++ * them to `all` to print all debugging messages, or any of the following
++ * domains:
++ * - `libnice-stun`
++ * - `libnice-tests`
++ * - `libnice-socket`
++ * - `libnice`
++ * - `libnice-pseudotcp`
++ * - `libnice-pseudotcp-verbose`
+  */
+ void nice_debug_enable (gboolean with_stun);
+ 
+-- 
+2.1.0
+
+
+From 45c54c909c323a7961848e0911afa7beb5165971 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:21:48 +0000
+Subject: [PATCH 14/20] docs: Switch from gtk-doc SGML mode to XML mode
+
+We already used XML everywhere; just formally switch to XML mode and
+eliminate the last few traces of SGML.
+---
+ docs/reference/libnice/Makefile.am                             | 4 ++--
+ docs/reference/libnice/{libnice-docs.sgml => libnice-docs.xml} | 0
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename docs/reference/libnice/{libnice-docs.sgml => libnice-docs.xml} (100%)
+
+diff --git a/docs/reference/libnice/Makefile.am b/docs/reference/libnice/Makefile.am
+index 36ac119..ae09791 100644
+--- a/docs/reference/libnice/Makefile.am
++++ b/docs/reference/libnice/Makefile.am
+@@ -7,7 +7,7 @@ AUTOMAKE_OPTIONS = 1.6
+ DOC_MODULE=libnice
+ 
+ # The top-level SGML file. You can change this if you want to.
+-DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
++DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.xml
+ 
+ # The directory containing the source code. Relative to $(srcdir).
+ # gtk-doc will search all .c & .h files beneath here for inline comments
+@@ -24,7 +24,7 @@ SCAN_OPTIONS=--rebuild-types
+ 
+ # Extra options to supply to gtkdoc-mkdb.
+ # e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
+-MKDB_OPTIONS=--sgml-mode --output-format=xml
++MKDB_OPTIONS=--xml-mode --output-format=xml
+ 
+ # Extra options to supply to gtkdoc-mktmpl
+ # e.g. MKTMPL_OPTIONS=--only-section-tmpl
+diff --git a/docs/reference/libnice/libnice-docs.sgml b/docs/reference/libnice/libnice-docs.xml
+similarity index 100%
+rename from docs/reference/libnice/libnice-docs.sgml
+rename to docs/reference/libnice/libnice-docs.xml
+-- 
+2.1.0
+
+
+From d1e961d33d4413d1b65d9ab12ad4a5c9ccce6229 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:22:23 +0000
+Subject: [PATCH 15/20] docs: Use gtk-doc no-tmpl mode
+
+Templated mode has been deprecated for a long time and will be removed
+in future versions of gtk-doc. Switch to no-tmpl mode for faster
+documentation builds and future-proofness.
+
+This does not bump our gtk-doc dependency, since gtk-doc 1.9 supported
+no-tmpl mode.
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4c942fd..6683227 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -329,7 +329,7 @@ esac
+ 
+ # check for gtk-doc
+ m4_ifdef([GTK_DOC_CHECK], [
+-GTK_DOC_CHECK(1.9)
++GTK_DOC_CHECK([1.9],[--flavour no-tmpl])
+ ],[
+ AM_CONDITIONAL([ENABLE_GTK_DOC], false)
+ ])
+-- 
+2.1.0
+
+
+From 8ddc812b4257137f3f376fb7bb6715e10b4d0e91 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:23:39 +0000
+Subject: [PATCH 16/20] docs: Inform gtk-doc of the libnice namespace
+
+This allows it to order the index a little better.
+---
+ docs/reference/libnice/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/reference/libnice/Makefile.am b/docs/reference/libnice/Makefile.am
+index ae09791..b3fe450 100644
+--- a/docs/reference/libnice/Makefile.am
++++ b/docs/reference/libnice/Makefile.am
+@@ -24,7 +24,7 @@ SCAN_OPTIONS=--rebuild-types
+ 
+ # Extra options to supply to gtkdoc-mkdb.
+ # e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
+-MKDB_OPTIONS=--xml-mode --output-format=xml
++MKDB_OPTIONS=--xml-mode --output-format=xml --name-space=Nice
+ 
+ # Extra options to supply to gtkdoc-mktmpl
+ # e.g. MKTMPL_OPTIONS=--only-section-tmpl
+-- 
+2.1.0
+
+
+From e4e0d5271f6fb018151e4abc4f7935bef40145db Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:24:31 +0000
+Subject: [PATCH 17/20] docs: Add various missing documentation comments and
+ update sections.txt
+
+This straightens out the last few bits of the documentation and almost
+allows `make check` to pass in docs/.
+---
+ agent/address.h                             |   3 -
+ docs/reference/libnice/libnice-sections.txt |   8 ++
+ stun/constants.h                            | 118 ++++++++++++++++++++++++++++
+ stun/debug.h                                |  18 +++++
+ stun/stunmessage.h                          |   2 +
+ stun/usages/timer.h                         |   1 +
+ stun/usages/turn.h                          |  27 ++++++-
+ 7 files changed, 173 insertions(+), 4 deletions(-)
+
+diff --git a/agent/address.h b/agent/address.h
+index 9e91248..603afe2 100644
+--- a/agent/address.h
++++ b/agent/address.h
+@@ -67,9 +67,6 @@ G_BEGIN_DECLS
+ 
+ /**
+  * NiceAddress:
+- * @addr: Generic sockaddr address
+- * @ip4: IPv4 sockaddr address
+- * @ip6: IPv6 sockaddr address
+  *
+  * The #NiceAddress structure that represents an IPv4 or IPv6 address.
+  */
+diff --git a/docs/reference/libnice/libnice-sections.txt b/docs/reference/libnice/libnice-sections.txt
+index dd185f0..5c27fac 100644
+--- a/docs/reference/libnice/libnice-sections.txt
++++ b/docs/reference/libnice/libnice-sections.txt
+@@ -49,6 +49,7 @@ nice_agent_parse_remote_stream_sdp
+ nice_agent_parse_remote_candidate_sdp
+ nice_agent_get_io_stream
+ nice_agent_get_selected_socket
++nice_agent_get_component_state
+ nice_component_state_to_string
+ <SUBSECTION Standard>
+ NICE_AGENT
+@@ -139,6 +140,7 @@ StunAgentUsageFlags
+ StunValidationStatus
+ StunMessageIntegrityValidate
+ StunDefaultValidaterData
++StunDebugHandler
+ stun_agent_init
+ stun_agent_validate
+ stun_agent_default_validater
+@@ -152,8 +154,12 @@ stun_agent_forget_transaction
+ stun_agent_set_software
+ stun_debug_enable
+ stun_debug_disable
++stun_set_debug_handler
+ <SUBSECTION Private>
+ StunAgentSavedIds
++stun_debug
++stun_debug_bytes
++stun_agent_t
+ </SECTION>
+ 
+ 
+@@ -266,6 +272,8 @@ stun_timer_start
+ stun_timer_start_reliable
+ stun_timer_refresh
+ stun_timer_remainder
++<SUBSECTION Private>
++stun_timer_s
+ </SECTION>
+ 
+ <SECTION>
+diff --git a/stun/constants.h b/stun/constants.h
+index aa06153..29e1cec 100644
+--- a/stun/constants.h
++++ b/stun/constants.h
+@@ -38,6 +38,107 @@
+ #define _STUN_CONSTANTS_H
+ 
+ 
++/**
++ * SECTION:stunconstants
++ * @short_description: STUN constants
++ * @include: stun/constants.h
++ * @stability: Stable
++ *
++ * Various constants defining parts of the STUN and TURN protocols and
++ * on-the-wire packet formats.
++ */
++
++/**
++ * STUN_ATTRIBUTE_LENGTH_LEN:
++ *
++ * Length of the length field of a STUN attribute (in bytes).
++ */
++/**
++ * STUN_ATTRIBUTE_LENGTH_POS:
++ *
++ * Offset of the length field of a STUN attribute (in bytes).
++ */
++/**
++ * STUN_ATTRIBUTE_TYPE_LEN:
++ *
++ * Length of the type field of a STUN attribute (in bytes).
++ */
++/**
++ * STUN_ATTRIBUTE_TYPE_POS:
++ *
++ * Offset of the type field of a STUN attribute (in bytes).
++ */
++/**
++ * STUN_ATTRIBUTE_VALUE_POS:
++ *
++ * Offset of the value field of a STUN attribute (in bytes).
++ */
++/**
++ * STUN_ID_LEN:
++ *
++ * Length of the ID field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MAGIC_COOKIE:
++ *
++ * Magic cookie value used to identify STUN messages.
++ */
++/**
++ * TURN_MAGIC_COOKIE:
++ *
++ * Magic cookie value used to identify TURN messages.
++ */
++/**
++ * STUN_MAX_MESSAGE_SIZE_IPV4:
++ *
++ * Maximum size of a STUN message sent over IPv4 (in bytes).
++ */
++/**
++ * STUN_MAX_MESSAGE_SIZE_IPV6:
++ *
++ * Maximum size of a STUN message sent over IPv6 (in bytes).
++ */
++/**
++ * STUN_MESSAGE_ATTRIBUTES_POS:
++ *
++ * Offset of the attributes of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_HEADER_LENGTH:
++ *
++ * Total length of a STUN message header (in bytes).
++ */
++/**
++ * STUN_MESSAGE_LENGTH_LEN:
++ *
++ * Length of the length field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_LENGTH_POS:
++ *
++ * Offset of the length field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_TRANS_ID_LEN:
++ *
++ * Length of the transaction ID field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_TRANS_ID_POS:
++ *
++ * Offset of the transaction ID field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_TYPE_LEN:
++ *
++ * Length of the type field of a STUN message (in bytes).
++ */
++/**
++ * STUN_MESSAGE_TYPE_POS:
++ *
++ * Offset of the type field of a STUN message (in bytes).
++ */
++
+ #define STUN_MESSAGE_TYPE_POS 0
+ #define STUN_MESSAGE_TYPE_LEN 2
+ #define STUN_MESSAGE_LENGTH_POS \
+@@ -59,6 +160,11 @@
+ #define STUN_ATTRIBUTE_VALUE_POS \
+   (STUN_ATTRIBUTE_LENGTH_POS + STUN_ATTRIBUTE_LENGTH_LEN)
+ 
++/**
++ * STUN_ATTRIBUTE_HEADER_LENGTH:
++ *
++ * Length of a single STUN attribute header (in bytes).
++ */
+ #define STUN_ATTRIBUTE_HEADER_LENGTH STUN_ATTRIBUTE_VALUE_POS
+ 
+ 
+@@ -68,7 +174,19 @@
+ 
+ #define STUN_ID_LEN 16
+ 
++/**
++ * STUN_AGENT_MAX_SAVED_IDS:
++ *
++ * Maximum number of simultaneously ongoing STUN transactions.
++ */
+ #define STUN_AGENT_MAX_SAVED_IDS 200
++
++/**
++ * STUN_AGENT_MAX_UNKNOWN_ATTRIBUTES:
++ *
++ * Maximum number of unknown attribute which can be handled in a single STUN
++ * message.
++ */
+ #define STUN_AGENT_MAX_UNKNOWN_ATTRIBUTES 256
+ 
+ #define STUN_MAGIC_COOKIE 0x2112A442
+diff --git a/stun/debug.h b/stun/debug.h
+index 94498ff..d4884d5 100644
+--- a/stun/debug.h
++++ b/stun/debug.h
+@@ -59,8 +59,26 @@ void stun_debug_enable (void);
+  */
+ void stun_debug_disable (void);
+ 
++/**
++ * StunDebugHandler:
++ * @format: printf()-style debug message format string
++ * @ap: Parameters to substitute into message placeholders
++ *
++ * Callback for a debug message from the STUN code.
++ */
+ typedef void (*StunDebugHandler) (const char *format, va_list ap);
+ 
++/**
++ * stun_set_debug_handler:
++ * @handler: (nullable): Handler for STUN debug messages, or %NULL to use the
++ *   default
++ *
++ * Set a callback function to be invoked for each debug message from the STUN
++ * code. The callback will only be invoked if STUN debugging is enabled using
++ * stun_debug_enable().
++ *
++ * The default callback prints the formatted debug message to stderr.
++ */
+ void stun_set_debug_handler (StunDebugHandler handler);
+ 
+ #if defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4))
+diff --git a/stun/stunmessage.h b/stun/stunmessage.h
+index 75d2850..a57e170 100644
+--- a/stun/stunmessage.h
++++ b/stun/stunmessage.h
+@@ -163,6 +163,8 @@ typedef enum
+  * TURN draft 09 and 12
+  * @STUN_ATTRIBUTE_LIFETIME: The LIFETIME attribute as defined by TURN
+  * draft 04, 09 and 12
++ * @STUN_ATTRIBUTE_MS_ALTERNATE_SERVER: The ALTERNATE-SERVER attribute as
++ * defined by [MS-TURN]
+  * @STUN_ATTRIBUTE_MAGIC_COOKIE: The MAGIC-COOKIE attribute as defined by
+  * the rosenberg-midcom TURN draft 08
+  * @STUN_ATTRIBUTE_BANDWIDTH: The BANDWIDTH attribute as defined by TURN draft 04
+diff --git a/stun/usages/timer.h b/stun/usages/timer.h
+index e8f0786..e6501cb 100644
+--- a/stun/usages/timer.h
++++ b/stun/usages/timer.h
+@@ -200,6 +200,7 @@ void stun_timer_start (StunTimer *timer, unsigned int initial_timeout,
+ /**
+  * stun_timer_start_reliable:
+  * @timer: The #StunTimer to start
++ * @initial_timeout: The initial timeout to use before the first retransmission
+  *
+  * Starts a STUN transaction retransmission timer for a reliable transport.
+  * This should be called as soon as you send the message for the first time on
+diff --git a/stun/usages/turn.h b/stun/usages/turn.h
+index 388ec4f..7a2d4e6 100644
+--- a/stun/usages/turn.h
++++ b/stun/usages/turn.h
+@@ -96,6 +96,10 @@ typedef enum {
+  * Google Talk's relay server
+  * @STUN_USAGE_TURN_COMPATIBILITY_MSN: Use the specification compatible with
+  * MSN TURN servers
++ * @STUN_USAGE_TURN_COMPATIBILITY_OC2007: Use the specification compatible with
++ * Microsoft Office Communicator 2007
++ * @STUN_USAGE_TURN_COMPATIBILITY_RFC5766: Use the specification compatible with
++ * RFC 5766 (the final, canonical TURN standard)
+  *
+  * Specifies which TURN specification compatibility to use
+  */
+@@ -205,7 +209,28 @@ size_t stun_usage_turn_create_refresh (StunAgent *agent, StunMessage *msg,
+     uint8_t *password, size_t password_len,
+     StunUsageTurnCompatibility compatibility);
+ 
+-
++/**
++ * stun_usage_turn_create_permission:
++ * @agent: The #StunAgent to use to build the request
++ * @msg: The #StunMessage to build
++ * @buffer: The buffer to use for creating the #StunMessage
++ * @buffer_len: The size of the @buffer
++ * @username: The username to use in the request
++ * @username_len: The length of @username
++ * @password: The key to use for building the MESSAGE-INTEGRITY
++ * @password_len: The length of @password
++ * @realm: The realm identifier to use in the request
++ * @realm_len: The length of @realm
++ * @nonce: Unique and securely random nonce to use in the request
++ * @nonce_len: The length of @nonce
++ * @peer: Server-reflexive host address to request permission for
++ * @compatibility: The compatibility mode to use for building the
++ * CreatePermission request
++ *
++ * Create a new TURN CreatePermission request
++ *
++ * Returns: The length of the message to send
++ */
+ size_t stun_usage_turn_create_permission (StunAgent *agent, StunMessage *msg,
+     uint8_t *buffer, size_t buffer_len,
+     uint8_t *username, size_t username_len,
+-- 
+2.1.0
+
+
+From c76bc978b638b677082ebc4e9ea6d0a20de7f49d Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:25:07 +0000
+Subject: [PATCH 18/20] docs: Add 0.1.8 API to the documentation index
+
+This should have been included before. This fixes `make check` in docs/.
+---
+ docs/reference/libnice/libnice-docs.xml | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/docs/reference/libnice/libnice-docs.xml b/docs/reference/libnice/libnice-docs.xml
+index 918fcf4..3dfac27 100644
+--- a/docs/reference/libnice/libnice-docs.xml
++++ b/docs/reference/libnice/libnice-docs.xml
+@@ -97,6 +97,10 @@
+       <title>Index of new symbols in 0.1.6</title>
+       <xi:include href="xml/api-index-0.1.6.xml"><xi:fallback/></xi:include>
+     </index>
++    <index role="0.1.8">
++      <title>Index of new symbols in 0.1.8</title>
++      <xi:include href="xml/api-index-0.1.8.xml"><xi:fallback/></xi:include>
++    </index>
+     <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+   </part>
+ </book>
+-- 
+2.1.0
+
+
+From 641225708f185b3a1304d59a895c057dadec16b3 Mon Sep 17 00:00:00 2001
+From: Philip Withnall <philip.withnall@collabora.co.uk>
+Date: Fri, 2 Jan 2015 19:25:32 +0000
+Subject: [PATCH 19/20] docs: Enable documentation checks during `make check`
+ by default
+
+Now that they pass, we should endeavour to ensure they continue to pass.
+---
+ docs/reference/libnice/Makefile.am | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/docs/reference/libnice/Makefile.am b/docs/reference/libnice/Makefile.am
+index b3fe450..1d53e3b 100644
+--- a/docs/reference/libnice/Makefile.am
++++ b/docs/reference/libnice/Makefile.am
+@@ -101,6 +101,7 @@ include $(top_srcdir)/gtk-doc.make
+ # for --rebuild-sections in $(SCAN_OPTIONS) e.g. $(DOC_MODULE)-sections.txt
+ #DISTCLEANFILES +=
+ 
+-# Comment this out if you want your docs-status tested during 'make check'
+-#TESTS = $(GTKDOC_CHECK)
+-
++if ENABLE_GTK_DOC
++TESTS_ENVIRONMENT = cd $(builddir) &&
++TESTS = $(GTKDOC_CHECK)
++endif
+-- 
+2.1.0
+
+
+From e4b8707d4ada89d09d9513775f165bd6c1481e1e Mon Sep 17 00:00:00 2001
+From: Youness Alaoui <kakaroto@kakaroto.homelinux.net>
+Date: Tue, 20 Jan 2015 12:31:11 -0500
+Subject: [PATCH 20/20] Only change the receiving nicesock for udp-turn for
+ ice-tcp
+
+The code was in the wrong spot, for OC2007, we need to fix the
+nicesock used only in the case of udp-turn-over-tcp for OC2007
+compatibility mode. With the current code, it was thinking that
+the data came from TURN for every udp packet.
+This should hopefully fix : https://github.com/EricssonResearch/openwebrtc/issues/85
+---
+ agent/agent.c | 39 +++++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
+
+diff --git a/agent/agent.c b/agent/agent.c
+index c0efd76..d9900ae 100644
+--- a/agent/agent.c
++++ b/agent/agent.c
+@@ -3276,7 +3276,6 @@ agent_recv_message_unlocked (
+ {
+   NiceAddress from;
+   GList *item;
+-  GSList *cand_i;
+   gint retval;
+ 
+   /* We need an address for packet parsing, below. */
+@@ -3284,25 +3283,6 @@ agent_recv_message_unlocked (
+     message->from = &from;
+   }
+ 
+-  /* In case of ICE-TCP on UDP-TURN (OC2007 compat), we need to do the recv
+-   * on the UDP_TURN socket, but it's possible we receive the source event on
+-   * the UDP_TURN_OVER_TCP socket, so in that case, we need to replace the
+-   * socket we do the recv on to the topmost socket
+-   */
+-  for (cand_i = component->local_candidates; cand_i; cand_i = cand_i->next) {
+-    NiceCandidate *cand = cand_i->data;
+-
+-    if (cand->type == NICE_CANDIDATE_TYPE_RELAYED &&
+-        cand->stream_id == stream->id &&
+-        cand->component_id == component->id &&
+-        ((NiceSocket *)cand->sockptr)->fileno == nicesock->fileno) {
+-      nice_debug ("Agent %p : Packet received from a TURN socket.",
+-          agent);
+-      nicesock = cand->sockptr;
+-      break;
+-    }
+-  }
+-
+   /* ICE-TCP requires that all packets be framed with RFC4571 */
+   if (nice_socket_is_reliable (nicesock)) {
+     /* In the case of OC2007 and OC2007R2 which uses UDP TURN for TCP-ACTIVE
+@@ -3310,12 +3290,31 @@ agent_recv_message_unlocked (
+      * always return an entire frame, so we must read it as is */
+     if (nicesock->type == NICE_SOCKET_TYPE_UDP_TURN_OVER_TCP ||
+         nicesock->type == NICE_SOCKET_TYPE_UDP_TURN) {
++      GSList *cand_i;
+       GInputVector *local_bufs;
+       NiceInputMessage local_message;
+       guint n_bufs = 0;
+       guint16 rfc4571_frame;
+       guint i;
+ 
++      /* In case of ICE-TCP on UDP-TURN (OC2007 compat), we need to do the recv
++       * on the UDP_TURN socket, but it's possible we receive the source event
++       * on the UDP_TURN_OVER_TCP socket, so in that case, we need to replace
++       * the socket we do the recv on to the topmost socket
++       */
++      for (cand_i = component->local_candidates; cand_i; cand_i = cand_i->next) {
++        NiceCandidate *cand = cand_i->data;
++
++        if (cand->type == NICE_CANDIDATE_TYPE_RELAYED &&
++            cand->stream_id == stream->id &&
++            cand->component_id == component->id &&
++            ((NiceSocket *)cand->sockptr)->fileno == nicesock->fileno) {
++          nice_debug ("Agent %p : Packet received from a TURN socket.",
++              agent);
++          nicesock = cand->sockptr;
++          break;
++        }
++      }
+       /* Count the number of buffers. */
+       if (message->n_buffers == -1) {
+         for (i = 0; message->buffers[i].buffer != NULL; i++)
+-- 
+2.1.0
+
