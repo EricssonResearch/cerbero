@@ -29,7 +29,7 @@ class Recipe(recipe.Recipe):
     _static_deps = [i + '-static' for i in _dynamic_deps] + \
                    ['openwebrtc-girepository']
     # OpenH264 has been moved to gst-plugins-bad
-    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed'] + _dynamic_deps
+    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed', 'json-glib', 'libsoup'] + _dynamic_deps
     platform_deps = {Platform.IOS: _static_deps,
                      Platform.ANDROID: _static_deps}
     # Parallel make fails randomly due to .gitignore generation by git.mk
