@@ -11,9 +11,9 @@ diff --git a/configure.ac b/configure.ac
 index 11c5487..f0edce3 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -87,18 +87,10 @@ AM_CONDITIONAL([BUILD_OPENH264], [test "$with_openh264" != no])
- AM_COND_IF([BUILD_OPENH264],
-    AC_CONFIG_FILES([ext/openh264/Makefile ext/openh264/src/Makefile]))
+@@ -68,18 +68,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([ ], [ ])], [
+   AC_MSG_RESULT([no])
+ ])
  
 -AC_CHECK_HEADERS([openssl/ssl.h],
 -  [AC_CHECK_LIB([ssl], [SSL_library_init],
