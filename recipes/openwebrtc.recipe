@@ -2,6 +2,8 @@
 
 import shutil
 from cerbero.utils import shell
+from cerbero.utils import messages
+from cerbero.utils import parse_file
 from custom import generate_gir_h_from_gir
 
 class Recipe(recipe.Recipe):
@@ -117,13 +119,30 @@ class Recipe(recipe.Recipe):
                       {'tests ': ''})
         if self.config.target_platform != self.config.platform and \
            self.config.target_platform in (Platform.IOS, Platform.ANDROID):
+            if self.config.target_platform == Platform.IOS:
+                # On OS X, we use a custom config and install everything inside
+                # a framework and not inside the default OS X prefix, so we need
+                # to read that from the config file. See:
+                # https://github.com/EricssonResearch/openwebrtc/wiki/Building-OpenWebRTC-with-Cerbero
+                config = {}
+                parse_file(os.path.join(self.config.environ_dir,
+                                        "osx-x86-64.cbc"),
+                           config)
+                host_prefix = config['prefix']
+            else:
+                host_prefix = os.path.join(self.config.prefix, '..',
+                                           '{0}_{1}'.format(self.config.platform,
+                                                            self.config.arch))
+            err = "You need to build openwebrtc for the host {0} " \
+                  "before you can cross-compile it for " \
+                  "{1}".format(self.config.platform,
+                               self.config.target_platform)
+            if not os.path.isdir(host_prefix):
+                raise Exception(err)
             # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build, 
             # if it exists. If not, error out because that's the only way we 
             # have sorry this is a bad hack kill me please.
-            gir_file_path = os.path.join(self.config.prefix, '..',
-                                         '{0}_{1}'.format(self.config.platform,
-                                                          self.config.arch),
-                                         'share', 'gir-1.0')
+            gir_file_path = os.path.join(host_prefix, 'share', 'gir-1.0')
             # This is going to be fun if something causes an exception before
             # we reset the path
             old_cwd = os.getcwd()
