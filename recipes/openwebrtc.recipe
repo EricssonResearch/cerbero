@@ -54,6 +54,19 @@ class Recipe(recipe.Recipe):
             self.configure_options += ' --disable-gtk-doc --enable-static \
                 --enable-owr-static '
             if self.config.target_platform == Platform.ANDROID:
+                if self.config.target_arch == Architecture.ARMv7:
+                    self.arch_name = "armeabi-v7a"
+                elif self.config.target_arch == Architecture.ARM:
+                    self.arch_name = "armeabi"
+                elif self.config.target_arch == Architecture.ARM64:
+                    self.arch_name = "arm64-v8a"
+                elif self.config.target_arch == Architecture.X86:
+                    self.arch_name = "x86"
+                elif self.config.target_arch == Architecture.X86_64:
+                    self.arch_name = "x86_64"
+                else:
+                    raise FatalError("Unsupported Android architecture: " + \
+                        self.config.target_arch)
                 android_sdk = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk')
                 self.configure_options += '--enable-owr-java --enable-shared \
@@ -63,9 +76,9 @@ class Recipe(recipe.Recipe):
                 # aren't, and are injected by build.sh instead. So we do the
                 # same for now.
                 android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                              "cxx-stl", "gnu-libstdc++", "4.8");
+                                              "cxx-stl", "gnu-libstdc++", "4.9");
                 platformL = '-L'
-                platformL += os.path.join(android_cxxstl, "libs", "armeabi-v7a")
+                platformL += os.path.join(android_cxxstl, "libs", self.arch_name)
                 platformL += ' -lgnustl_shared -landroid '
 
             else:

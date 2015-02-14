@@ -34,12 +34,25 @@ class Recipe(recipe.Recipe):
         # Android was removed. So we hack it all back in now. This will all be
         # a massive pain if someone decides to upgrade WebKit to 2.6.x
         if self.config.target_platform == Platform.ANDROID:
+            if self.config.target_arch == Architecture.ARMv7:
+                self.arch_name = "armeabi-v7a"
+            elif self.config.target_arch == Architecture.ARM:
+                self.arch_name = "armeabi"
+            elif self.config.target_arch == Architecture.ARM64:
+                self.arch_name = "arm64-v8a"
+            elif self.config.target_arch == Architecture.X86:
+                self.arch_name = "x86"
+            elif self.config.target_arch == Architecture.X86_64:
+                self.arch_name = "x86_64"
+            else:
+                raise FatalError("Unsupported Android architecture: " + \
+                    self.config.target_arch)
             # Some headers/objs aren't found include/lib paths aren't set:
             # * bits/c++config.h
             android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                          "cxx-stl", "gnu-libstdc++", "4.8");
+                                          "cxx-stl", "gnu-libstdc++", "4.9")
             cxxflags1 = os.path.join(android_cxxstl, 'include')
-            cxxflags2 = os.path.join(android_cxxstl, 'libs', 'armeabi-v7a',
+            cxxflags2 = os.path.join(android_cxxstl, 'libs', self.arch_name,
                                      'include')
             self.append_env['CXXFLAGS'] = ' -DPTHREAD_KEYS_MAX=1024' + \
                 ' -I' + cxxflags1 + ' -I' + cxxflags2
@@ -47,7 +60,7 @@ class Recipe(recipe.Recipe):
             ldflags1 = os.path.join(self.build_dir, 'Source')
             # GNU STL is needed for full STL support
             # http://www.kandroid.org/ndk/docs/CPLUSPLUS-SUPPORT.html
-            ldflags2 = os.path.join(android_cxxstl, "libs", "armeabi-v7a")
+            ldflags2 = os.path.join(android_cxxstl, "libs", self.arch_name)
             self.append_env['LDFLAGS'] = ' -L' + ldflags1 + ' -L' + ldflags2 + \
                 ' -lgnustl_shared'
 
