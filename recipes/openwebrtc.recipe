@@ -178,21 +178,19 @@ class Recipe(recipe.Recipe):
         # linker command that does that for us, re-create the library, and then
         # add it to the JAR file
         if self.config.target_platform == Platform.ANDROID:
-            make_cmd = 'make -f "{0}" INPUT_LIBRARY="{1}" OUTPUT_LIBRARY="{2}" \
-                        JAR_LIBS="{3}" JAR_FILE="{4}" CERBERO_DATA_PATH="{5}" \
-                        PREFIX="{6}" GSTREAMER_STATIC_PLUGINS="{7}"'
+            import tempfile
+            make_cmd = 'make -f "{0}" INPUT_LIBRARY="{1}" OUTPUT_LIBRARY="{2}" ' \
+                       'CERBERO_DATA_PATH="{3}" PREFIX="{4}" ' \
+                       'GSTREAMER_STATIC_PLUGINS="{5}"'
             makefile = os.path.join(self.config.recipes_dir, self.name,
                                     'Makefile.bundled-shared')
             for each in ('openwebrtc', 'openwebrtc_bridge'):
                 input_library = each + '_jni'
-                jar_libs = 'lib' + input_library + '.so'
-                output_library = os.path.join(self.config.prefix,
-                                              'lib' + self.config.lib_suffix,
-                                              jar_libs)
-                output_library = os.path.realpath(output_library)
-                jar_file = os.path.join(self.config.prefix,
-                                        'lib' + self.config.lib_suffix,
-                                        'jni', each + '.jar')
+                jar_lib = 'lib' + input_library + '.so'
+                output_library_dir = os.path.join(self.config.prefix,
+                                                  'lib' + self.config.lib_suffix)
+                output_library_dir = os.path.realpath(output_library_dir)
+                output_library = os.path.join(output_library_dir, jar_lib)
                 gst_plugins_libs = self.gst_plugins_libs
                 if each == 'openwebrtc_bridge':
                     # FIXME: For some reason, this is missing from
@@ -200,8 +198,29 @@ class Recipe(recipe.Recipe):
                     # This needs to be fixed in the la file.
                     gst_plugins_libs += ' -lseed-gtk3'
                 cmd = make_cmd.format(makefile, input_library, output_library,
-                                      jar_libs, jar_file,
                                       self.config.data_dir,
                                       self.config.prefix,
                                       gst_plugins_libs)
                 shell.call(cmd)
+                # We need to repackage the jar file with the fixed library
+                jar_file = os.path.join(self.config.prefix,
+                                        'lib' + self.config.lib_suffix,
+                                        'jni', each + '.jar')
+                # The library needs to be inside 'lib/armeabi' etc (depending
+                # on the architecture, so we need to copy it inside that dir,
+                # add it to the jar and then delete the tmpdir
+                tempdir = tempfile.mkdtemp()
+                # Extract the jar file in the tmpdir
+                old_cwd = os.getcwd()
+                os.chdir(tempdir)
+                shell.call("jar -xvf " + jar_file)
+                # Remove all existing native libraries inside the jar
+                shutil.rmtree("lib")
+                jar_lib_path = os.path.join("lib", self.arch_name)
+                os.makedirs(jar_lib_path)
+                # Copy the fixed native library into the correct path
+                shutil.copy(output_library, jar_lib_path)
+                os.chdir(old_cwd)
+                # Re-create the jar file
+                shell.call("jar -cvf {0} -C {1} .".format(jar_file, tempdir))
+                shutil.rmtree(tempdir)
