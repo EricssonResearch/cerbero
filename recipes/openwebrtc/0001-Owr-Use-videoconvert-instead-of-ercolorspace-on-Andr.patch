@@ -1,7 +1,7 @@
-From 716652d282a11f38c80e3a47290d22a97f3463aa Mon Sep 17 00:00:00 2001
+From 7fbb136c070dd7235998cc1407fbf69eae29fe5a Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Mon, 10 Nov 2014 21:29:47 +0530
-Subject: [PATCH 1/6] Owr: Use videoconvert instead of ercolorspace on Android
+Subject: [PATCH 1/2] Owr: Use videoconvert instead of ercolorspace on Android
 
 Not all Android devices have NEON support, and videconvert will do the right
 thing using ORC
@@ -55,10 +55,10 @@ index ac2f80b..1478c74 100644
  #else
  #define VIDEO_CONVERT "videoconvert"
 diff --git a/owr/owr.c b/owr/owr.c
-index 81f45c3..8b5977a 100644
+index 56d7885..169976c 100644
 --- a/owr/owr.c
 +++ b/owr/owr.c
-@@ -107,7 +107,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
+@@ -106,7 +106,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
  GST_PLUGIN_STATIC_DECLARE(video4linux2);
  #endif
  
