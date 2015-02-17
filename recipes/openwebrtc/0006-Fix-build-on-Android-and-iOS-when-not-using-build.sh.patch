@@ -1,4 +1,4 @@
-From 660bf45445c887c79037e9014d33918f9e2653fe Mon Sep 17 00:00:00 2001
+From f0314a43b00b5380391641a1963b794d5c2f9920 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 17 Feb 2015 05:15:04 +0530
 Subject: [PATCH 6/6] Fix build on Android and iOS when not using build.sh
@@ -6,23 +6,41 @@ Subject: [PATCH 6/6] Fix build on Android and iOS when not using build.sh
 Detect and subst all needed Android and iOS INCLUDES/LIBS in configure.ac, and
 do Android-specific quirks
 ---
- configure.ac    | 47 ++++++++++++++++++++++++++++++++++++++++-------
+ configure.ac    | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++-------
  owr/Makefile.am |  3 ++-
- 2 files changed, 42 insertions(+), 8 deletions(-)
+ 2 files changed, 60 insertions(+), 8 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 992540e..a603ce6 100644
+index 992540e..0a5bed3 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -84,9 +84,15 @@ dnl pick dependencies and build flags based on OS
+@@ -84,9 +84,33 @@ dnl pick dependencies and build flags based on OS
  case "$host_os" in
    darwin*)
      is_apple=yes
 -    OWR_DEVICE_LIST_EXT_LIBS="-framework AVFoundation"
-+    OWR_DEVICE_LIST_EXT_LIBS="-framework AssetsLibrary -framework CoreMedia
-+      -framework CoreVideo -framework AVFoundation -framework Foundation
-+      -framework OpenGLES -framework CoreAudio -framework AudioToolbox
-+      -weak_framework VideoToolbox -lc++ "
++    AC_CHECK_HEADER(AVFoundation/AVFoundation.h, ,
++                    AC_MSG_ERROR(AVFoundation is needed while building for OS X or iOS),
++                    [-])
++    AC_CHECK_HEADER(MobileCoreServices/MobileCoreServices.h, is_ios="yes",
++                    is_ios="no", [-])
++    if test "x$is_ios" == "xno"; then
++      dnl OS X frameworks
++      OWR_DEVICE_LIST_EXT_LIBS="-framework AVFoundation "
++    else
++      dnl iOS frameworks
++      m4_foreach([check_header],
++                 [[AssetsLibrary/AssetsLibrary.h], [CoreMedia/CoreMedia.h],
++                  [CoreVideo/CoreVideo.h], [OpenGLES/ES2/gl.h],
++                  [CoreAudio/CoreAudio.h], [AudioToolbox/AudioToolbox.h]],
++                 AC_CHECK_HEADER($check_header, ,
++                                 AC_MSG_ERROR($check_header is needed while building for iOS),
++                                 [-]))
++      OWR_DEVICE_LIST_EXT_LIBS="-framework AssetsLibrary -framework CoreMedia \
++        -framework CoreVideo -framework AVFoundation -framework Foundation \
++        -framework OpenGLES -framework CoreAudio -framework AudioToolbox \
++        -weak_framework VideoToolbox -lc++ "
++    fi
      ;;
    linux-android*)
 +    is_android=yes
@@ -31,7 +49,7 @@ index 992540e..a603ce6 100644
      ;;
    linux*)
      PKG_CHECK_MODULES(PULSE, [libpulse libpulse-mainloop-glib])
-@@ -95,8 +101,8 @@ case "$host_os" in
+@@ -95,8 +119,8 @@ case "$host_os" in
      OWR_DEVICE_LIST_EXT_LIBS="\$(PULSE_LIBS) \$(V4L2_LIBS)"
      ;;
  esac
@@ -41,7 +59,7 @@ index 992540e..a603ce6 100644
  
  dnl generate java bindings or not
  AC_MSG_CHECKING([whether to generate java bindings or not])
-@@ -111,6 +117,9 @@ AC_HELP_STRING(
+@@ -111,6 +135,9 @@ AC_HELP_STRING(
  esac],[enable_owr_java=no])
  AC_MSG_RESULT([$enable_owr_java])
  if test "x$enable_owr_java" = xyes; then
@@ -51,7 +69,7 @@ index 992540e..a603ce6 100644
    if test "x$enable_shared" != xyes; then
      AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
    fi
-@@ -156,7 +165,7 @@ AC_ARG_WITH(android-sdk,
+@@ -156,7 +183,7 @@ AC_ARG_WITH(android-sdk,
              androidsdkdir=${withval}, androidsdkdir=)
  if test "x$enable_owr_java" = xyes; then
    AC_MSG_CHECKING([for android.jar])
@@ -60,7 +78,7 @@ index 992540e..a603ce6 100644
      AC_MSG_ERROR([Need path to the Android SDK when building Android bindings])
    fi
    ANDROID_CLASSPATH="$androidsdkdir/platforms/android-20/android.jar"
-@@ -170,15 +179,15 @@ if test "x$enable_owr_java" = xyes; then
+@@ -170,15 +197,15 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_CLASSPATH)
  
@@ -80,7 +98,7 @@ index 992540e..a603ce6 100644
    fi
    case "$target" in
      i?86-*|x86_64-*)
-@@ -201,6 +210,30 @@ if test "x$enable_owr_java" = xyes; then
+@@ -201,6 +228,30 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_NDK_PREFIX)
  
