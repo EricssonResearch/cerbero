@@ -22,7 +22,9 @@ class Recipe(recipe.Recipe):
     patches = [name + '/0001-Owr-Use-videoconvert-instead-of-ercolorspace-on-Andr.patch',
                name + '/0002-owr-owr.c-Register-gstnice-as-an-ordinary-gst-plugin.patch',
                name + '/0003-owr-There-is-no-g_io_module_load_static.patch',
-               name + '/0004-bindings-java-Arguments-in-a-shell-script-s-shebang-.patch']
+               name + '/0004-bindings-java-Arguments-in-a-shell-script-s-shebang-.patch',
+               name + '/0005-libopenwebrtc.exp-Remove-unused-non-public-symbols.patch',
+               name + '/0006-Fix-build-on-Android-and-iOS-when-not-using-build.sh.patch']
     # Dependencies used in the dynamic (shared) build of OWRTC
     _dynamic_deps = ['libnice', 'gstreamer-1.0', 'gst-plugins-base-1.0',
                      'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
@@ -71,24 +73,13 @@ class Recipe(recipe.Recipe):
                                            'opt', 'android-sdk')
                 self.configure_options += '--enable-owr-java --enable-shared \
                     --with-android-sdk=' + android_sdk + ' \
+                    --with-android-abi=' + self.arch_name + ' \
                     --with-android-ndk=' + self.config.toolchain_prefix
-                # These should be set by the build system on Android, but they
-                # aren't, and are injected by build.sh instead. So we do the
-                # same for now.
-                android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                              "cxx-stl", "gnu-libstdc++", "4.9");
-                platformL = '-L'
-                platformL += os.path.join(android_cxxstl, "libs", self.arch_name)
-                platformL += ' -lgnustl_shared -landroid '
 
             else:
                 self.configure_options += '--disable-shared '
-                platformL = '-framework AssetsLibrary -framework CoreMedia \
-                    -framework CoreVideo -framework AVFoundation \
-                    -framework Foundation -framework OpenGLES \
-                    -framework CoreAudio -framework AudioToolbox \
-                    -weak_framework VideoToolbox -lc++ '
 
+            # TODO: Move all this to the openwebrtc build system
             # We're using internal gir symbols for the static build, but the 
             # build system doesn't add this because it's stupid
             self.new_env['PKG_CONFIG'] = 'pkg-config --static'
@@ -113,7 +104,7 @@ class Recipe(recipe.Recipe):
             self.gst_plugins_libs = ' '.join(['-lgst' + l for l in gst_plugins])
             # This env variable will get substituted in the Makefile
             self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = \
-                platformL + gst_plugins_path + self.gst_plugins_libs + ' ' + \
+                gst_plugins_path + self.gst_plugins_libs + ' ' + \
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):

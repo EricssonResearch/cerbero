@@ -1,0 +1,130 @@
+From 660bf45445c887c79037e9014d33918f9e2653fe Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Tue, 17 Feb 2015 05:15:04 +0530
+Subject: [PATCH 6/6] Fix build on Android and iOS when not using build.sh
+
+Detect and subst all needed Android and iOS INCLUDES/LIBS in configure.ac, and
+do Android-specific quirks
+---
+ configure.ac    | 47 ++++++++++++++++++++++++++++++++++++++++-------
+ owr/Makefile.am |  3 ++-
+ 2 files changed, 42 insertions(+), 8 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 992540e..a603ce6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -84,9 +84,15 @@ dnl pick dependencies and build flags based on OS
+ case "$host_os" in
+   darwin*)
+     is_apple=yes
+-    OWR_DEVICE_LIST_EXT_LIBS="-framework AVFoundation"
++    OWR_DEVICE_LIST_EXT_LIBS="-framework AssetsLibrary -framework CoreMedia
++      -framework CoreVideo -framework AVFoundation -framework Foundation
++      -framework OpenGLES -framework CoreAudio -framework AudioToolbox
++      -weak_framework VideoToolbox -lc++ "
+     ;;
+   linux-android*)
++    is_android=yes
++    OWR_DEVICE_LIST_EXT_CFLAGS=""
++    OWR_DEVICE_LIST_EXT_LIBS=""
+     ;;
+   linux*)
+     PKG_CHECK_MODULES(PULSE, [libpulse libpulse-mainloop-glib])
+@@ -95,8 +101,8 @@ case "$host_os" in
+     OWR_DEVICE_LIST_EXT_LIBS="\$(PULSE_LIBS) \$(V4L2_LIBS)"
+     ;;
+ esac
+-AC_SUBST(OWR_DEVICE_LIST_EXT_LIBS)
+ AM_CONDITIONAL(TARGET_APPLE, test x$is_apple = xyes)
++dnl We substitute OWR_DEVICE_LIST_EXT_LIBS in the end
+ 
+ dnl generate java bindings or not
+ AC_MSG_CHECKING([whether to generate java bindings or not])
+@@ -111,6 +117,9 @@ AC_HELP_STRING(
+ esac],[enable_owr_java=no])
+ AC_MSG_RESULT([$enable_owr_java])
+ if test "x$enable_owr_java" = xyes; then
++  if test "x$is_android" != xyes; then
++    AC_MSG_ERROR([--enable-owr-java is only valid when building for Android])
++  fi
+   if test "x$enable_shared" != xyes; then
+     AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
+   fi
+@@ -156,7 +165,7 @@ AC_ARG_WITH(android-sdk,
+             androidsdkdir=${withval}, androidsdkdir=)
+ if test "x$enable_owr_java" = xyes; then
+   AC_MSG_CHECKING([for android.jar])
+-  if test -a "x$androidsdkdir" = x; then
++  if test "x$androidsdkdir" = x; then
+     AC_MSG_ERROR([Need path to the Android SDK when building Android bindings])
+   fi
+   ANDROID_CLASSPATH="$androidsdkdir/platforms/android-20/android.jar"
+@@ -170,15 +179,15 @@ if test "x$enable_owr_java" = xyes; then
+ fi
+ AC_SUBST(ANDROID_CLASSPATH)
+ 
+-dnl Android NDK path is needed when Java bindings are enabled
++dnl Android NDK path is needed when building for Android
+ AC_ARG_WITH(android-ndk,
+             AS_HELP_STRING([--with-android-ndk],
+                            [path to the Android NDK]),
+             androidndkdir=${withval}, androidndkdir=)
+-if test "x$enable_owr_java" = xyes; then
++if test "x$is_android" = xyes; then
+   AC_MSG_CHECKING([for the Android NDK prefix])
+-  if test -a "x$androidndkdir" = x; then
+-    AC_MSG_ERROR([Need path to the Android NDK when building Android bindings])
++  if test "x$androidndkdir" = x; then
++    AC_MSG_ERROR([Need path to the Android NDK when building for Android])
+   fi
+   case "$target" in
+     i?86-*|x86_64-*)
+@@ -201,6 +210,30 @@ if test "x$enable_owr_java" = xyes; then
+ fi
+ AC_SUBST(ANDROID_NDK_PREFIX)
+ 
++dnl Android ABI is needed when building for Android
++AC_ARG_WITH(android-abi,
++            AS_HELP_STRING([--with-android-abi],
++                           [Android ABI to build for]),
++            androidabi=${withval}, androidabi=)
++if test "x$is_android" = xyes; then
++  AC_MSG_CHECKING([for Android ABI])
++  if test "x$androidabi" = x; then
++    AC_MSG_ERROR([Need Android ABI when building for Android])
++  fi
++  ANDROID_ABI="$androidabi"
++  ANDROID_CXXSTL_PATH="$androidndkdir/sources/cxx-stl/gnu-libstdc++/4.9"
++  if ! test -d "$ANDROID_CXXSTL_PATH/libs/$ANDROID_ABI"; then
++    AC_MSG_ERROR([Android ABI $ANDROID_ABI not found])
++  fi
++  ANDROID_CXXSTL_CFLAGS="-I$ANDROID_CXXSTL_PATH/include"
++  ANDROID_CXXSTL_LIBS="-L$ANDROID_CXXSTL_PATH/libs/$ANDROID_ABI -landroid -lgnustl_shared"
++  OWR_DEVICE_LIST_EXT_CFLAGS="$OWR_DEVICE_LIST_EXT_CFLAGS $ANDROID_CXXSTL_CFLAGS"
++  OWR_DEVICE_LIST_EXT_LIBS="$OWR_DEVICE_LIST_EXT_LIBS $ANDROID_CXXSTL_LIBS"
++  AC_MSG_RESULT([$ANDROID_ABI])
++fi
++AC_SUBST(OWR_DEVICE_LIST_EXT_CFLAGS)
++AC_SUBST(OWR_DEVICE_LIST_EXT_LIBS)
++
+ AC_OUTPUT([
+ Makefile
+ bridge/Makefile
+diff --git a/owr/Makefile.am b/owr/Makefile.am
+index 30fed51..449701f 100644
+--- a/owr/Makefile.am
++++ b/owr/Makefile.am
+@@ -7,7 +7,8 @@ AM_CPPFLAGS = \
+     -DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
+     -DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+     $(GLIB_CFLAGS) \
+-    $(GSTREAMER_CFLAGS)
++    $(GSTREAMER_CFLAGS) \
++    $(OWR_DEVICE_LIST_EXT_CFLAGS)
+ 
+ AM_CFLAGS = \
+     -Wall \
+-- 
+2.1.0
+

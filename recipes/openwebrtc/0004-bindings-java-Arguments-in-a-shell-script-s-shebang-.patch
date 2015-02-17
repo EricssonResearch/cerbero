@@ -1,7 +1,7 @@
-From a06d1f46bbb99e7a578c4217353d2b83f1bf383e Mon Sep 17 00:00:00 2001
+From 6a77cc277ed17693b122a0953a68a25b63565d8d Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 27 Jan 2015 13:44:09 +0530
-Subject: [PATCH 4/4] bindings/java: Arguments in a shell script's shebang
+Subject: [PATCH 4/6] bindings/java: Arguments in a shell script's shebang
  aren't portable
 
 This doesn't work on Linux. Use an environment variable instead.
