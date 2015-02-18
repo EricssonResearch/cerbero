@@ -156,6 +156,11 @@ class Recipe(recipe.Recipe):
                 shutil.copy(gir_file, os.path.join(self.build_dir, "bindings", "java"))
             os.chdir(old_cwd)
         super(Recipe, self).configure()
+        if self.config.target_platform == Platform.IOS:
+            # Ensure that libtool doesn't discard the symbols exported by
+            # libraries that are -weak_framework
+            shell.apply_patch(os.path.join(self.build_dir, 'libtool.diff'),
+                              self.build_dir, 0)
 
     def post_install(self):
         # On Android, we want a 'fat' library that contains all the dependencies
