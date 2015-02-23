@@ -76,4 +76,4 @@ class Recipe(recipe.Recipe):
         self.configure_options += ' --disable-x --disable-xvideo'
 
         if self.config.variants.nodebug:
-            self.configure_options += ' --disable-gst-debug'
+            self.append_env['CFLAGS'] += ' -DGST_LEVEL_MAX=GST_LEVEL_FIXME'
