@@ -8,7 +8,6 @@ class Recipe(recipe.Recipe):
     url = 'http://download.gnome.org/sources/json-glib/1.0/json-glib-1.0.2.tar.xz'
     deps = ['glib']
     configure_options = '--enable-static'
-    autoreconf = True
 
     files_bins = ['json-glib-validate', 'json-glib-format']
     files_libs = ['libjson-glib-1.0']
