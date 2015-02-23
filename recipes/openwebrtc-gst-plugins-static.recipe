@@ -32,20 +32,17 @@ class Recipe(custom.GStreamerStatic):
 
     def prepare(self):
         # OpenH264 has been moved to gst-plugins-bad
+        # Don't build ercolorspace because we use videoconvert everywhere now
         self.configure_options += ' --without-openh264 \
             --disable-debug \
             --disable-android-plugins \
             --disable-osx-plugins \
             --disable-linux-plugins \
             --disable-colorspace-converter'
-        if self.config.target_platform == Platform.IOS:
-            self.configure_options += ' --enable-colorspace-converter'
-        elif self.config.target_platform == Platform.ANDROID:
+        if self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',
                                            'android-4.4W', 'dx')
-            # We do not build ercolorspace on Android because not all Android
-            # devices have NEON support
             self.configure_options += ' --enable-android-plugins \
                 DX="{0}"'.format(android_dx_path)
         elif self.config.target_platform == Platform.DARWIN:
@@ -55,3 +52,5 @@ class Recipe(custom.GStreamerStatic):
             # No-op right now
             self.configure_options += ' --enable-linux-plugins'
         super(Recipe, self).prepare()
+        # We don't have an "upstream" remote at cgit.fdo
+        self.remotes['upstream'] = self.remotes['origin']
