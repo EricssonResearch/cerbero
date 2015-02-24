@@ -18,10 +18,6 @@ class Recipe(custom.GStreamerStatic):
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
-    platform_files_plugins_core_devel = {
-        Platform.IOS: ['libgstercolorspace'],
-    }
-
     files_plugins_net_devel = [
         'libgstvideorepair',
         'libgsterdtls',
