@@ -8,12 +8,12 @@ Subject: [PATCH 1/2] configure: Use the pkg-config file for finding openssl
  1 file changed, 2 insertions(+), 10 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 11c5487..f0edce3 100644
+index a09b592..949abf8 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -68,18 +68,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([ ], [ ])], [
-   AC_MSG_RESULT([no])
- ])
+@@ -79,18 +79,10 @@ if test "x$with_sctp" != "xyes"; then
+   AC_MSG_ERROR([You need libusrsctp for the build])
+ fi
  
 -AC_CHECK_HEADERS([openssl/ssl.h],
 -  [AC_CHECK_LIB([ssl], [SSL_library_init],
