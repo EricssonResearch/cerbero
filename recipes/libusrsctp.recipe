@@ -10,12 +10,19 @@ class Recipe(recipe.Recipe):
     revision = 8932
     stype = SourceType.SVN
     autoreconf = True
-    autoreconf_sh = "sh ./bootstrap"
     licenses = [License.BSD_like]
     configure_options = '--disable-debug --enable-static --enable-shared'
 
     files_libs = ['libusrsctp']
     files_devel = ['include/usrsctp.h']
+
+    def extract(self):
+        super(recipe.Recipe, self).extract()
+
+        for f in ['NEWS', 'README', 'AUTHORS', 'ChangeLog']:
+            print (os.path.join(self.build_dir, f))
+            shell.touch(os.path.join(self.build_dir, f), True)
+        os.mkdir(os.path.join(self.build_dir, 'm4'))
 
     def configure(self):
         if self.config.target_platform == Platform.ANDROID:
