@@ -12,8 +12,7 @@ class Recipe(custom.GStreamerStatic):
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
     patches = [_name + '/use-openssl-pkg-config.patch',
-               _name + '/use-either-android-api-19-20.patch',
-               _name + '/use-static-only-when-enabled.patch',]
+               _name + '/use-either-android-api-19-20.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
             'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
