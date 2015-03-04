@@ -7,7 +7,7 @@ class Recipe(recipe.Recipe):
     name = 'libusrsctp'
     version = 'master'
     url = 'http://sctp-refimpl.googlecode.com/svn/trunk/KERN/usrsctp'
-    revision = 8932
+    revision = 9168
     stype = SourceType.SVN
     autoreconf = True
     licenses = [License.BSD_like]
