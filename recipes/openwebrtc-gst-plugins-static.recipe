@@ -12,7 +12,8 @@ class Recipe(custom.GStreamerStatic):
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
     patches = [_name + '/use-openssl-pkg-config.patch',
-               _name + '/use-either-android-api-19-20.patch',]
+               _name + '/use-either-android-api-19-20.patch',
+               _name + '/use-static-only-when-enabled.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
             'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
@@ -21,15 +22,15 @@ class Recipe(custom.GStreamerStatic):
     files_plugins_net_devel = [
         'libgstvideorepair',
         'libgsterdtls',
+        'libgstsctp',
     ]
     platform_files_plugins_capture_devel = {
         Platform.ANDROID: ['libgstandroidvideosrc'],
     }
 
     def prepare(self):
-        # OpenH264 has been moved to gst-plugins-bad
         # Don't build ercolorspace because we use videoconvert everywhere now
-        self.configure_options += ' --without-openh264 \
+        self.configure_options += ' \
             --disable-debug \
             --disable-android-plugins \
             --disable-osx-plugins \

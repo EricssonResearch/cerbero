@@ -1,0 +1,27 @@
+From 8956753b8ad64eb207d30079898b77a5862b09de Mon Sep 17 00:00:00 2001
+From: Nirbheek Chauhan <nirbheek@centricular.com>
+Date: Wed, 4 Mar 2015 18:11:04 +0530
+Subject: [PATCH] sctp: Don't build static plugin when disabled
+
+---
+ ext/sctp/Makefile.am | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ext/sctp/Makefile.am b/ext/sctp/Makefile.am
+index 97bf6c2..1117a24 100644
+--- a/ext/sctp/Makefile.am
++++ b/ext/sctp/Makefile.am
+@@ -14,6 +14,10 @@ libgstsctp_la_CFLAGS = \
+     -I$(top_srcdir)/gst-libs
+ 
+ libgstsctp_la_LIBADD = $(GST_LIBS) $(GST_BASE_LIBS) $(USRSCTP_LIBS) $(top_builddir)/gst-libs/gst/sctp/libgstsctp-1.0.la
++libgstsctp_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
++if !GST_PLUGIN_BUILD_STATIC
++libgstsctp_la_LIBTOOLFLAGS = --tag=disable-static
++endif
+ 
+ noinst_HEADERS = \
+     sctpassociation.h \
+-- 
+2.1.0
+
