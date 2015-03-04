@@ -8,6 +8,7 @@ class Recipe(recipe.Recipe):
     url = 'http://download.gnome.org/sources/json-glib/1.0/json-glib-1.0.2.tar.xz'
     deps = ['glib']
     configure_options = '--enable-static'
+    autoreconf = True
 
     patches = ["json-glib/0001-configure-Set-gettext-to-version-0.19.patch"]
 
