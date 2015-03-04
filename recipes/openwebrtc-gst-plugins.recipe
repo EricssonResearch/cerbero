@@ -13,7 +13,7 @@ class Recipe(recipe.Recipe):
     patches = [name + '/use-openssl-pkg-config.patch',
                name + '/use-either-android-api-19-20.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
-            'orc']
+            'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
 
