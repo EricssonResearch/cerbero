@@ -5,8 +5,8 @@ packages_prefix = 'openwebrtc'
 packager = 'OpenWebRTC <packages@openwebrtc.org>'
 prefix = "/opt/openwebrtc-1.0"
 
-# Comment this to disable parallel builds
-allow_parallel_build = True
+# Uncomment to allow parallel builds
+# allow_parallel_build = True
 
 # Uncomment this to allow cross-building for another architecture
 # target_arch = Architecture.X86_64
