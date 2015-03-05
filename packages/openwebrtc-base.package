@@ -19,7 +19,7 @@ class Package(package.Package):
            ]
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',
-             'openssl:libs', 'seed:libs',
+             'openssl:libs', 'seed:libs', 'libusrsctp:libs',
             ]
     files_devel = ['openwebrtc-gst-plugins-static',
                    ]
