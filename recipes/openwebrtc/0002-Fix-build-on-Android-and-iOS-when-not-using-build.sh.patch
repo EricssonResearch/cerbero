@@ -1,4 +1,4 @@
-From ade872451bf00c17fea7c3eaca5a3e6f6576a577 Mon Sep 17 00:00:00 2001
+From ecc6745f0969e4d5dddb1974217d3146c665fe19 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 17 Feb 2015 05:15:04 +0530
 Subject: [PATCH 2/2] Fix build on Android and iOS when not using build.sh
@@ -6,15 +6,28 @@ Subject: [PATCH 2/2] Fix build on Android and iOS when not using build.sh
 Detect and subst all needed Android and iOS INCLUDES/LIBS in configure.ac, and
 do Android-specific quirks
 ---
- configure.ac    | 66 +++++++++++++++++++++++++++++++++++++++++++++++++++------
- owr/Makefile.am |  3 ++-
- 2 files changed, 61 insertions(+), 8 deletions(-)
+ bindings/java/Makefile.am |  1 +
+ configure.ac              | 53 ++++++++++++++++++++++++++++++++++++++++-------
+ owr/Makefile.am           |  3 ++-
+ 3 files changed, 49 insertions(+), 8 deletions(-)
 
+diff --git a/bindings/java/Makefile.am b/bindings/java/Makefile.am
+index 1686cde..dd72e67 100644
+--- a/bindings/java/Makefile.am
++++ b/bindings/java/Makefile.am
+@@ -17,6 +17,7 @@ lib_LTLIBRARIES = libopenwebrtc_jni.la libopenwebrtc_bridge_jni.la
+ 
+ libopenwebrtc_jni_la_SOURCES = owr_jni.c
+ libopenwebrtc_jni_la_LIBADD = \
++	-L$(ANDROID_NDK_PREFIX)/lib -landroid \
+ 	$(top_builddir)/owr/libopenwebrtc.la
+ 
+ libopenwebrtc_bridge_jni_la_SOURCES = owr_bridge_jni.c
 diff --git a/configure.ac b/configure.ac
-index 992540e..88d5879 100644
+index 4cb143c..a4c551c 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -84,9 +84,34 @@ dnl pick dependencies and build flags based on OS
+@@ -85,9 +85,34 @@ dnl pick dependencies and build flags based on OS
  case "$host_os" in
    darwin*)
      is_apple=yes
@@ -50,7 +63,7 @@ index 992540e..88d5879 100644
      ;;
    linux*)
      PKG_CHECK_MODULES(PULSE, [libpulse libpulse-mainloop-glib])
-@@ -95,8 +120,8 @@ case "$host_os" in
+@@ -96,8 +121,8 @@ case "$host_os" in
      OWR_DEVICE_LIST_EXT_LIBS="\$(PULSE_LIBS) \$(V4L2_LIBS)"
      ;;
  esac
@@ -60,7 +73,7 @@ index 992540e..88d5879 100644
  
  dnl generate java bindings or not
  AC_MSG_CHECKING([whether to generate java bindings or not])
-@@ -111,6 +136,9 @@ AC_HELP_STRING(
+@@ -112,6 +137,9 @@ AC_HELP_STRING(
  esac],[enable_owr_java=no])
  AC_MSG_RESULT([$enable_owr_java])
  if test "x$enable_owr_java" = xyes; then
@@ -70,7 +83,7 @@ index 992540e..88d5879 100644
    if test "x$enable_shared" != xyes; then
      AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
    fi
-@@ -156,7 +184,7 @@ AC_ARG_WITH(android-sdk,
+@@ -157,7 +185,7 @@ AC_ARG_WITH(android-sdk,
              androidsdkdir=${withval}, androidsdkdir=)
  if test "x$enable_owr_java" = xyes; then
    AC_MSG_CHECKING([for android.jar])
@@ -79,7 +92,7 @@ index 992540e..88d5879 100644
      AC_MSG_ERROR([Need path to the Android SDK when building Android bindings])
    fi
    ANDROID_CLASSPATH="$androidsdkdir/platforms/android-20/android.jar"
-@@ -170,15 +198,15 @@ if test "x$enable_owr_java" = xyes; then
+@@ -171,15 +199,15 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_CLASSPATH)
  
@@ -99,30 +112,17 @@ index 992540e..88d5879 100644
    fi
    case "$target" in
      i?86-*|x86_64-*)
-@@ -201,6 +229,30 @@ if test "x$enable_owr_java" = xyes; then
+@@ -202,6 +230,17 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_NDK_PREFIX)
  
-+dnl Android ABI is needed when building for Android
-+AC_ARG_WITH(android-abi,
-+            AS_HELP_STRING([--with-android-abi],
-+                           [Android ABI to build for]),
-+            androidabi=${withval}, androidabi=)
 +if test "x$is_android" = xyes; then
-+  AC_MSG_CHECKING([for Android ABI])
-+  if test "x$androidabi" = x; then
-+    AC_MSG_ERROR([Need Android ABI when building for Android])
-+  fi
-+  ANDROID_ABI="$androidabi"
-+  ANDROID_CXXSTL_PATH="$androidndkdir/sources/cxx-stl/gnu-libstdc++/4.9"
-+  if ! test -d "$ANDROID_CXXSTL_PATH/libs/$ANDROID_ABI"; then
-+    AC_MSG_ERROR([Android ABI $ANDROID_ABI not found])
-+  fi
-+  ANDROID_CXXSTL_CFLAGS="-I$ANDROID_CXXSTL_PATH/include"
-+  ANDROID_CXXSTL_LIBS="-L$ANDROID_CXXSTL_PATH/libs/$ANDROID_ABI -landroid -lgnustl_shared"
-+  OWR_DEVICE_LIST_EXT_CFLAGS="$OWR_DEVICE_LIST_EXT_CFLAGS $ANDROID_CXXSTL_CFLAGS"
-+  OWR_DEVICE_LIST_EXT_LIBS="$OWR_DEVICE_LIST_EXT_LIBS $ANDROID_CXXSTL_LIBS"
-+  AC_MSG_RESULT([$ANDROID_ABI])
++  dnl The GNU C++ STL is needed for JNI. This pkg-config file is 
++  dnl only provided by Cerbero.
++  PKG_CHECK_MODULES(GNU_CXXSTL, [gnustl])
++
++  OWR_DEVICE_LIST_EXT_CFLAGS="$OWR_DEVICE_LIST_EXT_CFLAGS $GNU_CXXSTL_CFLAGS"
++  OWR_DEVICE_LIST_EXT_LIBS="$OWR_DEVICE_LIST_EXT_LIBS $GNU_CXXSTL_LIBS"
 +fi
 +AC_SUBST(OWR_DEVICE_LIST_EXT_CFLAGS)
 +AC_SUBST(OWR_DEVICE_LIST_EXT_LIBS)
@@ -131,7 +131,7 @@ index 992540e..88d5879 100644
  Makefile
  bridge/Makefile
 diff --git a/owr/Makefile.am b/owr/Makefile.am
-index 30fed51..449701f 100644
+index 91571c3..50db42a 100644
 --- a/owr/Makefile.am
 +++ b/owr/Makefile.am
 @@ -7,7 +7,8 @@ AM_CPPFLAGS = \
