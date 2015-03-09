@@ -1,121 +1,1034 @@
-From afead5a6d801eaa13385dcd0942bfe4484e7dddc Mon Sep 17 00:00:00 2001
-From: Nirbheek Chauhan <nirbheek@centricular.com>
-Date: Thu, 5 Mar 2015 01:39:04 +0530
-Subject: [PATCH 1/3] bindings/java: Temporary fix for generating java bindings
- from gir
+From 6ba4fa3ffaa9cc10134766de529c7ff5f540a587 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Fri, 6 Mar 2015 07:44:20 +0100
+Subject: [PATCH 01/14] bindings/java: ignore properties marked as not
+ introspectable
 
-This broke with the addition of the DataChannel feature
 ---
- bindings/java/gir_parser.py     | 9 ++++++++-
- bindings/java/standard_types.py | 4 ++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ bindings/java/gir_parser.py | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/bindings/java/gir_parser.py b/bindings/java/gir_parser.py
-index 0f21394..c9bf5bf 100644
+index 0f21394..796b2d9 100644
 --- a/bindings/java/gir_parser.py
 +++ b/bindings/java/gir_parser.py
-@@ -533,5 +533,12 @@ class GirParser(object):
-         return aliases
+@@ -64,6 +64,7 @@ ATTR_CLOSURE = 'closure'
+ ATTR_READABLE = 'readable'
+ ATTR_WRITABLE = 'writable'
+ ATTR_ALLOW_NONE = 'allow-none'
++ATTR_INTROSPECTABLE = 'introspectable'
+ ATTR_CONSTRUCT_ONLY = 'construct-only'
+ ATTR_SHARED_LIBRARY = 'shared-library'
+ ATTR_TRANSFER_ONWERSHIP = 'transfer-ownership'
+@@ -246,6 +247,7 @@ class Property(object):
+     @classmethod
+     def from_tag(cls, type_registry, class_value, tag):
+         name = tag.get(ATTR_NAME)
++
+         return cls(
+             name=name,
+             value=parse_tag_value(type_registry, tag, camel_case(name)),
+@@ -388,11 +390,11 @@ class Class(object):
+             glib_type_name=tag.get(ATTR_GLIB_TYPE_NAME),
+             glib_get_type=tag.get(ATTR_GLIB_GET_TYPE),
+             glib_type_struct=tag.get(ATTR_GLIB_TYPE_STRUCT),
+-            constructors=[Constructor.from_tag(type_registry, t) for t in tag.findall(TAG_CONSTRUCTOR)],
+-            properties=[Property.from_tag(type_registry, value, t) for t in tag.findall(TAG_PROPERTY)],
+-            methods=[Method.from_tag(type_registry, t) for t in tag.findall(TAG_METHOD)],
+-            functions=[Function.from_tag(type_registry, t) for t in tag.findall(TAG_FUNCTION)],
+-            signals=[Signal.from_tag(type_registry, value, t) for t in tag.findall(TAG_SIGNAL)],
++            constructors=[Constructor.from_tag(type_registry, t) for t in tag.findall(TAG_CONSTRUCTOR) if t.get(ATTR_INTROSPECTABLE) != '0'],
++            properties=[Property.from_tag(type_registry, value, t) for t in tag.findall(TAG_PROPERTY) if t.get(ATTR_INTROSPECTABLE) != '0'],
++            methods=[Method.from_tag(type_registry, t) for t in tag.findall(TAG_METHOD) if t.get(ATTR_INTROSPECTABLE) != '0'],
++            functions=[Function.from_tag(type_registry, t) for t in tag.findall(TAG_FUNCTION) if t.get(ATTR_INTROSPECTABLE) != '0'],
++            signals=[Signal.from_tag(type_registry, value, t) for t in tag.findall(TAG_SIGNAL) if t.get(ATTR_INTROSPECTABLE) != '0'],
+         )
  
-     def parse_full(self, type_registry):
--        return [Namespace(type_registry, tag) for tag in self.xml_root.findall(TAG_NAMESPACE)]
-+        parsed = []
-+        for tag in self.xml_root.findall(TAG_NAMESPACE):
-+            try:
-+                parsed.append(Namespace(type_registry, tag))
-+            except LookupError:
-+                # Ignore the error
-+                print("Unable to parse namespace tag: " + str(tag))
-+        return parsed
  
+-- 
+2.1.0
+
+
+From d9f51b51a2ecbdaffee171c5127059ac0ff5c2c1 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Fri, 6 Mar 2015 07:44:49 +0100
+Subject: [PATCH 02/14] bindings/java: added missing primitive types
+
+---
+ bindings/java/standard_types.py | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
 diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
-index 8b61425..ef25525 100644
+index 8b61425..2678788 100644
 --- a/bindings/java/standard_types.py
 +++ b/bindings/java/standard_types.py
-@@ -197,6 +197,8 @@ class PrimitiveMetaType(GirMetaType):
+@@ -197,11 +197,22 @@ class PrimitiveMetaType(GirMetaType):
  
  class CharType   (PrimitiveMetaType('byte',    'jbyte',    'gchar',    'B', 'Char')): pass
  class UcharType  (PrimitiveMetaType('byte',    'jbyte',    'guchar',   'B', 'Char')): pass
-+class ShortType  (PrimitiveMetaType('int',     'jint',     'gint16',   'I', 'Integer')): pass
-+class UshortType (PrimitiveMetaType('int',     'jint',     'guint16',  'I', 'Integer')): pass
++class Int8Type   (PrimitiveMetaType('byte',    'jbyte',    'gint8',    'B', 'Char')): pass
++class Uint8Type  (PrimitiveMetaType('byte',    'jbyte',    'guint8',   'B', 'Char')): pass
++class ShortType  (PrimitiveMetaType('short',   'jshort',   'gshort',   'S', 'Short')): pass
++class UshortType (PrimitiveMetaType('short',   'jshort',   'gushort',  'S', 'Short')): pass
++class Int16Type  (PrimitiveMetaType('short',   'jshort',   'gint16',   'S', 'Short')): pass
++class Uint16Type (PrimitiveMetaType('short',   'jshort',   'guint16',  'S', 'Short')): pass
  class IntType    (PrimitiveMetaType('int',     'jint',     'gint',     'I', 'Integer')): pass
  class UintType   (PrimitiveMetaType('int',     'jint',     'guint',    'I', 'Integer')): pass
++class Uint32Type (PrimitiveMetaType('int',     'jint',     'gint32',   'I', 'Integer')): pass
++class Int32Type  (PrimitiveMetaType('int',     'jint',     'guint32',  'I', 'Integer')): pass
  class LongType   (PrimitiveMetaType('long',    'jlong',    'glong',    'J', 'Long')): pass
-@@ -538,6 +540,8 @@ standard_types = [
+ class UlongType  (PrimitiveMetaType('long',    'jlong',    'gulong',   'J', 'Long')): pass
+ class LongPtrType(PrimitiveMetaType('long',    'jlong',    'gpointer', 'J', 'Long')): pass
++class SizeType   (PrimitiveMetaType('long',    'jlong',    'gsize',    'J', 'Long')): pass
++class SsizeType  (PrimitiveMetaType('long',    'jlong',    'gssize',   'J', 'Long')): pass
++class OffsetType (PrimitiveMetaType('long',    'jlong',    'goffset',  'J', 'Long')): pass
+ class Int64Type  (PrimitiveMetaType('long',    'jlong',    'gint64',   'J', 'Long')): pass
+ class Uint64Type (PrimitiveMetaType('long',    'jlong',    'guint64',  'J', 'Long')): pass
+ class BooleanType(PrimitiveMetaType('boolean', 'jboolean', 'gboolean', 'Z', 'Boolean')): pass
+@@ -538,8 +549,22 @@ standard_types = [
      VoidType,
      CharType,
      UcharType,
++    Int8Type,
++    Uint8Type,
 +    ShortType,
 +    UshortType,
++    Int16Type,
++    Uint16Type,
      IntType,
      UintType,
++    Uint32Type,
++    Int32Type,
++    LongType,
++    UlongType,
++    LongPtrType,
++    SizeType,
++    SsizeType,
++    OffsetType,
      Int64Type,
+     Uint64Type,
+     BooleanType,
 -- 
 2.1.0
 
 
-From a774ee0b395fe67abea14a1022e3c7b50907b891 Mon Sep 17 00:00:00 2001
-From: Nirbheek Chauhan <nirbheek@centricular.com>
-Date: Mon, 9 Mar 2015 18:52:46 +0530
-Subject: [PATCH 2/3] bindings/java: Fix build; the OWRTC packages have changed
- slightly
+From 2b63312597201bd9e3bee0eeba5ca909f0b9e17f Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sat, 7 Mar 2015 11:09:39 +0100
+Subject: [PATCH 03/14] bindings/java: use Byte type instead of Char for 8-bit
+ types
 
 ---
- bindings/java/Makefile.am | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ bindings/java/standard_types.py | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/bindings/java/Makefile.am b/bindings/java/Makefile.am
-index 643defe..9eeaf08 100644
---- a/bindings/java/Makefile.am
-+++ b/bindings/java/Makefile.am
-@@ -27,7 +27,6 @@ libopenwebrtc_bridge_jni_la_LIBADD = \
- BUILT_SOURCES = owr_jni.c
- noinst_DATA = \
- 	gen/owr/com/ericsson/research \
--	gen/owr/com/ericsson/research/owr \
- 	gen/bridge/com/ericsson/research/owr \
- 	javadoc
- CLEANFILES = owr_jni.c owr gen javadoc
-@@ -57,7 +56,7 @@ gen/owr/%: owr/%
- 	$(JAVAC) -classpath '$(ANDROID_CLASSPATH):gen/owr/' -d gen/owr $+/*.java
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 2678788..39b0b67 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -195,10 +195,10 @@ class PrimitiveMetaType(GirMetaType):
+         ])
  
- javadoc: owr
--	$(JAVADOC) -d javadoc -sourcepath owr -subpackages com.ericsson.research.owr -classpath '$(ANDROID_CLASSPATH)'
-+	$(JAVADOC) -d javadoc -sourcepath owr -subpackages com.ericsson.research -classpath '$(ANDROID_CLASSPATH)'
  
- # This must be done in install because we need the installed version of
- # the shared library created by libtool, not the "uninstalled" version
-@@ -70,12 +69,10 @@ install-data-local: install-exec
- 		cp -L $$eachlib jar-build/lib/armeabi; \
- 	done
- 	$(JAR) cvf '$(DESTDIR)/$(jardir)/openwebrtc.jar' \
--		-C gen/owr com/ericsson/research/owr \
- 		-C gen/owr com/ericsson/research \
- 		-C jar-build lib/armeabi/libopenwebrtc.so \
- 		-C jar-build lib/armeabi/libopenwebrtc_jni.so
- 	$(JAR) cvf '$(DESTDIR)/$(jardir)/openwebrtc-source.jar' \
--		-C owr com/ericsson/research/owr \
- 		-C owr com/ericsson/research
- 	$(JAR) cvf '$(DESTDIR)/$(jardir)/openwebrtc_bridge.jar' \
- 		-C gen/bridge com/ericsson/research/owr \
+-class CharType   (PrimitiveMetaType('byte',    'jbyte',    'gchar',    'B', 'Char')): pass
+-class UcharType  (PrimitiveMetaType('byte',    'jbyte',    'guchar',   'B', 'Char')): pass
+-class Int8Type   (PrimitiveMetaType('byte',    'jbyte',    'gint8',    'B', 'Char')): pass
+-class Uint8Type  (PrimitiveMetaType('byte',    'jbyte',    'guint8',   'B', 'Char')): pass
++class CharType   (PrimitiveMetaType('byte',    'jbyte',    'gchar',    'B', 'Byte')): pass
++class UcharType  (PrimitiveMetaType('byte',    'jbyte',    'guchar',   'B', 'Byte')): pass
++class Int8Type   (PrimitiveMetaType('byte',    'jbyte',    'gint8',    'B', 'Byte')): pass
++class Uint8Type  (PrimitiveMetaType('byte',    'jbyte',    'guint8',   'B', 'Byte')): pass
+ class ShortType  (PrimitiveMetaType('short',   'jshort',   'gshort',   'S', 'Short')): pass
+ class UshortType (PrimitiveMetaType('short',   'jshort',   'gushort',  'S', 'Short')): pass
+ class Int16Type  (PrimitiveMetaType('short',   'jshort',   'gint16',   'S', 'Short')): pass
 -- 
 2.1.0
 
 
-From 4346e15fa83c128cb9bdd1518884334cb674e70c Mon Sep 17 00:00:00 2001
+From 991baedf31b5645b4f8a4b83ae0ab44459f23e1d Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sat, 7 Mar 2015 11:12:20 +0100
+Subject: [PATCH 04/14] bindings/java: bitfields are not containers
+
+---
+ bindings/java/standard_types.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 39b0b67..46602b5 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -465,6 +465,8 @@ class ContainerMetaType(ObjectMetaType):
+ 
+ 
+ class BitfieldMetaType(ContainerMetaType):
++    is_container = False
++
+     def __init__(self, name, transfer_ownership, allow_none):
+         super(BitfieldMetaType, self).__init__(name, transfer_ownership, allow_none,
+             self.inner_type(name + '_enum'))
+-- 
+2.1.0
+
+
+From 92f7d184817b106f324509ad393add831b4aae89 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sat, 7 Mar 2015 20:08:56 +0100
+Subject: [PATCH 05/14] bindings/java: use first gir type if a match for both
+ the gir and c type can't be found
+
+---
+ bindings/java/type_registry.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/bindings/java/type_registry.py b/bindings/java/type_registry.py
+index 155e17f..225c41b 100644
+--- a/bindings/java/type_registry.py
++++ b/bindings/java/type_registry.py
+@@ -62,6 +62,8 @@ class TypeRegistry:
+         enum_alias = self.enum_aliases.get(gir_type)
+         if enum_alias is not None:
+             return self.lookup(enum_alias, c_type)
++        if len(girs):
++            return max(iter(girs))
+         raise LookupError("type lookup failed (gir_type=%s, c_type=%s)" % (gir_type, c_type))
+ 
+ 
+-- 
+2.1.0
+
+
+From 5a64acafe9c42095a2e23375c4cc21fcc061be3c Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sat, 7 Mar 2015 23:11:10 +0100
+Subject: [PATCH 06/14] bindings/java: added basic support for primitive array
+ types
+
+---
+ bindings/java/gir_parser.py     | 47 ++++++++++++++++++++---
+ bindings/java/standard_types.py | 85 ++++++++++++++++++++++++++++++++++++++---
+ bindings/java/type_registry.py  | 30 +++++++++++----
+ 3 files changed, 143 insertions(+), 19 deletions(-)
+
+diff --git a/bindings/java/gir_parser.py b/bindings/java/gir_parser.py
+index 796b2d9..8f810a6 100644
+--- a/bindings/java/gir_parser.py
++++ b/bindings/java/gir_parser.py
+@@ -39,6 +39,7 @@ TAG_INCLUDE = NS + 'include'
+ TAG_CONSTRUCTOR = NS + 'constructor'
+ TAG_RETURN_VALUE = NS + 'return-value'
+ TAG_TYPE = NS + 'type'
++TAG_ARRAY = NS + 'array'
+ TAG_PARAMETERS = NS + 'parameters'
+ TAG_VIRTUAL_METHOD = NS + 'virtual-method'
+ TAG_PARAMETER = NS + 'parameter'
+@@ -59,6 +60,7 @@ ATTR_NAME = 'name'
+ ATTR_WHEN = 'when'
+ ATTR_VALUE = 'value'
+ ATTR_SCOPE = 'scope'
++ATTR_LENGTH = 'length'
+ ATTR_PARENT = 'parent'
+ ATTR_CLOSURE = 'closure'
+ ATTR_READABLE = 'readable'
+@@ -67,6 +69,7 @@ ATTR_ALLOW_NONE = 'allow-none'
+ ATTR_INTROSPECTABLE = 'introspectable'
+ ATTR_CONSTRUCT_ONLY = 'construct-only'
+ ATTR_SHARED_LIBRARY = 'shared-library'
++ATTR_ZERO_TERMINATED = 'zero-terminated'
+ ATTR_TRANSFER_ONWERSHIP = 'transfer-ownership'
+ 
+ ATTR_C_IDENTIFIER_PREFIXES = C_NS + 'identifier-prefixes'
+@@ -113,12 +116,20 @@ def camel_case(st):
+ 
+ def parse_tag_value(type_registry, tag, name=None):
+     def lookup_type(tag):
+-        gir_type = tag.get(ATTR_NAME)
+-        c_type = tag.get(ATTR_C_TYPE)
+-        return type_registry.lookup(gir_type, c_type)
++        if tag.tag == TAG_ARRAY:
++            inner_tag = tag.find(TAG_TYPE)
++            gir_type = inner_tag.get(ATTR_NAME)
++            c_type = inner_tag.get(ATTR_C_TYPE)
++            return type_registry.lookup(gir_type, c_type, is_array=True)
++        else:
++            gir_type = tag.get(ATTR_NAME)
++            c_type = tag.get(ATTR_C_TYPE)
++            return type_registry.lookup(gir_type, c_type)
+ 
+     transfer = tag.get(ATTR_TRANSFER_ONWERSHIP)
+     type_tag = tag.find(TAG_TYPE)
++    if type_tag is None:
++        type_tag = tag.find(TAG_ARRAY)
+     allow_none = tag.get(ATTR_ALLOW_NONE) == '1'
+     inner_type_tags = type_tag.findall(TAG_TYPE)
+ 
+@@ -129,14 +140,18 @@ def parse_tag_value(type_registry, tag, name=None):
+     typ = lookup_type(type_tag)
+     value = None
+ 
+-    if inner_type_tags:
+-        assert typ.is_container
++    if typ.is_container:
++        assert inner_type_tags
+         types = enumerate(map(lookup_type, inner_type_tags))
+         type_params = [c(name + '_' + str(i), transfer == 'full') for i, c in types]
+         value = typ(name, transfer != 'none', allow_none, *type_params)
+     else:
+         assert transfer != 'container'
+-        value = typ(name, transfer == 'full', allow_none)
++        if typ.is_array:
++            c_array_type = type_tag.get(ATTR_C_TYPE)
++            value = typ(name, transfer == 'full', allow_none, c_array_type)
++        else:
++            value = typ(name, transfer == 'full', allow_none)
+     value.doc = parse_doc(tag)
+     return value
+ 
+@@ -160,6 +175,11 @@ class Parameters(object):
+ 
+         self.closure_params, self.java_params = partition(is_closure_param, params)
+ 
++        def is_length_param(param):
++            return param.is_length_param
++
++        self.length_params, self.java_params = partition(is_length_param, self.java_params)
++
+         if java_params:
+             self.java_params = java_params
+ 
+@@ -181,10 +201,16 @@ class Parameters(object):
+             return cls(return_value, None)
+ 
+         closure_refs = {}
++        array_refs = {}
+         for tag_index, tag in enumerate(params_tag.findall(TAG_PARAMETER)):
+             closure = tag.get(ATTR_CLOSURE)
+             if closure is not None:
+                 closure_refs[int(closure)] = tag_index
++            array_tag = tag.find(TAG_ARRAY)
++            if array_tag is not None:
++                length = array_tag.get(ATTR_LENGTH)
++                if length is not None:
++                    array_refs[int(length)] = tag_index
+ 
+         params = []
+         instance_param = None
+@@ -201,6 +227,15 @@ class Parameters(object):
+                     assert closure_index == real_tag_index - 1 or closure_index == real_tag_index
+                     closure = params[-1]
+                     params.append(JObjectWrapperType(name, closure, transfer_ownership=True))
++                elif array_refs.get(real_tag_index) is not None:
++                    array_index = array_refs.get(real_tag_index)
++                    assert array_index == real_tag_index - 1
++                    array = params[-1]
++                    value = parse_tag_value(type_registry, tag)
++                    value.is_length_param = True
++                    value.array = array
++                    array.length = value
++                    params.append(value)
+                 else:
+                     params.append(parse_tag_value(type_registry, tag))
+                 real_tag_index += 1
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 46602b5..060c519 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -181,17 +181,85 @@ class PrimitiveMetaType(GirMetaType):
+         return new
+ 
+     def transform_to_c(self):
++        if self.is_length_param:
++            return TypeTransform()
++        else:
++            return TypeTransform([
++                C.Decl(self.c_type, self.c_name),
++            ],[
++                C.Assign(self.c_name, self.jni_name, cast=self.c_type),
++            ])
++
++    def transform_to_jni(self):
++        if self.is_length_param:
++            return TypeTransform()
++        else:
++            return TypeTransform([
++                C.Decl(self.jni_type, self.jni_name),
++            ],[
++                C.Assign(self.jni_name, self.c_name, cast=self.jni_type)
++            ])
++
++
++class PrimitiveArrayMetaType(GirMetaType):
++    is_array = True
++
++    def __init__(self, name, transfer_ownership, allow_none, c_array_type='gpointer'):
++        super(PrimitiveArrayMetaType, self).__init__(name, transfer_ownership, allow_none)
++        self.c_type = c_array_type
++
++    def __new__(cls, java_type, jni_type, c_type, java_signature, object_type):
++        new = super(PrimitiveArrayMetaType, cls).__new__(cls)
++        new.gir_type = c_type
++        new.java_type = java_type + '[]'
++        new.primitive_type_name = java_type.title()
++        new.jni_type = jni_type
++        new.c_element_type = c_type
++        new.java_signature = '[' + java_signature
++        new.object_type = object_type + '[]'
++        new.object_full_type = 'java.lang.' + object_type
++        return new
++
++    @staticmethod
++    def from_primitive_type(typ):
++        return PrimitiveArrayMetaType(
++            typ.java_type,
++            typ.jni_type + 'Array',
++            typ.c_type,
++            typ.java_signature,
++            typ.object_type,
++        )
++
++    def transform_to_c(self):
++        assert not self.transfer_ownership # transfer not implemented
+         return TypeTransform([
+             C.Decl(self.c_type, self.c_name),
+-        ],[
+-            C.Assign(self.c_name, self.jni_name, cast=self.c_type)
++            C.Decl('jsize', self.length.jni_name),
++            C.Decl(self.length.c_type, self.length.c_name),
++        ], [
++            C.Assert('sizeof(%s) == sizeof(%s)' % (self.c_element_type, self.jni_type[:-5])),
++            C.Assign(self.c_name, C.Env('Get%sArrayElements' % self.primitive_type_name, self.jni_name, 'NULL'), cast=self.c_type),
++            C.ExceptionCheck.default(self),
++            C.Assign(self.length.c_name, C.Env('GetArrayLength', '(jarray) ' + self.jni_name), cast=self.length.c_type),
++            C.ExceptionCheck.default(self),
++        ], [
++            # discard any changes
++            C.Env('Release%sArrayElements' % self.primitive_type_name, self.jni_name, self.c_name, 'JNI_ABORT'),
++            C.ExceptionCheck.default(self),
+         ])
+ 
+     def transform_to_jni(self):
+         return TypeTransform([
+             C.Decl(self.jni_type, self.jni_name),
+-        ],[
+-            C.Assign(self.jni_name, self.c_name, cast=self.jni_type)
++            C.Decl('jsize', self.length.jni_name),
++        ], [
++            C.Assert('sizeof(%s) == sizeof(%s)' % (self.c_element_type, self.jni_type[:-5])),
++            C.Assign(self.length.jni_name, self.length.c_name, cast='jsize'),
++            C.Assign(self.jni_name, C.Env('New%sArray' % self.primitive_type_name, self.length.jni_name)),
++            C.ExceptionCheck.default(self),
++            C.Env('Set%sArrayRegion' % self.primitive_type_name, self.jni_name, '0', self.length.jni_name, '(const %s*)' % self.jni_type[:-5] + self.c_name),
++        ], self.transfer_ownership and [
++            C.Call('g_free', self.c_name),
+         ])
+ 
+ 
+@@ -547,8 +615,7 @@ class GListType(ContainerMetaType(
+         ])
+ 
+ 
+-standard_types = [
+-    VoidType,
++primitive_types = [
+     CharType,
+     UcharType,
+     Int8Type,
+@@ -572,6 +639,12 @@ standard_types = [
+     BooleanType,
+     FloatType,
+     DoubleType,
++]
++
++primitive_array_types = [PrimitiveArrayMetaType.from_primitive_type(t) for t in primitive_types]
++
++standard_types = primitive_types + primitive_array_types + [
++    VoidType,
+     StringMetaType('gchar*'),
+     StringMetaType('const gchar*'),
+     GListType,
+diff --git a/bindings/java/type_registry.py b/bindings/java/type_registry.py
+index 225c41b..0bd8507 100644
+--- a/bindings/java/type_registry.py
++++ b/bindings/java/type_registry.py
+@@ -31,14 +31,22 @@ class TypeRegistry:
+         self.types=[]
+         self.by_gir_type = defaultdict(set)
+         self.by_c_type = defaultdict(set)
++        self.array_by_gir_type = defaultdict(set)
++        self.array_by_c_type = defaultdict(set)
+         self.enum_aliases = {}
+ 
+     def _register(self, typ):
+         self.types.append(typ)
+-        if typ.gir_type:
+-            self.by_gir_type[typ.gir_type] |= set([typ])
+-        if typ.c_type:
+-            self.by_c_type[typ.c_type] |= set([typ])
++        if typ.is_array:
++            if typ.gir_type:
++                self.array_by_gir_type[typ.gir_type] |= set([typ])
++            if typ.c_type:
++                self.array_by_c_type[typ.c_type] |= set([typ])
++        else:
++            if typ.gir_type:
++                self.by_gir_type[typ.gir_type] |= set([typ])
++            if typ.c_type:
++                self.by_c_type[typ.c_type] |= set([typ])
+ 
+     def register(self, typ):
+         try:
+@@ -49,9 +57,15 @@ class TypeRegistry:
+     def register_enum_aliases(self, aliases):
+         self.enum_aliases.update(aliases)
+ 
+-    def lookup(self, gir_type = None, c_type = None):
+-        girs = self.by_gir_type[gir_type]
+-        cs = self.by_c_type[c_type]
++    def lookup(self, gir_type = None, c_type = None, is_array=False):
++        girs = None;
++        cs = None;
++        if is_array:
++            girs = self.array_by_gir_type[gir_type]
++            cs = self.array_by_c_type[c_type]
++        else:
++            girs = self.by_gir_type[gir_type]
++            cs = self.by_c_type[c_type]
+         if not girs and len(cs) == 1:
+             return next(iter(cs))
+         elif not cs and len(girs) == 1:
+@@ -85,6 +99,8 @@ class GirMetaType(object):
+     c_type = None
+     java_signature = None
+     is_container = False
++    is_array = False
++    is_length_param = False
+ 
+     def __new__(cls):
+         return type(cls.__name__, (cls,), {
+-- 
+2.1.0
+
+
+From 89725acd783d17a64d58e29e47f00833692a3175 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sat, 7 Mar 2015 23:20:42 +0100
+Subject: [PATCH 07/14] bindings/java: add datachannel headers
+
+---
+ bindings/java/gen_jni.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/bindings/java/gen_jni.py b/bindings/java/gen_jni.py
+index 3576a07..0f26c90 100755
+--- a/bindings/java/gen_jni.py
++++ b/bindings/java/gen_jni.py
+@@ -95,6 +95,8 @@ HEADERS = [
+     'owr_audio_payload.h',
+     'owr_audio_renderer.h',
+     'owr_candidate.h',
++    'owr_data_channel.h',
++    'owr_data_session.h',
+     'owr_image_renderer.h',
+     'owr_image_server.h',
+     'owr_local.h',
+-- 
+2.1.0
+
+
+From ba9bbc8d2a33db1b8c22577dd157a2191ce88b07 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sun, 8 Mar 2015 11:09:39 +0100
+Subject: [PATCH 08/14] bindings/java: add block to case statement if it
+ contains a declaration + other switch fixes
+
+---
+ bindings/java/base_generator.py | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/bindings/java/base_generator.py b/bindings/java/base_generator.py
+index 17dc4c5..5cd3f5a 100644
+--- a/bindings/java/base_generator.py
++++ b/bindings/java/base_generator.py
+@@ -168,12 +168,20 @@ class BaseGenerator():
+             @property
+             def body(self):
+                 def make_case(case, body):
+-                    return [(0, 'case ' + case + ':')] + [(1, b) for b in body] + [(1, 'break;')]
+-                start = [(0, 'switch (' + self.name + ') {')]
++                    needs_scope = False
++                    if isinstance(body, list):
++                        for statement in body:
++                            if isinstance(statement, Decl):
++                                needs_scope = True
++                    if needs_scope:
++                        return [(0, 'case ' + case + ': {')] + [(1, b) for b in body] + [(1, 'break;')] + [(0, '}')]
++                    else:
++                        return [(0, 'case ' + case + ':')] + [(1, b) for b in body] + [(1, 'break;')]
++                start = [(0, 'switch (' + nosemi(flatjoin(self.name, '')) + ') {')]
+                 end = [(0, '}')]
+                 default = []
+                 if self.default:
+-                    default = [(0, 'default:'), [(1, b) for b in self.default]]
++                    default = [(0, 'default:')] + [(1, b) for b in self.default]
+                 return start + sum(starmap(make_case, self.cases), []) + default + end
+ 
+ 
+-- 
+2.1.0
+
+
+From b8d3dd883fe1b232050daf6a4c4fba05a80129ac Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sun, 8 Mar 2015 14:34:00 +0100
+Subject: [PATCH 09/14] bindings/java: added support for GValue types, limited
+ to primitive types and strings
+
+---
+ bindings/java/java_type_signatures.py | 32 ++++++++++++++++++++
+ bindings/java/standard_types.py       | 57 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+)
+
+diff --git a/bindings/java/java_type_signatures.py b/bindings/java/java_type_signatures.py
+index f102f1b..e5ea9c8 100644
+--- a/bindings/java/java_type_signatures.py
++++ b/bindings/java/java_type_signatures.py
+@@ -69,5 +69,37 @@ type_signatures = {
+         '_constructor': '()V',
+         'getValue': '()I',
+     },
++    'Boolean': {
++        '_path': 'java/lang/Boolean',
++        'valueOf': '(Z)Ljava/lang/Boolean;',
++    },
++    'Byte': {
++        '_path': 'java/lang/Byte',
++        'valueOf': '(B)Ljava/lang/Byte;',
++    },
++    'Character': {
++        '_path': 'java/lang/Character',
++        'valueOf': '(C)Ljava/lang/Character;',
++    },
++    'Short': {
++        '_path': 'java/lang/Short',
++        'valueOf': '(S)Ljava/lang/Short;',
++    },
++    'Integer': {
++        '_path': 'java/lang/Integer',
++        'valueOf': '(I)Ljava/lang/Integer;',
++    },
++    'Long': {
++        '_path': 'java/lang/Long',
++        'valueOf': '(J)Ljava/lang/Long;',
++    },
++    'Float': {
++        '_path': 'java/lang/Float',
++        'valueOf': '(F)Ljava/lang/Float;',
++    },
++    'Double': {
++        '_path': 'java/lang/Double',
++        'valueOf': '(D)Ljava/lang/Double;',
++    },
+ }
+ 
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 060c519..b99b009 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -161,6 +161,45 @@ C.Helper.add_helper('jobject_to_gobject',
+     )
+ )
+ 
++C.Helper.add_helper('gvalue_to_jobject',
++    C.Function('gvalue_to_jobject',
++        return_type='jobject',
++        params=['JNIEnv* env', 'GValue* value'],
++        body=[
++            C.Decl('jobject', 'obj'),
++            '',
++            C.Switch(C.Call('G_VALUE_TYPE', 'value'), cases=[
++                (args[0], [
++                    C.Decl(args[1], 'val'),
++                    C.Assign('val', C.Call(args[2], 'value'), cast=args[1]),
++                    C.Assign('obj', C.Env.static_method((args[3], 'valueOf'), 'val')),
++                ]) for args in [
++                    ['G_TYPE_BOOLEAN', 'jboolean', 'g_value_get_boolean', 'Boolean'],
++                    ['G_TYPE_CHAR', 'jchar', 'g_value_get_schar', 'Character'],
++                    ['G_TYPE_UCHAR', 'jchar', 'g_value_get_uchar', 'Character'],
++                    ['G_TYPE_INT', 'jint', 'g_value_get_int', 'Integer'],
++                    ['G_TYPE_UINT', 'jint', 'g_value_get_uint', 'Integer'],
++                    ['G_TYPE_LONG', 'jlong', 'g_value_get_long', 'Long'],
++                    ['G_TYPE_ULONG', 'jlong', 'g_value_get_ulong', 'Long'],
++                    ['G_TYPE_INT64', 'jlong', 'g_value_get_int64', 'Long'],
++                    ['G_TYPE_UINT64', 'jlong', 'g_value_get_uint64', 'Long'],
++                    ['G_TYPE_FLOAT', 'jfloat', 'g_value_get_float', 'Float'],
++                    ['G_TYPE_DOUBLE', 'jdouble', 'g_value_get_double', 'Double'],
++                ]
++            ] + [('G_TYPE_STRING',[
++                C.Decl('const gchar*', 'str'),
++                C.Assign('str', C.Call('g_value_get_string', 'value')),
++                C.Assign('obj', C.Env('NewStringUTF', 'str')),
++            ])],
++            default=[
++                C.Assign('obj', 'NULL'),
++            ]),
++            '',
++            C.Return('obj'),
++        ]
++    )
++)
++
+ 
+ class PrimitiveMetaType(GirMetaType):
+     default_value = '0'
+@@ -506,6 +545,23 @@ class StringMetaType(ObjectMetaType):
+         ])
+ 
+ 
++class GValueType(ObjectMetaType(
++        gir_type='GObject.Value',
++        java_type='Object',
++        c_type='GValue*',
++        package='java.lang',
++    )):
++
++    def transform_to_jni(self):
++        return TypeTransform([
++            C.Decl(self.jni_type, self.jni_name),
++        ], [
++            C.Assign(self.jni_name, C.Helper('gvalue_to_jobject', 'env', self.c_name)),
++        ], self.transfer_ownership and [
++            C.Call('g_value_reset', self.c_name),
++        ])
++
++
+ class ContainerMetaType(ObjectMetaType):
+     is_container = True
+ 
+@@ -645,6 +701,7 @@ primitive_array_types = [PrimitiveArrayMetaType.from_primitive_type(t) for t in
+ 
+ standard_types = primitive_types + primitive_array_types + [
+     VoidType,
++    GValueType,
+     StringMetaType('gchar*'),
+     StringMetaType('const gchar*'),
+     GListType,
+-- 
+2.1.0
+
+
+From 6bb2c2a89b5360c0f592671a095d391d580b8a2c Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sun, 8 Mar 2015 14:35:31 +0100
+Subject: [PATCH 10/14] bindings/java: added support for GHashTable type, with
+ only c to jni conversion
+
+---
+ bindings/java/standard_types.py | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index b99b009..53b25b0 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -671,6 +671,40 @@ class GListType(ContainerMetaType(
+         ])
+ 
+ 
++class GHashTableType(ContainerMetaType(
++        gir_type='GLib.HashTable',
++        java_type='HashMap',
++        c_type='GHashTable*',
++    )):
++
++    def __init__(self, *args, **kwargs):
++        super(GHashTableType, self).__init__(*args, **kwargs)
++        (self.inner_key, self.inner_value) = self.inner_values
++
++    def transform_to_jni(self):
++        it = self.c_name + '_it'
++        inner_transforms = super(GHashTableType, self).transform_to_jni()
++        return TypeTransform([
++            C.Decl(self.jni_type, self.jni_name),
++            C.Decl('GHashTableIter', it),
++            C.Decl(self.inner_key.c_type, self.inner_key.c_name),
++            C.Decl(self.inner_value.c_type, self.inner_value.c_name),
++            inner_transforms.declarations,
++        ], [
++            C.Assign(self.jni_name, C.Env.new('HashMap')),
++            C.ExceptionCheck.default(self),
++            C.Call('g_hash_table_iter_init', '&' + it, self.c_name),
++            C.While(C.Call('g_hash_table_iter_next', '&' + it, '(void **) &' + self.inner_key.c_name, '(void **) &' + self.inner_value.c_name),
++                inner_transforms.conversion,
++                C.Env.method(self.jni_name, ('HashMap', 'put'), self.inner_key.jni_name, self.inner_value.jni_name),
++                C.ExceptionCheck.default(self),
++                inner_transforms.cleanup,
++            )
++        ], self.transfer_ownership and [
++            C.Call('g_hash_table_unref', self.c_name),
++        ])
++
++
+ primitive_types = [
+     CharType,
+     UcharType,
+@@ -705,4 +739,5 @@ standard_types = primitive_types + primitive_array_types + [
+     StringMetaType('gchar*'),
+     StringMetaType('const gchar*'),
+     GListType,
++    GHashTableType,
+ ]
+-- 
+2.1.0
+
+
+From 0f947b36bf0291dd7a21cb449bcf062ca7ac77fc Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sun, 8 Mar 2015 14:36:12 +0100
+Subject: [PATCH 11/14] bindings/java: no longer ignore on-new-stats signal
+
+---
+ bindings/java/config.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/bindings/java/config.py b/bindings/java/config.py
+index c6bdd0d..cf9a2ec 100644
+--- a/bindings/java/config.py
++++ b/bindings/java/config.py
+@@ -28,7 +28,6 @@ PACKAGE_ROOT = 'com.ericsson.research'
+ LOG_TAG = 'OpenWebRTC'
+ 
+ IGNORED_ELEMENTS = [
+-    ".//*[@name='on-new-stats']",
+     ".//*[@name='init_with_main_context']",
+ ]
+ 
+-- 
+2.1.0
+
+
+From 5a69bcbebd4a9dbc0b6da89a3e1dc4c9dbb2a079 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Sun, 8 Mar 2015 23:06:13 +0100
+Subject: [PATCH 12/14] bindings/java: delete local refs that are created
+ within a loop
+
+---
+ bindings/java/standard_types.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 53b25b0..2d71ea5 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -665,6 +665,7 @@ class GListType(ContainerMetaType(
+                 inner_transforms.conversion,
+                 C.Env.method(self.jni_name, ('ArrayList', 'add'), self.inner_value.jni_name),
+                 C.ExceptionCheck.default(self),
++                C.Env('DeleteLocalRef', self.inner_value.jni_name),
+                 inner_transforms.cleanup,
+                 C.Assign(it, it + '->next'),
+             ),
+@@ -698,6 +699,8 @@ class GHashTableType(ContainerMetaType(
+                 inner_transforms.conversion,
+                 C.Env.method(self.jni_name, ('HashMap', 'put'), self.inner_key.jni_name, self.inner_value.jni_name),
+                 C.ExceptionCheck.default(self),
++                C.Env('DeleteLocalRef', self.inner_key.jni_name),
++                C.Env('DeleteLocalRef', self.inner_value.jni_name),
+                 inner_transforms.cleanup,
+             )
+         ], self.transfer_ownership and [
+-- 
+2.1.0
+
+
+From b346d9a4ba340c5eb3c593baac7ad2d5485e18a5 Mon Sep 17 00:00:00 2001
+From: Patrik Oldsberg <patrik.oldsberg@ericsson.com>
+Date: Mon, 9 Mar 2015 09:46:59 +0100
+Subject: [PATCH 13/14] bindings/java: stopped local refs from leaking by
+ pushing a new local frame for each callback invocation
+
+---
+ bindings/java/c_generator.py    | 18 +++++++++++-------
+ bindings/java/config.py         |  2 +-
+ bindings/java/standard_types.py | 13 ++++++++++---
+ bindings/java/type_registry.py  |  1 +
+ 4 files changed, 23 insertions(+), 11 deletions(-)
+
+diff --git a/bindings/java/c_generator.py b/bindings/java/c_generator.py
+index 0000f72..69e3c69 100644
+--- a/bindings/java/c_generator.py
++++ b/bindings/java/c_generator.py
+@@ -143,7 +143,7 @@ class Function(C.FunctionBlock):
+             'return_type': callback.params.return_value.c_type,
+             'name': 'callback_' + callback.value.gir_type,
+             'params': map(c_param, callback.params),
+-            'body': [TypeConversions.params_to_jni(callback.params, body=body or [], get_env=True)],
++            'body': [TypeConversions.params_to_jni(callback.params, body=body or [], push_frame=True)],
+         }
+         if callback.params.return_value.name is not None:
+             args['body'] += [C.Return(callback.params.return_value.c_name)]
+@@ -199,7 +199,7 @@ class JniExport(C.FunctionBlock):
+             'return_type': function.params.return_value.jni_type,
+             'method_name': function.name,
+             'params': params,
+-            'body': [C.TypeConversions.params_to_c(function.params, body=body)],
++            'body': [C.TypeConversions.params_to_c(function.params, body=body, get_env=False)],
+         }
+         if function.params.return_value.name is not None:
+             args['body'] += [C.Return(function.params.return_value.jni_name)]
+@@ -384,19 +384,25 @@ class Env(C.Lines):
+ 
+ @add_to(C)
+ class TypeConversions(C.Lines):
+-    def __init__(self, conversions, return_conversion, body=None, get_env=False, **kwargs):
++    def __init__(self, conversions, return_conversion, body=None, get_env=True, push_frame=False, **kwargs):
+         super(TypeConversions, self).__init__(**kwargs)
+         self.conversions = list(conversions)
+         self.return_conversion = return_conversion
+         self.body = body or []
+         self.get_env = get_env
++        self.push_frame = push_frame
+ 
+     def __iter__(self):
+         conversion = [
+             prune_empty([p.declarations for p in self.conversions] + [self.get_env and C.Decl('JNIEnv*', 'env')]),
+-            prune_empty([self.get_env and C.Assign('env', C.Call('get_jni_env'))] + [p.conversion for p in self.conversions]),
++            self.get_env and C.Assign('env', C.Call('get_jni_env')),
++            C.If(Env('PushLocalFrame', str(config.LOCAL_FRAME_SIZE)),
++                C.Log('warning', 'failed to push local frame at %s:%d', '__FILE__', '__LINE__')
++            ) if self.push_frame else [],
++            prune_empty([p.conversion for p in self.conversions]),
+             self.body,
+             prune_empty(p.cleanup for p in reversed(self.conversions)),
++            Env('PopLocalFrame', 'NULL') if self.push_frame else [],
+         ]
+         if self.return_conversion is not None:
+             conversion = [self.return_conversion.declarations] + conversion + [
+@@ -498,9 +504,8 @@ def gen_class(package, clazz):
+                 name='callback_' + prop.signal.value.gir_type,
+                 return_type=prop.signal.params.return_value.c_type,
+                 params=map(c_param, prop.signal.params),
+-                body=[TypeConversions([p.transform_to_jni() for p in prop.signal.params.params], None, body=[
++                body=[TypeConversions([p.transform_to_jni() for p in prop.signal.params.params], None, push_frame=True, body=[
+                     '(void) c_pspec;',
+-                    C.Assign('env', C.Call('get_jni_env')),
+                     C.Call('g_object_get', get_params),
+                     transform.conversion,
+                     C.Env.callback(prop.signal),
+@@ -508,7 +513,6 @@ def gen_class(package, clazz):
+                 ])],
+             )
+             func.body = [
+-                C.Decl('JNIEnv*', 'env'),
+                 C.Decl(ret.c_type, ret.c_name),
+                 transform.declarations,
+             ] + func.body
+diff --git a/bindings/java/config.py b/bindings/java/config.py
+index cf9a2ec..83d5bbf 100644
+--- a/bindings/java/config.py
++++ b/bindings/java/config.py
+@@ -34,4 +34,4 @@ IGNORED_ELEMENTS = [
+ C_INDENTATION = ' ' * 4
+ JAVA_INDENTATION = ' ' * 4
+ 
+-
++LOCAL_FRAME_SIZE = 16
+diff --git a/bindings/java/standard_types.py b/bindings/java/standard_types.py
+index 2d71ea5..05b7d78 100644
+--- a/bindings/java/standard_types.py
++++ b/bindings/java/standard_types.py
+@@ -242,6 +242,7 @@ class PrimitiveMetaType(GirMetaType):
+ 
+ class PrimitiveArrayMetaType(GirMetaType):
+     is_array = True
++    has_local_ref = True
+ 
+     def __init__(self, name, transfer_ownership, allow_none, c_array_type='gpointer'):
+         super(PrimitiveArrayMetaType, self).__init__(name, transfer_ownership, allow_none)
+@@ -375,6 +376,7 @@ class GParamSpecType(GirMetaType()):
+ class ObjectMetaType(GirMetaType):
+     jni_type = 'jobject'
+     default_value = 'NULL'
++    has_local_ref = True
+ 
+     def __new__(cls, gir_type, java_type, c_type, package):
+         new = super(ObjectMetaType, cls).__new__(cls)
+@@ -395,6 +397,7 @@ class JObjectWrapperType(ObjectMetaType(
+         c_type='gpointer',
+         package=None,
+     )):
++    has_local_ref = False
+ 
+     def __init__(self, name, closure, transfer_ownership):
+         super(JObjectWrapperType, self).__init__(name, transfer_ownership, allow_none=False)
+@@ -420,6 +423,8 @@ class JObjectWrapperType(ObjectMetaType(
+ 
+ 
+ class EnumMetaType(ObjectMetaType):
++    has_local_ref = False
++
+     def __new__(cls, gir_type, c_type, prefix):
+         return super(EnumMetaType, cls).__new__(cls,
+             gir_type=gir_type,
+@@ -477,6 +482,8 @@ class ClassCallbackMetaType(CallbackMetaType):
+ 
+ 
+ class GObjectMetaType(ObjectMetaType):
++    has_local_ref = False
++
+     def __new__(cls, gir_type, c_type, prefix):
+         return super(GObjectMetaType, cls).__new__(cls,
+             gir_type=gir_type,
+@@ -665,7 +672,7 @@ class GListType(ContainerMetaType(
+                 inner_transforms.conversion,
+                 C.Env.method(self.jni_name, ('ArrayList', 'add'), self.inner_value.jni_name),
+                 C.ExceptionCheck.default(self),
+-                C.Env('DeleteLocalRef', self.inner_value.jni_name),
++                C.Env('DeleteLocalRef', self.inner_value.jni_name) if self.inner_value.has_local_ref else [],
+                 inner_transforms.cleanup,
+                 C.Assign(it, it + '->next'),
+             ),
+@@ -699,8 +706,8 @@ class GHashTableType(ContainerMetaType(
+                 inner_transforms.conversion,
+                 C.Env.method(self.jni_name, ('HashMap', 'put'), self.inner_key.jni_name, self.inner_value.jni_name),
+                 C.ExceptionCheck.default(self),
+-                C.Env('DeleteLocalRef', self.inner_key.jni_name),
+-                C.Env('DeleteLocalRef', self.inner_value.jni_name),
++                C.Env('DeleteLocalRef', self.inner_key.jni_name) if self.inner_value.has_local_ref else [],
++                C.Env('DeleteLocalRef', self.inner_value.jni_name) if self.inner_value.has_local_ref else [],
+                 inner_transforms.cleanup,
+             )
+         ], self.transfer_ownership and [
+diff --git a/bindings/java/type_registry.py b/bindings/java/type_registry.py
+index 0bd8507..a0ee309 100644
+--- a/bindings/java/type_registry.py
++++ b/bindings/java/type_registry.py
+@@ -101,6 +101,7 @@ class GirMetaType(object):
+     is_container = False
+     is_array = False
+     is_length_param = False
++    has_local_ref = False
+ 
+     def __new__(cls):
+         return type(cls.__name__, (cls,), {
+-- 
+2.1.0
+
+
+From a51a51e65bd39bd592e95b29069d62e9a7377efa Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Mon, 9 Mar 2015 19:00:49 +0530
-Subject: [PATCH 3/3] bindings/java: Fix typo in env variable
+Subject: [PATCH 14/14] bindings/java: Fix typo in env variable
 
 ---
  bindings/java/Makefile.am | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/bindings/java/Makefile.am b/bindings/java/Makefile.am
-index 9eeaf08..6c22437 100644
+index 643defe..1686cde 100644
 --- a/bindings/java/Makefile.am
 +++ b/bindings/java/Makefile.am
-@@ -39,7 +39,7 @@ OWR_GIR = Owr-0.1.gir
+@@ -40,7 +40,7 @@ OWR_GIR = Owr-0.1.gir
  endif
  
  owr_jni.c: $(OWR_GIR) $(top_srcdir)/bindings/java/
