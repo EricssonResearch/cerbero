@@ -21,7 +21,8 @@ class Recipe(recipe.Recipe):
     autoreconf_sh = 'mkdir -p m4 && gtkdocize && autoreconf -fiv'
     patches = [name + '/0001-Owr-Use-videoconvert-instead-of-ercolorspace-on-Andr.patch',
                name + '/0002-Fix-build-on-Android-and-iOS-when-not-using-build.sh.patch',
-               name + '/disable-ercolorspace.patch',]
+               name + '/disable-ercolorspace.patch',
+               name + '/fix-java-bindings.patch',]
     # Dependencies used in the dynamic (shared) build of OWRTC
     _dynamic_deps = ['libnice', 'gstreamer-1.0', 'gst-plugins-base-1.0',
                      'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
@@ -84,11 +85,11 @@ class Recipe(recipe.Recipe):
             # Since we're linking statically, we need all these plugins at link
             # time. However, the build system is foobar and doesn't add them.
             gst_plugins = ['alaw', 'app', 'audioconvert', 'audioresample',
-                'audiotestsrc', 'coreelements', 'erdtls', 'mulaw', 'nice',
-                'opengl', 'openh264', 'opus', 'rtp', 'rtpmanager', 'srtp',
-                'videocrop', 'videofilter', 'videoparsersbad', 'videorate',
-                'videorepair', 'videoscale', 'videotestsrc', 'volume', 'vpx',
-                'videoconvert', 'inter']
+                'audiotestsrc', 'coreelements', 'erdtls', 'inter', 'mulaw',
+                'nice', 'opengl', 'openh264', 'opus', 'rtp', 'rtpmanager',
+                'sctp', 'srtp', 'videocrop', 'videofilter', 'videoparsersbad',
+                'videorate', 'videorepair', 'videoscale', 'videotestsrc',
+                'volume', 'vpx', 'videoconvert']
             if self.config.target_platform == Platform.ANDROID:
                 gst_plugins += ['androidvideosrc', 'opensles']
             else:
