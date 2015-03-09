@@ -21,6 +21,8 @@ class Recipe(recipe.Recipe):
     configure_options = '--enable-shared --enable-static \
         --disable-renaming --disable-samples --disable-debug \
         --disable-layout --disable-extras'
+    platform_deps = {Platform.ANDROID: ['gnustl']}
+
     files_devel = ['bin/icu-config', 'lib/pkgconfig/icu-i18n.pc',
                    'lib/pkgconfig/icu-io.pc', 'lib/pkgconfig/icu-uc.pc',
                    'include/unicode']
@@ -49,20 +51,17 @@ class Recipe(recipe.Recipe):
             # Some headers/objs aren't found include/lib paths aren't set:
             # * typefind
             # * bits/c++config.h
-            android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                          "cxx-stl", "gnu-libstdc++", "4.9");
-            cxxflags1 = os.path.join(android_cxxstl, 'include')
-            cxxflags2 = os.path.join(android_cxxstl, 'libs', self.arch_name,
-                                     'include')
+            gnustl_includes = shell.check_call('$PKG_CONFIG --cflags gnustl',
+                                               shell=True, split=False).strip()
             # crtbegin_so.o and crtend_so.o
             ldflags1 = os.path.join(self.config.toolchain_prefix, "platforms",
                                     "android-9", "arch-arm", "usr", "lib")
             # GNU STL is needed for full STL support
             # http://www.kandroid.org/ndk/docs/CPLUSPLUS-SUPPORT.html
-            ldflags2 = os.path.join(android_cxxstl, "libs", self.arch_name)
-            self.append_env['CXXFLAGS'] = ' -I' + cxxflags1 + ' -I' + cxxflags2
-            self.append_env['LDFLAGS'] = ' -B' + ldflags1 + ' -L' + ldflags2 + \
-                ' -lgnustl_shared'
+            gnustl_libs = shell.check_call('$PKG_CONFIG --libs gnustl',
+                                               shell=True, split=False).strip()
+            self.append_env['CXXFLAGS'] = ' ' + gnustl_includes
+            self.append_env['LDFLAGS'] = ' -B' + ldflags1 + ' ' + gnustl_libs
 
     @modify_environment
     def configure(self):
@@ -102,9 +101,12 @@ class Recipe(recipe.Recipe):
 
     def post_install(self):
         common_deps = ['-lm', '-lc', '-ldl', '-lstdc++']
+        if self.config.target_platform == Platform.ANDROID:
+            common_deps.append('gnustl')
         libtool_la = LibtoolLibrary('icudata', self.major_ver, self.minor_ver,
                                     None, self.config.libdir,
-                                    self.config.target_platform)
+                                    self.config.target_platform,
+                                    deps=['-lstdc++', 'gnustl'])
         libtool_la.save()
         libtool_la = LibtoolLibrary('icuuc', self.major_ver, self.minor_ver,
                                     None, self.config.libdir,
