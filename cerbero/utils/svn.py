@@ -16,8 +16,15 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
+import os
+
 from cerbero.utils import shell
 
+# Clean-up LD environment to avoid library version mismatches while running
+# the system subversion
+CLEAN_ENV = os.environ.copy()
+if CLEAN_ENV.has_key('LD_LIBRARY_PATH'):
+    CLEAN_ENV.pop('LD_LIBRARY_PATH')
 
 def checkout(url, dest):
     '''
@@ -28,7 +35,7 @@ def checkout(url, dest):
     @param dest: path where to do the checkout
     @type url: string
     '''
-    shell.call('svn co %s %s' % (url, dest))
+    shell.call('svn co %s %s' % (url, dest), env=CLEAN_ENV)
 
 
 def update(repo, revision='HEAD'):
@@ -40,7 +47,7 @@ def update(repo, revision='HEAD'):
     @param revision: the revision to checkout
     @type revision: str
     '''
-    shell.call('svn up -r %s' % revision, repo)
+    shell.call('svn up -r %s' % revision, repo, env=CLEAN_ENV)
 
 
 def checkout_file(url, out_path):
@@ -52,7 +59,7 @@ def checkout_file(url, out_path):
     @param out_path: output path
     @type revision: str
     '''
-    shell.call('svn export --force %s %s' % (url, out_path))
+    shell.call('svn export --force %s %s' % (url, out_path), env=CLEAN_ENV)
 
 
 def revision(repo):
@@ -62,7 +69,7 @@ def revision(repo):
     @param repo: the path to the repository
     @type  repo: str
     '''
-    rev = shell.check_call('svnversion', repo).split('\n')[0]
+    rev = shell.check_call('svnversion', repo, env=CLEAN_ENV).split('\n')[0]
     if rev[-1] == 'M':
         rev = rev[:-1]
     return rev

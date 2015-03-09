@@ -22,6 +22,11 @@ import shutil
 from cerbero.config import Platform
 from cerbero.utils import shell
 
+# Clean-up LD environment to avoid library version mismatches while running
+# the system subversion
+CLEAN_ENV = os.environ.copy()
+if CLEAN_ENV.has_key('LD_LIBRARY_PATH'):
+    CLEAN_ENV.pop('LD_LIBRARY_PATH')
 
 GIT = 'git'
 
@@ -34,7 +39,7 @@ def init(git_dir):
     @type git_dir: str
     '''
     shell.call('mkdir -p %s' % git_dir)
-    shell.call('%s init' % GIT, git_dir)
+    shell.call('%s init' % GIT, git_dir, env=CLEAN_ENV)
 
 
 def clean(git_dir):
@@ -44,7 +49,7 @@ def clean(git_dir):
     @param git_dir: path of the git repository
     @type git_dir: str
     '''
-    return shell.call('%s clean -dfx' % GIT, git_dir)
+    return shell.call('%s clean -dfx' % GIT, git_dir, env=CLEAN_ENV)
 
 
 def list_tags(git_dir, fail=True):
@@ -58,7 +63,7 @@ def list_tags(git_dir, fail=True):
     @return: list of tag names (str)
     @rtype: list
     '''
-    tags = shell.check_call('%s tag -l' % GIT, git_dir, fail=fail)
+    tags = shell.check_call('%s tag -l' % GIT, git_dir, fail=fail, env=CLEAN_ENV)
     tags = tags.strip()
     if tags:
         tags = tags.split('\n')
@@ -82,8 +87,10 @@ def create_tag(git_dir, tagname, tagdescription, commit, fail=True):
     '''
 
     shell.call('%s tag -s %s -m "%s" %s' %
-               (GIT, tagname, tagdescription, commit), git_dir, fail=fail)
-    return shell.call('%s push origin %s' % (GIT, tagname), git_dir, fail=fail)
+               (GIT, tagname, tagdescription, commit), git_dir, fail=fail,
+               env=CLEAN_ENV)
+    return shell.call('%s push origin %s' % (GIT, tagname), git_dir, fail=fail,
+                      env=CLEAN_ENV)
 
 
 def delete_tag(git_dir, tagname, fail=True):
@@ -97,7 +104,8 @@ def delete_tag(git_dir, tagname, fail=True):
     @param fail: raise an error if the command failed
     @type fail: false
     '''
-    return shell.call('%s tag -d %s' % (GIT, tagname), git_dir, fail=fail)
+    return shell.call('%s tag -d %s' % (GIT, tagname), git_dir, fail=fail,
+                      env=CLEAN_ENV)
 
 
 def fetch(git_dir, fail=True):
@@ -109,7 +117,7 @@ def fetch(git_dir, fail=True):
     @param fail: raise an error if the command failed
     @type fail: false
     '''
-    return shell.call('%s fetch --all' % GIT, git_dir, fail=fail)
+    return shell.call('%s fetch --all' % GIT, git_dir, fail=fail, env=CLEAN_ENV)
 
 
 def checkout(git_dir, commit):
@@ -121,7 +129,8 @@ def checkout(git_dir, commit):
     @param commit: the commit to checkout
     @type commit: str
     '''
-    return shell.call('%s reset --hard %s' % (GIT, commit), git_dir)
+    return shell.call('%s reset --hard %s' % (GIT, commit), git_dir,
+                      env=CLEAN_ENV)
 
 
 def get_hash(git_dir, commit):
@@ -135,7 +144,7 @@ def get_hash(git_dir, commit):
     @type commit: str
     '''
     return shell.check_call('%s show -s --pretty=%%H %s' %
-                            (GIT, commit), git_dir)
+                            (GIT, commit), git_dir, env=CLEAN_ENV)
 
 
 def local_checkout(git_dir, local_git_dir, commit):
@@ -152,13 +161,17 @@ def local_checkout(git_dir, local_git_dir, commit):
     # reset to a commit in case it's the first checkout and the masterbranch is
     # missing
     branch_name = 'cerbero_build'
-    shell.call('%s reset --hard %s' % (GIT, commit), local_git_dir)
-    shell.call('%s branch %s' % (GIT, branch_name), local_git_dir, fail=False)
-    shell.call('%s checkout %s' % (GIT, branch_name), local_git_dir)
-    shell.call('%s reset --hard %s' % (GIT, commit), local_git_dir)
+    shell.call('%s reset --hard %s' % (GIT, commit), local_git_dir,
+               env=CLEAN_ENV)
+    shell.call('%s branch %s' % (GIT, branch_name), local_git_dir, fail=False,
+               env=CLEAN_ENV)
+    shell.call('%s checkout %s' % (GIT, branch_name), local_git_dir,
+               env=CLEAN_ENV)
+    shell.call('%s reset --hard %s' % (GIT, commit), local_git_dir,
+               env=CLEAN_ENV)
     return shell.call('%s clone %s -s -b %s .' % (GIT, local_git_dir,
                                                   branch_name),
-                      git_dir)
+                      git_dir, env=CLEAN_ENV)
 
 
 def add_remote(git_dir, name, url):
@@ -173,9 +186,11 @@ def add_remote(git_dir, name, url):
     @type url: str
     '''
     try:
-        shell.call('%s remote add %s %s' % (GIT, name, url), git_dir)
+        shell.call('%s remote add %s %s' % (GIT, name, url), git_dir,
+                   env=CLEAN_ENV)
     except:
-        shell.call('%s remote set-url %s %s' % (GIT, name, url), git_dir)
+        shell.call('%s remote set-url %s %s' % (GIT, name, url), git_dir,
+                   env=CLEAN_ENV)
 
 
 def check_line_endings(platform):
@@ -190,7 +205,7 @@ def check_line_endings(platform):
     '''
     if platform != Platform.WINDOWS:
         return True
-    val = shell.check_call('git config --get core.autocrlf')
+    val = shell.check_call('%s config --get core.autocrlf' % GIT, env=CLEAN_ENV)
     if ('false' in val.lower()):
         return True
     return False
@@ -206,9 +221,9 @@ def init_directory(git_dir):
     '''
     init(git_dir)
     try:
-        shell.call('%s add --force -A .' % GIT, git_dir)
+        shell.call('%s add --force -A .' % GIT, git_dir, env=CLEAN_ENV)
         shell.call('%s commit -m "Initial commit" > /dev/null 2>&1' % GIT,
-            git_dir)
+                   git_dir, env=CLEAN_ENV)
     except:
         pass
 
@@ -223,4 +238,5 @@ def apply_patch(patch, git_dir):
     @param patch: path of the patch file
     @type patch: str
     '''
-    shell.call('%s am --ignore-whitespace %s' % (GIT, patch), git_dir)
+    shell.call('%s am --ignore-whitespace %s' % (GIT, patch), git_dir,
+               env=CLEAN_ENV)

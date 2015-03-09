@@ -113,7 +113,7 @@ def _fix_mingw_cmd(path):
     return ''.join(l_path)
 
 
-def call(cmd, cmd_dir='.', fail=True):
+def call(cmd, cmd_dir='.', fail=True, env=None):
     '''
     Run a shell command
 
@@ -146,10 +146,12 @@ def call(cmd, cmd_dir='.', fail=True):
             m.error("cd %s && %s && cd %s" % (cmd_dir, cmd, os.getcwd()))
             ret = 0
         else:
+            if not env:
+                env = os.environ.copy()
             ret = subprocess.check_call(cmd, cwd=cmd_dir,
                                        stderr=subprocess.STDOUT,
                                        stdout=StdOut(stream),
-                                       env=os.environ.copy(), shell=shell)
+                                       env=env, shell=shell)
     except subprocess.CalledProcessError:
         if fail:
             raise FatalError(_("Error running command: %s") % cmd)
@@ -158,13 +160,13 @@ def call(cmd, cmd_dir='.', fail=True):
     return ret
 
 
-def check_call(cmd, cmd_dir=None, shell=False, split=True, fail=False):
+def check_call(cmd, cmd_dir=None, shell=False, split=True, fail=False, env=None):
     try:
         if split:
             cmd = shlex.split(cmd)
         process = subprocess.Popen(cmd, cwd=cmd_dir,
                                    stdout=subprocess.PIPE,
-                                   stderr=open(os.devnull), shell=shell)
+                                   stderr=open(os.devnull), env=env, shell=shell)
         output, unused_err = process.communicate()
         if process.poll() and fail:
             raise Exception()
