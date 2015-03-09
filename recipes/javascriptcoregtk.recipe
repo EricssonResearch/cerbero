@@ -20,6 +20,7 @@ class Recipe(recipe.Recipe):
             --disable-video \
             --disable-web-audio"
     deps = ['glib', 'icu']
+    platform_deps = {Platform.ANDROID: ['gnustl']}
 
     files_libs = ['libjavascriptcoregtk-3.0']
     files_devel = ['include/webkitgtk-3.0/JavaScriptCore',
@@ -47,22 +48,18 @@ class Recipe(recipe.Recipe):
             else:
                 raise FatalError("Unsupported Android architecture: " + \
                     self.config.target_arch)
-            # Some headers/objs aren't found include/lib paths aren't set:
-            # * bits/c++config.h
-            android_cxxstl = os.path.join(self.config.toolchain_prefix, "sources",
-                                          "cxx-stl", "gnu-libstdc++", "4.9")
-            cxxflags1 = os.path.join(android_cxxstl, 'include')
-            cxxflags2 = os.path.join(android_cxxstl, 'libs', self.arch_name,
-                                     'include')
-            self.append_env['CXXFLAGS'] = ' -DPTHREAD_KEYS_MAX=1024' + \
-                ' -I' + cxxflags1 + ' -I' + cxxflags2
-            # This is needed for the libpthread.so hack in configure()
-            ldflags1 = os.path.join(self.build_dir, 'Source')
             # GNU STL is needed for full STL support
             # http://www.kandroid.org/ndk/docs/CPLUSPLUS-SUPPORT.html
-            ldflags2 = os.path.join(android_cxxstl, "libs", self.arch_name)
-            self.append_env['LDFLAGS'] = ' -L' + ldflags1 + ' -L' + ldflags2 + \
-                ' -lgnustl_shared'
+            gnustl_includes = shell.check_call('$PKG_CONFIG --cflags gnustl',
+                                               shell=True, split=False).strip()
+            gnustl_libs = shell.check_call('$PKG_CONFIG --libs gnustl',
+                                               shell=True, split=False).strip()
+            # This is needed for the libpthread.so hack in configure()
+            pthread_libs_path = '-L' + os.path.join(self.build_dir, 'Source')
+            self.append_env['CXXFLAGS'] = ' -DPTHREAD_KEYS_MAX=1024' + \
+                ' ' + gnustl_includes
+            self.append_env['LDFLAGS'] = ' ' + gnustl_libs + ' ' + \
+                pthread_libs_path
 
     def configure(self):
         if self.config.target_platform == Platform.ANDROID:
