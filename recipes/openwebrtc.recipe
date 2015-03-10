@@ -1,6 +1,7 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
 
 import shutil
+from cerbero.utils import git
 from cerbero.utils import shell
 from cerbero.utils import messages
 from cerbero.utils import parse_file
@@ -117,8 +118,20 @@ class Recipe(recipe.Recipe):
             pass
 
     def configure(self):
+        # The OWR version is the git hash of self.commit or the version if we're
+        # using releases. This is used for checking if the target build and the
+        # host build are using the same version. Assumes that self.commit is
+        # same for both architectures.
+        if self.stype == SourceType.GIT:
+            self.owr_version_id = git.get_hash(self.build_dir,
+                                               self.commit).strip()
+        else:
+            self.owr_version_id = self.version
+
+        # Disable tests
         shell.replace(os.path.join(self.build_dir, 'Makefile.am'),
                       {'tests ': ''})
+
         if self.config.target_platform != self.config.platform and \
            self.config.target_platform in (Platform.IOS, Platform.ANDROID):
             if self.config.target_platform == Platform.IOS:
@@ -135,12 +148,25 @@ class Recipe(recipe.Recipe):
                 host_prefix = os.path.join(self.config.prefix, '..',
                                            '{0}_{1}'.format(self.config.platform,
                                                             self.config.arch))
-            err = "You need to build openwebrtc for the host {0} " \
-                  "before you can cross-compile it for " \
-                  "{1}".format(self.config.platform,
-                               self.config.target_platform)
+
+            # Error out if there's no host build
+            err_nobuild = "You need to build openwebrtc for the host {0} " \
+                    "before you can cross-compile it for " \
+                    "{1}".format(self.config.platform,
+                                 self.config.target_platform)
             if not os.path.isdir(host_prefix):
-                raise Exception(err)
+                raise Exception(err_nobuild)
+
+            # Error out if the host build is out of date
+            err_oldbuild = "Please update your openwebrtc build for the host " \
+                    "{0}; it's out of date".format(self.config.platform)
+            host_owr_version_id_path = os.path.join(host_prefix, "share", "owr",
+                                                    "version_id")
+            with open(host_owr_version_id_path) as f:
+                host_owr_version_id = f.read().strip()
+            if self.owr_version_id != host_owr_version_id:
+                raise Exception(err_oldbuild)
+
             # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build, 
             # if it exists. If not, error out because that's the only way we 
             # have sorry this is a bad hack kill me please.
@@ -160,6 +186,13 @@ class Recipe(recipe.Recipe):
         super(Recipe, self).configure()
 
     def post_install(self):
+        # Save the OWR version id to the install root
+        owr_version_id_dir = os.path.join(self.config.prefix, "share", "owr")
+        if not os.path.isdir(owr_version_id_dir):
+            os.makedirs(owr_version_id_dir)
+        with open(os.path.join(owr_version_id_dir, "version_id"), 'w') as f:
+            f.write(self.owr_version_id)
+
         # On Android, we want a 'fat' library that contains all the dependencies
         # not provided by the system within itself using static libraries.
         # However, libtool gives us no way to generate that, so we use the
