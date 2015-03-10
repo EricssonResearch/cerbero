@@ -125,10 +125,12 @@ class Recipe(recipe.Recipe):
         # The OWR version is the git hash of self.commit or the version if we're
         # using releases. This is used for checking if the target build and the
         # host build are using the same version. Assumes that self.commit is
-        # same for both architectures.
+        # same for both architectures. Note that origin/cerbero_build in the
+        # arch-specific sources directory corresponds to self.commit from the
+        # local_sources directory.
         if self.stype == SourceType.GIT:
             self.owr_version_id = git.get_hash(self.build_dir,
-                                               self.commit).strip()
+                                               "origin/cerbero_build").strip()
         else:
             self.owr_version_id = self.version
 
