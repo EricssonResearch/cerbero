@@ -9,7 +9,7 @@ from custom import generate_gir_h_from_gir
 
 class Recipe(recipe.Recipe):
     name = 'openwebrtc'
-    version = '0.0.1'
+    version = '0.1'
     stype = SourceType.GIT
     licenses = [License.BSD_like]
     remotes = {
@@ -33,7 +33,8 @@ class Recipe(recipe.Recipe):
     _static_deps = [i + '-static' for i in _dynamic_deps] + \
                    ['openwebrtc-girepository']
     # Dependencies used in all builds
-    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed'] + _dynamic_deps
+    deps = ['gettext', 'glib', 'gnustl', 'libffi', 'gtk-doc-lite', 'seed'] + \
+           _dynamic_deps
     platform_deps = {Platform.DARWIN: ['json-glib', 'libsoup'],
                      Platform.LINUX: ['json-glib', 'libsoup'],
                      Platform.IOS: _static_deps,
