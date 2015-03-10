@@ -111,6 +111,9 @@ class Recipe(recipe.Recipe):
                 gst_plugins_path + self.gst_plugins_libs + ' ' + \
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
+
+            self.files_devel = self.files_devel + ['lib/jni/openwebrtc.jar',
+                'lib/jni/openwebrtc_bridge.jar', 'lib/jni/openwebrtc-source.jar']
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
             self.configure_options += ' --disable-gtk-doc --disable-static \
                 --disable-owr-static --enable-shared --enable-tests'
