@@ -23,8 +23,7 @@ class Recipe(recipe.Recipe):
     patches = [name + '/0001-Owr-Use-videoconvert-instead-of-ercolorspace-on-Andr.patch',
                name + '/0002-Fix-build-on-Android-and-iOS-when-not-using-build.sh.patch',
                name + '/0003-build-Add-a-configure-option-to-disable-tests.patch',
-               name + '/disable-ercolorspace.patch',
-               name + '/fix-java-bindings.patch',]
+               name + '/disable-ercolorspace.patch',]
     # Dependencies used in the dynamic (shared) build of OWRTC
     _dynamic_deps = ['libnice', 'gstreamer-1.0', 'gst-plugins-base-1.0',
                      'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
