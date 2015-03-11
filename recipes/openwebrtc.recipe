@@ -1,6 +1,7 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
 
 import shutil
+import re
 from cerbero.utils import git
 from cerbero.utils import shell
 from cerbero.utils import messages
@@ -110,6 +111,9 @@ class Recipe(recipe.Recipe):
                 gst_plugins_path + self.gst_plugins_libs + ' ' + \
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
+
+            self.files_devel = self.files_devel + ['lib/jni/openwebrtc.jar',
+                'lib/jni/openwebrtc_bridge.jar', 'lib/jni/openwebrtc-source.jar']
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
             self.configure_options += ' --disable-gtk-doc --disable-static \
                 --disable-owr-static --enable-shared --enable-tests'
@@ -182,8 +186,12 @@ class Recipe(recipe.Recipe):
             # Generate the gir.h
             generate_gir_h_from_gir(gir_file, gir_h_file)
             if self.config.target_platform == Platform.ANDROID:
-                # Copy the gir file as well
-                shutil.copy(gir_file, os.path.join(self.build_dir, "bindings", "java"))
+                with open(gir_file, 'r') as f:
+                    content = f.read()
+                # replace the shared-library name for the host with the one used for Android
+                content = re.sub(r'shared-library="[^"]*"', 'shared-library="libopenwebrtc_jni.so"', content)
+                with open(os.path.join(self.build_dir, "bindings", "java", gir_file), 'w+') as f:
+                    f.write(content)
             os.chdir(old_cwd)
         super(Recipe, self).configure()
 
