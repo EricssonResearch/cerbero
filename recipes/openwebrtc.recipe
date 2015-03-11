@@ -160,25 +160,31 @@ class Recipe(recipe.Recipe):
                     "before you can cross-compile it for " \
                     "{1}".format(self.config.platform,
                                  self.config.target_platform)
-            if not os.path.isdir(host_prefix):
+            gir_file_path = os.path.join(host_prefix, 'share', 'gir-1.0')
+            if not os.path.isfile(gir_file_path):
                 raise Exception(err_nobuild)
+
+            # Error out if the host build doesn't have a version file
+            err_rebuild = "No version_id found for the host " \
+                    "{0}; try rebuilding it?".format(self.config.platform)
+            host_owr_version_id_path = os.path.join(host_prefix, "share", "owr",
+                                                    "version_id")
+            if not os.path.isfile(host_owr_version_id_path):
+                raise Exception(err_rebuild)
 
             # Error out if the host build is out of date
             err_oldbuild = "Please update your openwebrtc build for the host " \
                     "{0}; it's out of date".format(self.config.platform)
-            host_owr_version_id_path = os.path.join(host_prefix, "share", "owr",
-                                                    "version_id")
             with open(host_owr_version_id_path) as f:
                 host_owr_version_id = f.read().strip()
             if self.owr_version_id != host_owr_version_id:
                 raise Exception(err_oldbuild)
 
-            # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build, 
+            # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build,
             # if it exists. If not, error out because that's the only way we 
-            # have sorry this is a bad hack kill me please.
-            gir_file_path = os.path.join(host_prefix, 'share', 'gir-1.0')
+            # have (yes, this is a hack)
             # This is going to be fun if something causes an exception before
-            # we reset the path
+            # we reset the cwd
             old_cwd = os.getcwd()
             os.chdir(gir_file_path)
             gir_file = 'Owr-0.1.gir'
