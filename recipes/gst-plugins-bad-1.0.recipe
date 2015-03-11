@@ -18,7 +18,7 @@ class Recipe(recipe.Recipe):
         --disable-pvr --disable-sdl --disable-sndfile --disable-soundtouch \
         --disable-spandsp --disable-teletextdec --disable-timidity \
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
-        --disable-xvid --disable-zbar --disable-sdi'
+        --disable-xvid --disable-zbar --disable-sdi --disable-hls'
     # Explicitly enable plugins
     configure_options += ' --enable-openh264 --enable-opus \
         --enable-srtp'
