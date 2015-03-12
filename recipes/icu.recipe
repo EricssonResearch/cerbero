@@ -101,12 +101,14 @@ class Recipe(recipe.Recipe):
 
     def post_install(self):
         common_deps = ['-lm', '-lc', '-ldl', '-lstdc++']
+        icudata_deps = ['-lstdc++']
         if self.config.target_platform == Platform.ANDROID:
             common_deps.append('gnustl')
+            icudata_deps.append('gnustl')
         libtool_la = LibtoolLibrary('icudata', self.major_ver, self.minor_ver,
                                     None, self.config.libdir,
                                     self.config.target_platform,
-                                    deps=['-lstdc++', 'gnustl'])
+                                    deps=icudata_deps)
         libtool_la.save()
         libtool_la = LibtoolLibrary('icuuc', self.major_ver, self.minor_ver,
                                     None, self.config.libdir,
