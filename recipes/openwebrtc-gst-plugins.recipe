@@ -18,7 +18,10 @@ class Recipe(recipe.Recipe):
     allow_parallel_build = False
 
     files_libs = ['libgstsctp-1.0']
-    files_plugins_devel = ['include/gstreamer-1.0/gst/sctp']
+    files_plugins_devel = [
+        'include/gstreamer-1.0/gst/sctp',
+        'lib/pkgconfig/gstreamer-sctp-1.0.pc',
+    ]
     files_plugins_net = [
         'lib/gstreamer-1.0/libgstvideorepair%(mext)s',
         'lib/gstreamer-1.0/libgsterdtls%(mext)s',
