@@ -1,7 +1,7 @@
-From adabe9e76eec2ea78671a0bba11c0dac552dc9f7 Mon Sep 17 00:00:00 2001
+From ef4ffc4ff026ddb06a633de74b6639612e52c0d0 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 10 Mar 2015 06:12:49 +0530
-Subject: [PATCH 3/3] build: Add a configure option to disable tests
+Subject: [PATCH 3/4] build: Add a configure option to disable tests
 
 Avoids forcing a libsoup/json-glib dependency
 ---
@@ -10,35 +10,40 @@ Avoids forcing a libsoup/json-glib dependency
  2 files changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 7dfbc61..d7f6e53 100644
+index b9b1a2c..8545fc3 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -1,6 +1,10 @@
+@@ -1,11 +1,15 @@
  ## Process this file with automake to produce Makefile.in
  
--SUBDIRS = transport local owr bridge tests docs bindings
-+SUBDIRS = transport local owr bridge docs bindings
-+
+-SUBDIRS = transport local owr tests docs bindings
++SUBDIRS = transport local owr docs bindings
+ 
+ if OWR_BRIDGE
+ SUBDIRS += bridge
+ endif
+ 
 +if OWR_TESTS
 +SUBDIRS += tests
 +endif
- 
++
  if OWR_DEBUG
  DEBUG_CFLAGS = "-g"
+ else
 diff --git a/configure.ac b/configure.ac
-index a4c551c..9f86a45 100644
+index 2f9fe3c..7286a51 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -27,8 +27,6 @@ PKG_CHECK_MODULES(NICE, [nice >= 0.1.7.1])
+@@ -26,8 +26,6 @@ PKG_CHECK_MODULES(GSTREAMER, [gstreamer-1.0 >= $GST_REQUIRED gstreamer-rtp-1.0 >
+ PKG_CHECK_MODULES(NICE, [nice >= 0.1.7.1])
  PKG_CHECK_MODULES(GSTREAMER_SCTP, [gstreamer-sctp-1.0])
  PKG_CHECK_MODULES(ORC, [orc-0.4])
- PKG_CHECK_MODULES(SEED, [seed])
 -PKG_CHECK_MODULES(JSON_GLIB, [json-glib-1.0])
 -PKG_CHECK_MODULES(LIBSOUP, [libsoup-2.4])
  
- # check for gobject-introspection
- m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
-@@ -62,6 +60,26 @@ if test "x$enable_debug" = xyes; then
+ dnl build bridge or not
+ AC_MSG_CHECKING([whether to build bridge or not])
+@@ -81,6 +79,26 @@ if test "x$enable_debug" = xyes; then
  fi
  AM_CONDITIONAL(OWR_DEBUG, test x$enable_debug = xyes)
  
@@ -66,5 +71,5 @@ index a4c551c..9f86a45 100644
  AC_MSG_CHECKING([whether to build static owr or not])
  AC_ARG_ENABLE(owr-static,
 -- 
-2.1.0
+2.2.2
 
