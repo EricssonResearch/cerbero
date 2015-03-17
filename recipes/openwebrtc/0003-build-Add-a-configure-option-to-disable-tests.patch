@@ -1,4 +1,4 @@
-From ef4ffc4ff026ddb06a633de74b6639612e52c0d0 Mon Sep 17 00:00:00 2001
+From a95867a3de4ef519f3368043b735378d22dee907 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 10 Mar 2015 06:12:49 +0530
 Subject: [PATCH 3/4] build: Add a configure option to disable tests
@@ -10,14 +10,14 @@ Avoids forcing a libsoup/json-glib dependency
  2 files changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index b9b1a2c..8545fc3 100644
+index d9da7e1..bc6ed9a 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -1,11 +1,15 @@
  ## Process this file with automake to produce Makefile.in
  
--SUBDIRS = transport local owr tests docs bindings
-+SUBDIRS = transport local owr docs bindings
+-SUBDIRS = transport local owr tests docs
++SUBDIRS = transport local owr docs
  
  if OWR_BRIDGE
  SUBDIRS += bridge
@@ -27,9 +27,9 @@ index b9b1a2c..8545fc3 100644
 +SUBDIRS += tests
 +endif
 +
- if OWR_DEBUG
- DEBUG_CFLAGS = "-g"
- else
+ # bindings need to be generated last
+ SUBDIRS += bindings
+ 
 diff --git a/configure.ac b/configure.ac
 index 2f9fe3c..7286a51 100644
 --- a/configure.ac

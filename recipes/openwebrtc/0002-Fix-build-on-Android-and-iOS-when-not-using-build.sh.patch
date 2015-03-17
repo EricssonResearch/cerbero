@@ -1,4 +1,4 @@
-From c388d352bdb25bcb1b9056b8d2bb011adb3fb5cc Mon Sep 17 00:00:00 2001
+From db5588907482cc3eb8ce268b5a53d0e4edc3f157 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 17 Feb 2015 05:15:04 +0530
 Subject: [PATCH 2/4] Fix build on Android and iOS when not using build.sh

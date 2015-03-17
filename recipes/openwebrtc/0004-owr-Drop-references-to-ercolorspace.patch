@@ -1,4 +1,4 @@
-From d6985161b5720b009ac4e3dc37ab49519ad98360 Mon Sep 17 00:00:00 2001
+From 8f337d785a9ad4571b258fcd0d8579da7cfec81c Mon Sep 17 00:00:00 2001
 From: Arun Raghavan <arun@centricular.com>
 Date: Tue, 24 Feb 2015 22:58:23 +0530
 Subject: [PATCH 4/4] owr: Drop references to ercolorspace
