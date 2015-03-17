@@ -1,7 +1,7 @@
-From 84abf78cd57e5218fbda5a0bdfa41dee4d4187be Mon Sep 17 00:00:00 2001
+From d6985161b5720b009ac4e3dc37ab49519ad98360 Mon Sep 17 00:00:00 2001
 From: Arun Raghavan <arun@centricular.com>
 Date: Tue, 24 Feb 2015 22:58:23 +0530
-Subject: [PATCH] owr: Drop references to ercolorspace
+Subject: [PATCH 4/4] owr: Drop references to ercolorspace
 
 We're not actually using it any more.
 ---
@@ -9,10 +9,10 @@ We're not actually using it any more.
  1 file changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/owr/owr.c b/owr/owr.c
-index 56d7885..22db625 100644
+index 2390c9e..6ac1074 100644
 --- a/owr/owr.c
 +++ b/owr/owr.c
-@@ -106,10 +106,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
+@@ -107,10 +107,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
  GST_PLUGIN_STATIC_DECLARE(video4linux2);
  #endif
  
@@ -24,7 +24,7 @@ index 56d7885..22db625 100644
  
  #ifdef __ANDROID__
  static void g_print_android_handler(const gchar *message)
-@@ -233,11 +230,8 @@ void owr_init()
+@@ -235,11 +232,8 @@ void owr_init()
      GST_PLUGIN_STATIC_REGISTER(pulseaudio);
      GST_PLUGIN_STATIC_REGISTER(video4linux2);
  #endif
@@ -37,3 +37,6 @@ index 56d7885..22db625 100644
  
      owr_main_context_is_external = !!owr_main_context;
  
+-- 
+2.2.2
+

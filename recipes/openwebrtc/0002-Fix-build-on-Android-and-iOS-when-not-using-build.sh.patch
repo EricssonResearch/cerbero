@@ -1,7 +1,7 @@
-From ecc6745f0969e4d5dddb1974217d3146c665fe19 Mon Sep 17 00:00:00 2001
+From c388d352bdb25bcb1b9056b8d2bb011adb3fb5cc Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Tue, 17 Feb 2015 05:15:04 +0530
-Subject: [PATCH 2/2] Fix build on Android and iOS when not using build.sh
+Subject: [PATCH 2/4] Fix build on Android and iOS when not using build.sh
 
 Detect and subst all needed Android and iOS INCLUDES/LIBS in configure.ac, and
 do Android-specific quirks
@@ -12,22 +12,22 @@ do Android-specific quirks
  3 files changed, 49 insertions(+), 8 deletions(-)
 
 diff --git a/bindings/java/Makefile.am b/bindings/java/Makefile.am
-index 1686cde..dd72e67 100644
+index a71bab8..60197f3 100644
 --- a/bindings/java/Makefile.am
 +++ b/bindings/java/Makefile.am
-@@ -17,6 +17,7 @@ lib_LTLIBRARIES = libopenwebrtc_jni.la libopenwebrtc_bridge_jni.la
+@@ -21,6 +21,7 @@ endif
  
  libopenwebrtc_jni_la_SOURCES = owr_jni.c
  libopenwebrtc_jni_la_LIBADD = \
 +	-L$(ANDROID_NDK_PREFIX)/lib -landroid \
  	$(top_builddir)/owr/libopenwebrtc.la
  
- libopenwebrtc_bridge_jni_la_SOURCES = owr_bridge_jni.c
+ if OWR_BRIDGE
 diff --git a/configure.ac b/configure.ac
-index 4cb143c..a4c551c 100644
+index 5cf2bb4..2f9fe3c 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -85,9 +85,34 @@ dnl pick dependencies and build flags based on OS
+@@ -104,9 +104,34 @@ dnl pick dependencies and build flags based on OS
  case "$host_os" in
    darwin*)
      is_apple=yes
@@ -63,7 +63,7 @@ index 4cb143c..a4c551c 100644
      ;;
    linux*)
      PKG_CHECK_MODULES(PULSE, [libpulse libpulse-mainloop-glib])
-@@ -96,8 +121,8 @@ case "$host_os" in
+@@ -115,8 +140,8 @@ case "$host_os" in
      OWR_DEVICE_LIST_EXT_LIBS="\$(PULSE_LIBS) \$(V4L2_LIBS)"
      ;;
  esac
@@ -73,7 +73,7 @@ index 4cb143c..a4c551c 100644
  
  dnl generate java bindings or not
  AC_MSG_CHECKING([whether to generate java bindings or not])
-@@ -112,6 +137,9 @@ AC_HELP_STRING(
+@@ -131,6 +156,9 @@ AC_HELP_STRING(
  esac],[enable_owr_java=no])
  AC_MSG_RESULT([$enable_owr_java])
  if test "x$enable_owr_java" = xyes; then
@@ -83,7 +83,7 @@ index 4cb143c..a4c551c 100644
    if test "x$enable_shared" != xyes; then
      AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
    fi
-@@ -157,7 +185,7 @@ AC_ARG_WITH(android-sdk,
+@@ -176,7 +204,7 @@ AC_ARG_WITH(android-sdk,
              androidsdkdir=${withval}, androidsdkdir=)
  if test "x$enable_owr_java" = xyes; then
    AC_MSG_CHECKING([for android.jar])
@@ -92,7 +92,7 @@ index 4cb143c..a4c551c 100644
      AC_MSG_ERROR([Need path to the Android SDK when building Android bindings])
    fi
    ANDROID_CLASSPATH="$androidsdkdir/platforms/android-20/android.jar"
-@@ -171,15 +199,15 @@ if test "x$enable_owr_java" = xyes; then
+@@ -190,15 +218,15 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_CLASSPATH)
  
@@ -112,7 +112,7 @@ index 4cb143c..a4c551c 100644
    fi
    case "$target" in
      i?86-*|x86_64-*)
-@@ -202,6 +230,17 @@ if test "x$enable_owr_java" = xyes; then
+@@ -221,6 +249,17 @@ if test "x$enable_owr_java" = xyes; then
  fi
  AC_SUBST(ANDROID_NDK_PREFIX)
  
@@ -145,5 +145,5 @@ index 91571c3..50db42a 100644
  AM_CFLAGS = \
      -Wall \
 -- 
-2.1.0
+2.2.2
 
