@@ -91,7 +91,7 @@ class Recipe(recipe.Recipe):
             # Since we're linking statically, we need all these plugins at link
             # time. However, the build system is foobar and doesn't add them.
             gst_plugins = ['alaw', 'app', 'audioconvert', 'audioresample',
-                'audiotestsrc', 'coreelements', 'erdtls', 'inter', 'mulaw',
+                'audiotestsrc', 'coreelements', 'dtls', 'inter', 'mulaw',
                 'nice', 'opengl', 'openh264', 'opus', 'rtp', 'rtpmanager',
                 'sctp', 'srtp', 'videocrop', 'videofilter', 'videoparsersbad',
                 'videorate', 'videorepair', 'videoscale', 'videotestsrc',

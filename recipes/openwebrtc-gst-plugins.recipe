@@ -10,9 +10,8 @@ class Recipe(recipe.Recipe):
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
     configure_options = ''
-    patches = [name + '/use-openssl-pkg-config.patch',
-               name + '/use-either-android-api-19-20.patch',]
-    deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0', 'openssl',
+    patches = [name + '/use-either-android-api-19-20.patch',]
+    deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0',
             'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
     allow_parallel_build = False
@@ -24,7 +23,6 @@ class Recipe(recipe.Recipe):
     ]
     files_plugins_net = [
         'lib/gstreamer-1.0/libgstvideorepair%(mext)s',
-        'lib/gstreamer-1.0/libgsterdtls%(mext)s',
         'lib/gstreamer-1.0/libgstsctp%(mext)s',
     ]
     platform_files_plugins_capture = {
