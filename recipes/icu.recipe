@@ -96,6 +96,8 @@ class Recipe(recipe.Recipe):
             super(recipe.Recipe, self_copy).compile()
             os.environ = old_env
             self.configure_options += ' --with-cross-build={0}'.format(cross_build_dir)
+            # We probably don't need tools in the cross environment
+            self.configure_options += ' --disable-tools'
         self.configure_options += ' --disable-tests --disable-samples'
         messages.action("Configuring icu on the target platform")
         super(recipe.Recipe, self).configure()
