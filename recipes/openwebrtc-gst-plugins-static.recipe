@@ -11,7 +11,8 @@ class Recipe(custom.GStreamerStatic):
     commit = 'origin/master'
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
-    patches = [_name + '/use-either-android-api-19-20.patch',]
+    patches = [_name + '/use-either-android-api-19-20.patch',
+               _name + '/optional-erdtls.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0',
             'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
@@ -28,6 +29,7 @@ class Recipe(custom.GStreamerStatic):
     def prepare(self):
         # Don't build ercolorspace because we use videoconvert everywhere now
         self.configure_options += ' \
+            --disable-erdtls \
             --disable-debug \
             --disable-android-plugins \
             --disable-osx-plugins \
