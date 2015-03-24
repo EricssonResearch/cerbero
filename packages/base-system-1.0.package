@@ -16,7 +16,7 @@ class Package(package.Package):
     uuid = 'fae6046d-5a39-4d54-93ee-3770d2f316f5'
 
     files = ['libffi:libs', 'glib:libs:lang:bins:schemas',
-             'orc:libs', 'zlib:libs', 'bzip2:libs']
+             'orc:libs', 'zlib:libs', 'bzip2:libs', 'openssl:libs']
 
     platform_files = {
         Platform.WINDOWS: ['gettext:libs:lang', 'libiconv:libs:lang',

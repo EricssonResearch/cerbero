@@ -14,15 +14,12 @@ class Package(package.Package):
     vendor = 'Ericsson Research'
     org = 'org.openwebrtc'
     uuid = 'cf9531c5-f936-4f56-9cea-8cf1f61398d1'
-    deps = ['gstreamer-1.0-core',
-            'base-system-1.0',
-           ]
+    deps = ['gstreamer-1.0-core', 'base-system-1.0',]
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',
-             'openssl:libs', 'seed:libs', 'libusrsctp:libs',
-            ]
-    files_devel = ['openwebrtc-gst-plugins-static',
-                   ]
+             'seed:libs', 'libusrsctp:libs',]
+    files_devel = ['openwebrtc-gst-plugins-static',]
+
     platform_files = {
             Platform.DARWIN: ['openwebrtc-osx-framework'],
             Platform.IOS: ['openwebrtc-girepository'],
