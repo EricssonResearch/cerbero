@@ -80,8 +80,8 @@ index 5cf2bb4..2f9fe3c 100644
 +  if test "x$is_android" != xyes; then
 +    AC_MSG_ERROR([--enable-owr-java is only valid when building for Android])
 +  fi
-   if test "x$enable_shared" != xyes; then
-     AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
+   if test "x$found_introspection" != xyes; then
+     AC_MSG_ERROR([--enable-owr-java requires GObject-instrospection support])
    fi
 @@ -176,7 +204,7 @@ AC_ARG_WITH(android-sdk,
              androidsdkdir=${withval}, androidsdkdir=)
@@ -117,7 +117,7 @@ index 5cf2bb4..2f9fe3c 100644
  AC_SUBST(ANDROID_NDK_PREFIX)
  
 +if test "x$is_android" = xyes; then
-+  dnl The GNU C++ STL is needed for JNI. This pkg-config file is 
++  dnl The GNU C++ STL is needed for JNI. This pkg-config file is
 +  dnl only provided by Cerbero.
 +  PKG_CHECK_MODULES(GNU_CXXSTL, [gnustl])
 +
