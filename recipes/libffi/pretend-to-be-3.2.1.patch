@@ -1,0 +1,63 @@
+From 9bc6d73957bcf78642530e4db343dee6e48b1f84 Mon Sep 17 00:00:00 2001
+From: Anthony Green <green@moxielogic.com>
+Date: Wed, 12 Nov 2014 07:00:59 -0500
+Subject: [PATCH] Fix for AArch64. Release as 3.2.1.
+
+NOTE: I removed the src/aarch64/ffi.c patch hunk because it's useless for us
+---
+ README            | 5 ++++-
+ configure.ac      | 2 +-
+ doc/version.texi  | 4 ++--
+ src/aarch64/ffi.c | 2 ++
+ 4 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/README b/README
+index cc693e1..5acc19d 100644
+--- a/README
++++ b/README
+@@ -1,7 +1,7 @@
+ Status
+ ======
+ 
+-libffi-3.2 was released on November 11, 2014.  Check the libffi web
++libffi-3.2.1 was released on November 12, 2014.  Check the libffi web
+ page for updates: <URL:http://sourceware.org/libffi/>.
+ 
+ 
+@@ -182,6 +182,9 @@ History
+ 
+ See the git log for details at http://github.com/atgreen/libffi.
+ 
++3.2.1 Nov-12-14
++        Build fix for non-iOS AArch64 targets.
++
+ 3.2 Nov-11-14
+         Add C99 Complex Type support (currently only supported on
+           s390).
+diff --git a/configure.ac b/configure.ac
+index 4a44bff..a7bf5ee 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2,7 +2,7 @@ dnl Process this with autoconf to create configure
+ 
+ AC_PREREQ(2.68)
+ 
+-AC_INIT([libffi], [3.2], [http://github.com/atgreen/libffi/issues])
++AC_INIT([libffi], [3.2.1], [http://github.com/atgreen/libffi/issues])
+ AC_CONFIG_HEADERS([fficonfig.h])
+ 
+ AC_CANONICAL_SYSTEM
+diff --git a/doc/version.texi b/doc/version.texi
+index 39a1a76..ccef70f 100644
+--- a/doc/version.texi
++++ b/doc/version.texi
+@@ -1,4 +1,4 @@
+ @set UPDATED 8 November 2014
+ @set UPDATED-MONTH November 2014
+-@set EDITION 3.2
+-@set VERSION 3.2
++@set EDITION 3.2.1
++@set VERSION 3.2.1
+-- 
+2.1.0
+
