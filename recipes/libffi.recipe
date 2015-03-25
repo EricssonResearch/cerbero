@@ -48,10 +48,12 @@ class Recipe(recipe.Recipe):
                 dir = 'arm-apple-darwin*'
                 arch = 'arm'
                 # FIXME: 3.2.1 rewrote ffi support for arm, and broke it for iOS
-                # We work around that by using 3.2 for 32-bit ARM on iOS
+                # We work around that by using 3.2 for 32-bit ARM on iOS, but
+                # we're calling it 3.2.1 because the universal build expects the
+                # headers to be all in the same version-specific directory.
                 # https://github.com/atgreen/libffi/issues/181
-                self.version = "3.2"
-                self.commit = "ae8d2554c5f192be54dadc9f99a1449b4df1b222"
+                self.commit = "67c0c0705318d2e567fd48e680d63dca3619a235"
+                self.patches += ["libffi/pretend-to-be-3.2.1.patch"]
 
             self.files_devel.append(os.path.join(self.libffidir, 'include', '*', 'ffi.h'))
             self.files_devel.append(os.path.join(self.libffidir, 'include', '*', 'ffitarget.h'))
