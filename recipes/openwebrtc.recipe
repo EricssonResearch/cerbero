@@ -83,7 +83,7 @@ class Recipe(recipe.Recipe):
                 self.configure_options += '--disable-shared '
 
             # TODO: Move all this to the openwebrtc build system
-            # We're using internal gir symbols for the static build, but the 
+            # We're using internal gir symbols for the static build, but the
             # build system doesn't add this because it's stupid
             self.new_env['PKG_CONFIG'] = 'pkg-config --static'
             self.append_env['LDFLAGS'] = ' -lgirepository-internals '
@@ -179,7 +179,7 @@ class Recipe(recipe.Recipe):
                 raise Exception(err_oldbuild)
 
             # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build,
-            # if it exists. If not, error out because that's the only way we 
+            # if it exists. If not, error out because that's the only way we
             # have (yes, this is a hack)
             # This is going to be fun if something causes an exception before
             # we reset the cwd
@@ -209,7 +209,7 @@ class Recipe(recipe.Recipe):
         # On Android, we want a 'fat' library that contains all the dependencies
         # not provided by the system within itself using static libraries.
         # However, libtool gives us no way to generate that, so we use the
-        # 'libtool-link' command inside data/ndk-build/tools.mk to generate a 
+        # 'libtool-link' command inside data/ndk-build/tools.mk to generate a
         # linker command that does that for us, re-create the library, and then
         # add it to the JAR file
         if self.config.target_platform == Platform.ANDROID:
