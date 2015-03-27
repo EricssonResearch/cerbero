@@ -80,8 +80,8 @@ index 5cf2bb4..2f9fe3c 100644
 +  if test "x$is_android" != xyes; then
 +    AC_MSG_ERROR([--enable-owr-java is only valid when building for Android])
 +  fi
-   if test "x$found_introspection" != xyes; then
-     AC_MSG_ERROR([--enable-owr-java requires GObject-instrospection support])
+   if test "x$enable_shared" != xyes; then
+     AC_MSG_ERROR([--enable-owr-java needs --enabled-shared])
    fi
 @@ -176,7 +204,7 @@ AC_ARG_WITH(android-sdk,
              androidsdkdir=${withval}, androidsdkdir=)
