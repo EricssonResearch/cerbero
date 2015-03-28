@@ -1,28 +1,41 @@
-From 7210522c67762b60c7528a3a686eba47f73d183f Mon Sep 17 00:00:00 2001
+From 2056599b1479f0cd8924498377df75acc93f9127 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Mon, 10 Nov 2014 21:21:44 +0530
-Subject: [PATCH] configure: Look for either Android API level 19 or 20
+Subject: [PATCH 1/2] configure: Look for Android API levels from 9 to 22
 
 ---
- configure.ac | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ configure.ac | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index f0edce3..5764cec 100644
+index 0c2ca0c..608dbb6 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -140,7 +140,10 @@ if test "x$enable_android_plugins" = xyes; then
-   dx_path=`AS_DIRNAME(["$DX"])`
-   ANDROID_CLASSPATH="$dx_path/../../platforms/android-19/android.jar"
-   if ! test -f "$ANDROID_CLASSPATH"; then
--    AC_MSG_ERROR([Android API level 19 not found in the SDK])
-+    ANDROID_CLASSPATH="$dx_path/../../platforms/android-20/android.jar"
-+    if ! test -f "$ANDROID_CLASSPATH"; then
-+      AC_MSG_ERROR([Android API level 19 or 20 not found in the SDK])
-+    fi
+@@ -137,11 +137,21 @@ if test "x$enable_android_plugins" = xyes; then
+   if test -z "$XXD"; then
+     AC_MSG_ERROR([You need 'xxd' to build the Android plugins])
    fi
++
++  api_found=0
+   dx_path=`AS_DIRNAME(["$DX"])`
+-  ANDROID_CLASSPATH="$dx_path/../../platforms/android-19/android.jar"
+-  if ! test -f "$ANDROID_CLASSPATH"; then
+-    AC_MSG_ERROR([Android API level 19 not found in the SDK])
++  AC_MSG_CHECKING([which Android API Level to use])
++  for api_level in $(seq 9 20); do
++    ANDROID_CLASSPATH="$dx_path/../../platforms/android-$api_level/android.jar"
++    if test -f "$ANDROID_CLASSPATH"; then
++      api_found=$api_level
++      break
++    fi
++  done
++  if test "$api_found" = 0; then
++    AC_MSG_ERROR([No usable Android API levels not found in the SDK])
+   fi
++  AC_MSG_RESULT([$api_found])
    AC_SUBST(ANDROID_CLASSPATH)
  fi
+ AM_CONDITIONAL(BUILD_ANDROID_PLUGINS, test "x$enable_android_plugins" = "xyes")
 -- 
 2.1.0
 

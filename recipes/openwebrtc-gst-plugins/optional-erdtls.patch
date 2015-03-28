@@ -1,4 +1,4 @@
-From f0e8c2f994d666c9d51aade767295739ecae1b8f Mon Sep 17 00:00:00 2001
+From b0919719cd65db7f0e18740db9818251f59c8790 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Mon, 10 Nov 2014 21:11:52 +0530
 Subject: [PATCH 2/2] build: Use the pkg-config file for finding openssl
@@ -10,7 +10,7 @@ Also add a configure option, and make it optional
  2 files changed, 24 insertions(+), 12 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 432c9e1..428494d 100644
+index 608dbb6..0a8c419 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -79,17 +79,22 @@ if test "x$with_sctp" != "xyes"; then
@@ -33,11 +33,11 @@ index 432c9e1..428494d 100644
 +  erdtls,
 +  AC_HELP_STRING(
 +    [--enable-erdtls],
-+    [build erdtls plugin @<:@default=yes@:>@]),
++    [build erdtls plugin @<:@default=no@:>@]),
 +  [AS_CASE(
 +    [$enableval], [no], [], [yes], [],
 +    [AC_MSG_ERROR([bad value "$enableval" for --enable-erdtls])])],
-+  [enable_erdtls=yes])
++  [enable_erdtls=no])
 +AC_MSG_RESULT([$enable_erdtls])
 +if test "x$enable_erdtls" = xyes; then
 +  PKG_CHECK_MODULES(OPENSSL, [openssl])
