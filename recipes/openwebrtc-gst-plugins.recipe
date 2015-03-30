@@ -10,8 +10,6 @@ class Recipe(recipe.Recipe):
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && autoreconf -fiv'
     configure_options = ''
-    patches = [name + '/use-either-android-api-19-20.patch',
-               name + '/optional-erdtls.patch',]
     deps = ['gettext', 'gstreamer-1.0', 'gst-plugins-base-1.0',
             'orc', 'libusrsctp']
     # Parallel make fails randomly due to .gitignore generation by git.mk
