@@ -1,7 +1,7 @@
-From 8f337d785a9ad4571b258fcd0d8579da7cfec81c Mon Sep 17 00:00:00 2001
+From fc0c40beb90857375de966ad82f6f0ca9aa9db67 Mon Sep 17 00:00:00 2001
 From: Arun Raghavan <arun@centricular.com>
 Date: Tue, 24 Feb 2015 22:58:23 +0530
-Subject: [PATCH 4/4] owr: Drop references to ercolorspace
+Subject: [PATCH 2/2] owr: Drop references to ercolorspace
 
 We're not actually using it any more.
 ---
@@ -9,10 +9,10 @@ We're not actually using it any more.
  1 file changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/owr/owr.c b/owr/owr.c
-index 2390c9e..6ac1074 100644
+index 1e77906..4e061a0 100644
 --- a/owr/owr.c
 +++ b/owr/owr.c
-@@ -107,10 +107,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
+@@ -104,10 +104,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
  GST_PLUGIN_STATIC_DECLARE(video4linux2);
  #endif
  
@@ -24,7 +24,7 @@ index 2390c9e..6ac1074 100644
  
  #ifdef __ANDROID__
  static void g_print_android_handler(const gchar *message)
-@@ -235,11 +232,8 @@ void owr_init()
+@@ -230,11 +227,8 @@ void owr_init(GMainContext *main_context)
      GST_PLUGIN_STATIC_REGISTER(pulseaudio);
      GST_PLUGIN_STATIC_REGISTER(video4linux2);
  #endif
@@ -35,7 +35,7 @@ index 2390c9e..6ac1074 100644
 -#endif
 +#endif /* OWR_STATIC */
  
-     owr_main_context_is_external = !!owr_main_context;
+     owr_main_context = main_context;
  
 -- 
 2.2.2

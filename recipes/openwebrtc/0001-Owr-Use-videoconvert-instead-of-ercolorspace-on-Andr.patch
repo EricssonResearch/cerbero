@@ -1,7 +1,7 @@
-From a007d954f7a3c0b11f9c5bc77858415dc7e58439 Mon Sep 17 00:00:00 2001
+From afdc309c1185d90d25b6c100a8d25ab4971744f8 Mon Sep 17 00:00:00 2001
 From: Nirbheek Chauhan <nirbheek@centricular.com>
 Date: Mon, 10 Nov 2014 21:29:47 +0530
-Subject: [PATCH 1/4] Owr: Use videoconvert instead of ercolorspace on Android
+Subject: [PATCH 1/2] Owr: Use videoconvert instead of ercolorspace on Android
 
 Not all Android devices have NEON support, and videconvert will do the right
 thing using ORC
@@ -30,7 +30,7 @@ index 0b9e5e0..2f5b9be 100644
  
  #define LIMITED_WIDTH 640
 diff --git a/local/owr_local_media_source.c b/local/owr_local_media_source.c
-index ef05128..f818483 100644
+index 0edb090..b08bc84 100644
 --- a/local/owr_local_media_source.c
 +++ b/local/owr_local_media_source.c
 @@ -59,6 +59,7 @@
@@ -55,10 +55,10 @@ index ac2f80b..1478c74 100644
  #else
  #define VIDEO_CONVERT "videoconvert"
 diff --git a/owr/owr.c b/owr/owr.c
-index 267310c..2390c9e 100644
+index b6c7b82..1e77906 100644
 --- a/owr/owr.c
 +++ b/owr/owr.c
-@@ -107,7 +107,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
+@@ -104,7 +104,7 @@ GST_PLUGIN_STATIC_DECLARE(pulseaudio);
  GST_PLUGIN_STATIC_DECLARE(video4linux2);
  #endif
  
@@ -67,7 +67,7 @@ index 267310c..2390c9e 100644
  GST_PLUGIN_STATIC_DECLARE(ercolorspace);
  #endif
  #endif
-@@ -235,7 +235,7 @@ void owr_init()
+@@ -230,7 +230,7 @@ void owr_init(GMainContext *main_context)
      GST_PLUGIN_STATIC_REGISTER(pulseaudio);
      GST_PLUGIN_STATIC_REGISTER(video4linux2);
  #endif
