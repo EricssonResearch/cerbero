@@ -12,7 +12,7 @@ class Package(package.Package):
     codename = 'Congo'
     license = License.LGPL
     vendor = 'Ericsson Research'
-    org = 'org.openwebrtc'
+    org = 'io.openwebrtc'
     uuid = 'cf9531c5-f936-4f56-9cea-8cf1f61398d1'
     deps = ['gstreamer-1.0-core', 'base-system-1.0',]
 
