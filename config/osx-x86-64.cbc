@@ -1,5 +1,5 @@
 from cerbero.config import Architecture
 
 target_arch=Architecture.X86_64
-prefix='/Library/Frameworks/OpenWebRTC.framework/Versions/0.1'
+prefix='/Library/Frameworks/OpenWebRTC.framework/Versions/0.3'
 

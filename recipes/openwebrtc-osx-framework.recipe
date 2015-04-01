@@ -28,7 +28,7 @@ from cerbero.ide.xcode.fwlib import DynamicFrameworkLibrary
 
 class Recipe(recipe.Recipe):
     name = 'openwebrtc-osx-framework'
-    version = '0.1'
+    version = '0.3'
     licenses = [License.LGPL]
     stype = SourceType.CUSTOM
     btype = BuildType.CUSTOM
@@ -38,6 +38,6 @@ class Recipe(recipe.Recipe):
 
     def install(self):
         install_name = os.path.join(self.config.prefix, 'lib', 'OpenWebRTC')
-        libs = ['openwebrtc-0.1', 'openwebrtc-bridge-0.1', 'glib-2.0', 'gobject-2.0']
+        libs = ['openwebrtc-0.3', 'openwebrtc-bridge-0.3', 'glib-2.0', 'gobject-2.0']
         fwlib = DynamicFrameworkLibrary(install_name, install_name, libs, self.config.target_arch)
         fwlib.create()

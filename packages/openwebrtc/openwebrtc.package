@@ -31,9 +31,9 @@ class SDKPackage(package.SDKPackage):
     longdesc = "OpenWebRTC"
     title = "OpenWebRTC"
     url = "http://www.openwebrtc.io"
-    version = '0.1.0'
-    sdk_version = '0.1'
-    codename = 'Congo'
+    version = '0.3.0'
+    sdk_version = '0.3'
+    codename = 'Round 3, fight!'
     license = License.LGPL
     uuid = '16cadbc8-3033-4a9e-87a0-92e05f54ae06'
     vendor = "Ericsson Research"

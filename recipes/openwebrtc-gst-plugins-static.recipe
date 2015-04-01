@@ -27,7 +27,7 @@
 class Recipe(custom.GStreamerStatic):
     name = 'openwebrtc-gst-plugins-static'
     _name = name.replace('-static', '')
-    version = '0.0.1'
+    version = '0.3.0'
     gstreamer_version = '1.0'
     stype = SourceType.GIT
     licenses = [License.BSD_like]
