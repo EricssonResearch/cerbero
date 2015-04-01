@@ -2,7 +2,7 @@
 
 ## How do I use this?
 
-[Using this cerbero fork to build OpenWebRTC](https://github.com/EricssonResearch/openwebrtc/wiki/Building-OpenWebRTC-with-Cerbero)
+[Using this cerbero fork to build OpenWebRTC](https://github.com/EricssonResearch/openwebrtc/wiki/Building-OpenWebRTC)
 
 ## What is cerbero?
 
