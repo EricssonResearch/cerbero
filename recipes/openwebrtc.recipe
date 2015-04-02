@@ -11,6 +11,7 @@ from custom import generate_gir_h_from_gir
 class Recipe(recipe.Recipe):
     name = 'openwebrtc'
     version = '0.1'
+    _api_version = '0.1'
     stype = SourceType.GIT
     licenses = [License.BSD_like]
     remotes = {
@@ -42,14 +43,14 @@ class Recipe(recipe.Recipe):
 
     files_bins = ['openwebrtc-daemon']
     files_libs = ['libopenwebrtc', 'libopenwebrtc_bridge']
-    files_devel = ['lib/pkgconfig/openwebrtc-0.1.pc',
-                   'lib/pkgconfig/openwebrtc-bridge-0.1.pc',
+    files_devel = ['lib/pkgconfig/openwebrtc-' + _api_version + '.pc',
+                   'lib/pkgconfig/openwebrtc-bridge-' + _api_version + '.pc',
                    'include/owr']
 
     platform_files_typelibs = {
-        Platform.DARWIN: ['Owr-0.1'],
-        Platform.LINUX: ['Owr-0.1'],
-        Platform.WINDOWS: ['Owr-0.1'],
+        Platform.DARWIN: ['Owr-' + _api_version],
+        Platform.LINUX: ['Owr-' + _api_version],
+        Platform.WINDOWS: ['Owr-' + _api_version],
     }
 
     def prepare(self):
@@ -157,7 +158,7 @@ class Recipe(recipe.Recipe):
                     "{1}".format(self.config.platform,
                                  self.config.target_platform)
             gir_file_path = os.path.join(host_prefix, 'share', 'gir-1.0')
-            gir_file = 'Owr-0.1.gir'
+            gir_file = 'Owr-' + self._api_version + '.gir'
             if not os.path.isfile(os.path.join(gir_file_path, gir_file)):
                 raise Exception(err_nobuild)
 
@@ -177,14 +178,14 @@ class Recipe(recipe.Recipe):
             if self.owr_version_id != host_owr_version_id:
                 raise Exception(err_oldbuild)
 
-            # Generate Owr-0.1.gir.h from the Owr-0.1.gir in the host build,
+            # Generate Owr-<_api_version>.gir.h from the Owr-<_api_version>.gir in the host build,
             # if it exists. If not, error out because that's the only way we
             # have (yes, this is a hack)
             # This is going to be fun if something causes an exception before
             # we reset the cwd
             old_cwd = os.getcwd()
             os.chdir(gir_file_path)
-            gir_h_file = os.path.join(self.build_dir, 'Owr-0.1.gir.h')
+            gir_h_file = os.path.join(self.build_dir, 'Owr-' + self._api_version + '.gir.h')
             # Generate the gir.h
             generate_gir_h_from_gir(gir_file, gir_h_file)
             if self.config.target_platform == Platform.ANDROID:
