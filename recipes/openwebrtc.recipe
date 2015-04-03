@@ -109,8 +109,14 @@ class Recipe(recipe.Recipe):
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
 
-            self.files_devel = self.files_devel + ['lib/jni/openwebrtc.jar',
-                'lib/jni/openwebrtc_bridge.jar', 'lib/jni/openwebrtc-source.jar']
+            self.files_devel = self.files_devel + [
+                'lib/jni/openwebrtc.jar',
+                'lib/jni/openwebrtc-sources.jar',
+                'lib/jni/openwebrtc-javadoc.jar',
+                'lib/jni/openwebrtc_bridge.jar',
+                'lib/jni/openwebrtc_bridge-sources.jar',
+                'lib/jni/openwebrtc_bridge-javadoc.jar',
+            ]
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
             self.configure_options += ' --disable-gtk-doc --disable-static \
                 --disable-owr-static --enable-shared --enable-tests'
