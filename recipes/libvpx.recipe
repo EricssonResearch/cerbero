@@ -101,6 +101,9 @@ class Recipe(recipe.Recipe):
         # Optimize for real-time performance
         self.configure_options += ' --enable-realtime-only --enable-onthefly-bitpacking '
 
+        # Enable error concealment
+        self.configure_options += ' --enable-error-concealment '
+
     def configure(self):
         if self.config.target_platform == Platform.ANDROID:
             cpufeatures_path = os.path.join(self.config.toolchain_prefix, 'sources', 'android', 'cpufeatures')
