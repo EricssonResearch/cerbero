@@ -8,17 +8,25 @@ include $(CERBERO_DATA_PATH)/ndk-build/tools.mk
 LIBRARY_PATH			?= $(PREFIX)/lib
 GSTREAMER_STATIC_PLUGINS_PATH	?= $(LIBRARY_PATH)/gstreamer-1.0/static
 DEPENDENCY_LIBS			?= -L$(LIBRARY_PATH) -l$(INPUT_LIBRARY)
+# Static libraries to exclude from the final link command (if, for instance,
+# they are provided by a shared library dependency)
+EXCLUDED_LIBS			?=
 
 # Get the -lfoo libraries for which we want to include the whole archive
 # i.e., the 'root' libraries using which ld will look at the dependency static
-# archives for symbols and include only those that are needed
+# archives for symbols and include only those that are needed. For OWRTC, this
+# is "openwebrtc_bridge_jni" or "openwebrtc_jni".
 DEPENDENCY_WHOLE_AR		:= $(call libtool-get-libs,$(DEPENDENCY_LIBS) $(GSTREAMER_STATIC_PLUGINS))
 HOST_SED			:= $(shell which sed)
 
+# libtool-link calls libtool-parse-lib, which finds the .la file for this
+# library, and all the dependencies. This populates the link command for static
+# linking.
 LINK_CMD	:= $(call libtool-link,$(CC) $(LDFLAGS) -shared \
 	-o $(OUTPUT_LIBRARY) $(DEPENDENCY_LIBS) \
 	-L$(GSTREAMER_STATIC_PLUGINS_PATH) $(GSTREAMER_STATIC_PLUGINS))
 LINK_CMD	:= $(call libtool-whole-archive,$(LINK_CMD),$(DEPENDENCY_WHOLE_AR))
+LINK_CMD	:= $(filter-out $(patsubst %,\%lib%.a,$(EXCLUDED_LIBS)),$(LINK_CMD))
 
 all:
 	$(LINK_CMD)

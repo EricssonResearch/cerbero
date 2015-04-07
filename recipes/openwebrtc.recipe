@@ -214,48 +214,121 @@ class Recipe(recipe.Recipe):
         # add it to the JAR file
         if self.config.target_platform == Platform.ANDROID:
             import tempfile
+            from cerbero.tools.libtool import LibtoolLibrary
+            # MASSIVE HACK: .la files contain dependency information for
+            # static linking, and hence contain all the (recursive)
+            # dependencies. In libopenwebrtc_bridge_jni.so, we want to only
+            # include the static libraries related to the bridge and jni, and
+            # depend on a "fat" libopenwebrtc_jni.so for everything else. So, we
+            # rewrite the .la files to trick Makefile.bundled-shared into
+            # creating such a library.
+            #
+            # MASSIVE SUB-HACK: We want libopenwebrtc_bridge_jni.so to depend
+            # on the "fat" libopenwebrtc_jni.so for all libraries except those
+            # that are *ONLY* used by libopenwebrtc_bridge_jni.so. This includes
+            # all the dependency libraries that are common between the two
+            # libraries. So, we rewrite libopenwebrtc_bridge.la to exclude those
+            bridge_la_file = open(os.path.join(self.config.libdir,
+                                               "libopenwebrtc_bridge.la"))
+            bridge_libs = filter(lambda x: x.startswith("dependency_libs="),
+                                 bridge_la_file)[0].replace("'", "").split()
+            bridge_l_deps = filter(lambda x: x.startswith("-l"), bridge_libs)
+            bridge_la_deps = filter(lambda x: x.endswith(".la"), bridge_libs)
+            # ~/cerbero/dist/android_armv7/lib/libgio-2.0.la -> gio-2.0
+            bridge_la_deps = set(map(lambda x: os.path.basename(x)[3:-3],
+                                     bridge_la_deps))
+
+            owrtc_la_file = open(os.path.join(self.config.libdir,
+                                              "libopenwebrtc.la"))
+            owrtc_libs = filter(lambda x: x.startswith("dependency_libs="),
+                                owrtc_la_file)[0].replace("'", "").split()
+            owrtc_la_deps = filter(lambda x: x.endswith(".la"), owrtc_libs)
+            owrtc_la_deps = set(map(lambda x: os.path.basename(x)[3:-3],
+                                    owrtc_la_deps))
+
+            common_la_deps = owrtc_la_deps.intersection(bridge_la_deps)
+            common_la_deps.add("openwebrtc")
+            # The C++ STL and FFI are linked statically, so are always needed;
+            # otherwise, we get undefined reference errors while linking
+            common_la_deps.remove("gnustl")
+            common_la_deps.remove("ffi")
+
+            # FIXME: For some reason, seed-gtk3 is missing from
+            # libopenwebrtc_bridge.la, so we add it manually here.
+            # This needs to be fixed in the la file.
+            os.rename(os.path.join(self.config.libdir,
+                                   "libopenwebrtc_bridge.la"),
+                      os.path.join(self.config.libdir,
+                                   "libopenwebrtc_bridge.la.orig"))
+            bridge_deps = ['seed-gtk3'] + bridge_l_deps + \
+                    filter(lambda x: x not in common_la_deps, bridge_la_deps)
+            messages.message(str(bridge_deps))
+            bridge_la = LibtoolLibrary("openwebrtc_bridge", 0, 0, None,
+                                       self.config.libdir,
+                                       self.config.target_platform,
+                                       deps=bridge_deps)
+            bridge_la.save()
+
+            os.rename(os.path.join(self.config.libdir,
+                                   "libopenwebrtc_bridge_jni.la"),
+                      os.path.join(self.config.libdir,
+                                   "libopenwebrtc_bridge_jni.la.orig"))
+            bridge_jni_deps = ['openwebrtc_bridge', '-lopenwebrtc_jni', '-landroid']
+            bridge_jni_la = LibtoolLibrary("openwebrtc_bridge_jni", 0, 0, None,
+                                           self.config.libdir,
+                                           self.config.target_platform,
+                                           deps=bridge_jni_deps)
+            bridge_jni_la.save()
+
             make_cmd = 'make -f "{0}" INPUT_LIBRARY="{1}" OUTPUT_LIBRARY="{2}" ' \
                        'CERBERO_DATA_PATH="{3}" PREFIX="{4}" ' \
-                       'GSTREAMER_STATIC_PLUGINS="{5}"'
+                       'GSTREAMER_STATIC_PLUGINS="{5}" EXCLUDED_LIBS="{6}"'
             makefile = os.path.join(self.config.recipes_dir, self.name,
                                     'Makefile.bundled-shared')
-            for each in ('openwebrtc', 'openwebrtc_bridge'):
-                input_library = each + '_jni'
-                jar_lib = 'lib' + input_library + '.so'
-                output_library_dir = os.path.join(self.config.prefix,
-                                                  'lib' + self.config.lib_suffix)
-                output_library_dir = os.path.realpath(output_library_dir)
-                output_library = os.path.join(output_library_dir, jar_lib)
-                gst_plugins_libs = self.gst_plugins_libs
-                if each == 'openwebrtc_bridge':
-                    # FIXME: For some reason, this is missing from
-                    # libopenwebrtc_bridge.la, so we add it manually here.
-                    # This needs to be fixed in the la file.
-                    gst_plugins_libs += ' -lseed-gtk3'
-                cmd = make_cmd.format(makefile, input_library, output_library,
-                                      self.config.data_dir,
-                                      self.config.prefix,
-                                      gst_plugins_libs)
-                shell.call(cmd)
-                # We need to repackage the jar file with the fixed library
-                jar_file = os.path.join(self.config.prefix,
-                                        'lib' + self.config.lib_suffix,
-                                        'jni', each + '.jar')
-                # The library needs to be inside 'lib/armeabi' etc (depending
-                # on the architecture, so we need to copy it inside that dir,
-                # add it to the jar and then delete the tmpdir
-                tempdir = tempfile.mkdtemp()
-                # Extract the jar file in the tmpdir
-                old_cwd = os.getcwd()
-                os.chdir(tempdir)
-                shell.call("jar -xvf " + jar_file)
-                # Remove all existing native libraries inside the jar
-                shutil.rmtree("lib")
-                jar_lib_path = os.path.join("lib", self.arch_name)
-                os.makedirs(jar_lib_path)
-                # Copy the fixed native library into the correct path
-                shutil.copy(output_library, jar_lib_path)
-                os.chdir(old_cwd)
-                # Re-create the jar file
-                shell.call("jar -cvf {0} -C {1} .".format(jar_file, tempdir))
-                shutil.rmtree(tempdir)
+            try:
+                for each in ('openwebrtc', 'openwebrtc_bridge'):
+                    input_library = each + '_jni'
+                    jar_lib = 'lib' + input_library + '.so'
+                    output_library = os.path.join(self.config.libdir, jar_lib)
+                    if each == 'openwebrtc':
+                        extra_libs = self.gst_plugins_libs
+                        excluded_libs = ''
+                    else:
+                        extra_libs = ''
+                        excluded_libs = " ".join(common_la_deps)
+                    cmd = make_cmd.format(makefile, input_library,
+                                          output_library, self.config.data_dir,
+                                          self.config.prefix, extra_libs,
+                                          excluded_libs)
+                    shell.call(cmd)
+                    # We need to repackage the jar file with the fixed library
+                    jar_file = os.path.join(self.config.libdir, 'jni',
+                                            each + '.jar')
+                    # The library needs to be inside 'lib/armeabi' etc (depending
+                    # on the architecture, so we need to copy it inside that dir,
+                    # add it to the jar and then delete the tmpdir
+                    tempdir = tempfile.mkdtemp()
+                    # Extract the jar file in the tmpdir
+                    old_cwd = os.getcwd()
+                    os.chdir(tempdir)
+                    shell.call("jar -xvf " + jar_file)
+                    # Remove all existing native libraries inside the jar
+                    shutil.rmtree("lib")
+                    jar_lib_path = os.path.join("lib", self.arch_name)
+                    os.makedirs(jar_lib_path)
+                    # Copy the fixed native library into the correct path
+                    shutil.copy(output_library, jar_lib_path)
+                    os.chdir(old_cwd)
+                    # Re-create the jar file
+                    shell.call("jar -cvf {0} -C {1} .".format(jar_file, tempdir))
+                    shutil.rmtree(tempdir)
+            finally:
+                # Revert to the original la files
+                os.rename(os.path.join(self.config.libdir,
+                                       "libopenwebrtc_bridge.la.orig"),
+                          os.path.join(self.config.libdir,
+                                       "libopenwebrtc_bridge.la"))
+                os.rename(os.path.join(self.config.libdir,
+                                       "libopenwebrtc_bridge_jni.la.orig"),
+                          os.path.join(self.config.libdir,
+                                       "libopenwebrtc_bridge_jni.la"))
