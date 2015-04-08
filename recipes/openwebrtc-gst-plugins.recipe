@@ -27,6 +27,9 @@ class Recipe(recipe.Recipe):
     platform_files_plugins_capture = {
         Platform.ANDROID: ['lib/gstreamer-1.0/libgstandroidvideosrc%(mext)s'],
     }
+    platform_files_plugins_core = {
+        Platform.IOS: ['lib/gstreamer-1.0/libgstercolorspace%(mext)s'],
+    }
 
     def prepare(self):
         # Don't build ercolorspace because we use videoconvert everywhere now
@@ -38,8 +41,12 @@ class Recipe(recipe.Recipe):
             --disable-static-plugins \
             --disable-android-plugins \
             --disable-osx-plugins \
-            --disable-linux-plugins \
-            --disable-colorspace-converter'
+            --disable-linux-plugins'
+        if self.config.target_platform == Platform.IOS:
+            self.configure_options += ' --enable-colorspace-converter'
+        else:
+            self.configure_options += ' --disable-colorspace-converter'
+
         if self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',

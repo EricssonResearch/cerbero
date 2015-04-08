@@ -22,8 +22,6 @@ class Recipe(recipe.Recipe):
     commit = 'origin/master'
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && gtkdocize && autoreconf -fiv'
-    patches = [name + '/0001-Owr-Use-videoconvert-instead-of-ercolorspace-on-Andr.patch',
-               name + '/0004-owr-Drop-references-to-ercolorspace.patch',]
     # Dependencies used in the dynamic (shared) build of OWRTC
     _dynamic_deps = ['libnice', 'gstreamer-1.0', 'gst-plugins-base-1.0',
                      'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
@@ -95,6 +93,8 @@ class Recipe(recipe.Recipe):
                 'sctp', 'srtp', 'videocrop', 'videofilter', 'videoparsersbad',
                 'videorate', 'videorepair', 'videoscale', 'videotestsrc',
                 'volume', 'vpx', 'videoconvert']
+            if self.config.target_platform == Platform.IOS:
+                gst_plugins += ['ercolorspace']
             if self.config.target_platform == Platform.ANDROID:
                 gst_plugins += ['androidvideosrc', 'opensles']
             else:

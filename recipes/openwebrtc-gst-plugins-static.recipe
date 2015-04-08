@@ -23,6 +23,9 @@ class Recipe(custom.GStreamerStatic):
     platform_files_plugins_capture_devel = {
         Platform.ANDROID: ['libgstandroidvideosrc'],
     }
+    platform_files_plugins_core_devel = {
+        Platform.IOS: ['libgstercolorspace'],
+    }
 
     def prepare(self):
         # Don't build ercolorspace because we use videoconvert everywhere now
@@ -31,8 +34,12 @@ class Recipe(custom.GStreamerStatic):
             --disable-debug \
             --disable-android-plugins \
             --disable-osx-plugins \
-            --disable-linux-plugins \
-            --disable-colorspace-converter'
+            --disable-linux-plugins'
+        if self.config.target_platform == Platform.IOS:
+            self.configure_options += ' --enable-colorspace-converter'
+        else:
+            self.configure_options += ' --disable-colorspace-converter'
+
         if self.config.target_platform == Platform.ANDROID:
             android_dx_path = os.path.join(self.config.build_tools_prefix,
                                            'opt', 'android-sdk', 'build-tools',
