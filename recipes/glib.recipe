@@ -19,9 +19,9 @@ GLIB_CONFIG_UNVERSAL='''\
 
 class Recipe(recipe.Recipe):
     name = 'glib'
-    version = '2.42.2'
+    version = '2.44.0'
     stype = SourceType.TARBALL
-    url = 'http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.42/glib-%(version)s.tar.xz'
+    url = 'http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.44/glib-%(version)s.tar.xz'
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh autogen.sh'
     deps = ['libffi', 'zlib']
@@ -36,7 +36,8 @@ class Recipe(recipe.Recipe):
                "glib/0009-Unhide-_g_io_modules_ensure_extension_points_registe.patch",
                'glib/0014-Don-t-use-AT_FDCWD-on-iOS-for-now.patch',
                'glib/0015-Implementation-of-Cocoa-event-loop-integration-in-GM.patch',
-               'glib/0016-gio-Fix-build-on-Android-Lollipop.patch'
+               'glib/0016-gio-Fix-build-on-Android-Lollipop.patch',
+               'glib/0017-glib-gio-fix-redefine.patch'
               ]
 
     files_libs = [
@@ -165,6 +166,7 @@ class Recipe(recipe.Recipe):
                                                        DistroVersion.FEDORA_19,
                                                        DistroVersion.FEDORA_20,
                                                        DistroVersion.FEDORA_21,
+                                                       DistroVersion.FEDORA_22,
                                                        DistroVersion.REDHAT_6,
                                                        DistroVersion.REDHAT_7,
                                                        ]:
