@@ -22,7 +22,7 @@ class Recipe(recipe.Recipe):
     # Explicitly enable plugins
     configure_options += ' --enable-openh264 --enable-opus \
         --enable-srtp'
-    commit = '6981a8d15b17094cde8a2cec0a2c821c6eaa9547'
+    commit = '9592a0c32f83dc0a6f08c4b05fcf55baff8f6b6c'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
             'libsrtp', 'openssl']
     use_system_libs = True
