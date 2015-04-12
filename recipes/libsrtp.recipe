@@ -10,6 +10,7 @@ class Recipe(recipe.Recipe):
     stype = SourceType.TARBALL
     url = 'https://github.com/cisco/%(name)s/archive/v%(version)s.tar.gz'
     licenses = [License.BSD_like]
+    deps = ['openssl']
     configure_options = ' --enable-openssl '
 
     files_libs = ['libsrtp']
