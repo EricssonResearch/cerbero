@@ -20,17 +20,20 @@ FFI_H_UNVERSAL='''\
 
 class Recipe(recipe.Recipe):
     name = 'libffi'
-    version = '3.2.1'
+    version = '3.1.1'
     autoreconf = True
-    commit = '20562ac0427c3578250d04c6e34fb0127d4551cf'
+    commit = '4e2166049f897a904e4c3ce367e4e8ddb54e0ad0'
     licenses = [License.BSD_like]
+    remotes = {'origin': 'https://github.com/atgreen/libffi.git',
+               'frida': 'https://github.com/frida/libffi.git',}
 
     files_libs = ['libffi']
-    files_devel = ['lib/libffi-3.2.1/include/ffi.h', 'lib/pkgconfig/libffi.pc']
-    patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch']
+    files_devel = ['lib/libffi-' + version + '/include/ffi.h', 'lib/pkgconfig/libffi.pc']
+    # This patch will be needed for versions > 3.2 because it sets an incorrect
+    # libdir (lib64 instead of lib)
+    #patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch']
 
     def prepare(self):
-        self.remotes['origin'] = 'https://github.com/atgreen/libffi.git'
         self.remotes['upstream'] = self.remotes['origin']
 
         self.libffidir = os.path.join('lib', 'libffi-%s' % self.version)
@@ -47,13 +50,6 @@ class Recipe(recipe.Recipe):
             elif Architecture.is_arm(self.config.target_arch):
                 dir = 'arm-apple-darwin*'
                 arch = 'arm'
-                # FIXME: 3.2.1 rewrote ffi support for arm, and broke it for iOS
-                # We work around that by using 3.2 for 32-bit ARM on iOS, but
-                # we're calling it 3.2.1 because the universal build expects the
-                # headers to be all in the same version-specific directory.
-                # https://github.com/atgreen/libffi/issues/181
-                self.commit = "67c0c0705318d2e567fd48e680d63dca3619a235"
-                self.patches += ["libffi/pretend-to-be-3.2.1.patch"]
 
             self.files_devel.append(os.path.join(self.libffidir, 'include', '*', 'ffi.h'))
             self.files_devel.append(os.path.join(self.libffidir, 'include', '*', 'ffitarget.h'))
