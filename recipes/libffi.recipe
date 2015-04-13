@@ -56,6 +56,8 @@ class Recipe(recipe.Recipe):
 
             self.make = 'make -C %s' % dir
             self.make_install = 'make -C %s install' % dir
+        elif self.config.target_platform == Platform.ANDROID:
+            self.append_env['CFLAGS'] = ' -DFFI_MMAP_EXEC_WRIT=1 -DFFI_MMAP_EXEC_SELINUX=0 '
         else:
             self.files_devel.append(os.path.join(self.libffidir, 'include', 'ffitarget.h'))
 
