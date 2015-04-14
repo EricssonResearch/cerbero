@@ -19,7 +19,8 @@ class Package(package.Package):
     files = ['gstreamer-1.0', 'gst-plugins-base-1.0',
             'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
             'opus:libs', 'libvpx:libs', 'openh264:libs',
-            'libsrtp:libs', 'libnice:libs', 'libnice:plugins_net']
+            'libsrtp:libs', 'libnice:libs', 'libnice:plugins_net',
+            'graphene:libs']
     files_devel = ['gstreamer-1.0-static', 'gst-plugins-base-1.0-static',
             'gst-plugins-good-1.0-static', 'gst-plugins-bad-1.0-static',
             'libnice-static:plugins_net_devel']
