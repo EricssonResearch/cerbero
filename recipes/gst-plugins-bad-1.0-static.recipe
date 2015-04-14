@@ -20,7 +20,7 @@ class Recipe(custom.GStreamerStatic):
         --disable-xvid --disable-zbar --disable-sdi --disable-hls'
     commit = 'a10232f7da13a3a33311d951fe8a073f8efe2eba'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
-            'libsrtp', 'openssl']
+            'libsrtp', 'openssl', 'graphene']
     use_system_libs = True
 
     files_plugins_effects_devel = [
