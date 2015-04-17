@@ -23,7 +23,7 @@ class Recipe(recipe.Recipe):
     licenses = [License.LGPLv2_1Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
-    commit = 'd4d161a28223f3d8dfb81623672c9a13dbf4cf23'
+    commit = '6ce8398bc6829bb008da7cbd6878e734374d55ca'
     deps = ['glib', 'gtk-doc-lite']
 
     files_bins = ['gst-inspect-1.0',
