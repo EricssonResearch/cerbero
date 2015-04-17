@@ -7,7 +7,7 @@ class Recipe(custom.GStreamerStatic):
     gstreamer_version = '1.0'
     licenses = [License.LGPLv2Plus]
     extra_configure_options = "--enable-static"
-    commit = '003a0a0ca7550b3dbac4e7931fd97c0fdfd6135e'
+    commit = 'ebf8ea4ed9408006a56f85ec31d0f72e645d7c75'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
