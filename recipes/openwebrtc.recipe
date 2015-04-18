@@ -39,10 +39,8 @@ class Recipe(recipe.Recipe):
     stype = SourceType.GIT
     licenses = [License.BSD_like]
     remotes = {
-        'origin': 'https://github.com/EricssonResearch/openwebrtc.git',
-        'nirbheek': 'https://github.com/nirbheek/openwebrtc.git'
+        'origin': 'https://github.com/EricssonResearch/openwebrtc.git'
     }
-    #commit = 'nirbheek/android_gir_autotools'
     commit = 'origin/master'
     autoreconf = True
     autoreconf_sh = 'mkdir -p m4 && gtkdocize && autoreconf -fiv'
