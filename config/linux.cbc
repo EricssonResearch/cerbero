@@ -2,7 +2,7 @@ import os
 from cerbero.config import Platform, Architecture, Distro
 
 packages_prefix = 'openwebrtc'
-packager = 'OpenWebRTC <packages@openwebrtc.org>'
+packager = 'OpenWebRTC <packages@openwebrtc.io>'
 prefix = "/opt/openwebrtc-1.0"
 
 # Uncomment to allow parallel builds

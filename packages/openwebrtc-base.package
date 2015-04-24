@@ -31,7 +31,7 @@ class Package(package.Package):
     name = 'openwebrtc-base'
     shortdesc = 'OpenWebRTC'
     longdesc = 'OpenWebRTC'
-    url = "http://www.openwebrtc.org"
+    url = "http://www.openwebrtc.io"
     version = '0.3.0'
     codename = 'Round 3, fight!'
     license = License.LGPL
