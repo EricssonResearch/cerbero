@@ -20,9 +20,9 @@ FFI_H_UNVERSAL='''\
 
 class Recipe(recipe.Recipe):
     name = 'libffi'
-    version = '3.1.1'
+    version = '3.2.1'
     autoreconf = True
-    commit = '4e2166049f897a904e4c3ce367e4e8ddb54e0ad0'
+    commit = '17ffc3655a531c116e9eb9cc933e50bb1e5c47f8'
     licenses = [License.BSD_like]
     remotes = {'origin': 'https://github.com/atgreen/libffi.git',
                'frida': 'https://github.com/frida/libffi.git',}
@@ -31,7 +31,8 @@ class Recipe(recipe.Recipe):
     files_devel = ['lib/libffi-' + version + '/include/ffi.h', 'lib/pkgconfig/libffi.pc']
     # This patch will be needed for versions > 3.2 because it sets an incorrect
     # libdir (lib64 instead of lib)
-    #patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch']
+    patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch',
+               'libffi/0001-Modified-arm-sysv.S-to-remove-directives-not-allowed.patch']
 
     def prepare(self):
         self.remotes['upstream'] = self.remotes['origin']
