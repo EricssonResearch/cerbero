@@ -7,7 +7,7 @@ class Recipe(custom.GStreamerStatic):
     gstreamer_version = '1.0'
     licenses = [License.LGPLv2Plus]
     extra_configure_options = "--enable-static"
-    commit = '69f66aff9e2fbdde07daa13e9386e68912cdc0e8'
+    commit = 'b3db5883e12c679bea5bc6318cd7523016a83e75'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
@@ -47,4 +47,3 @@ class Recipe(custom.GStreamerStatic):
 
         self.remotes['origin'] = ('%s/%s' % ('git://anongit.freedesktop.org/gstreamer', 'gst-plugins-base'))
         self.remotes['upstream'] = self.remotes['origin']
-

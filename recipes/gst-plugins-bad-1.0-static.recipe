@@ -18,7 +18,7 @@ class Recipe(custom.GStreamerStatic):
         --disable-spandsp --disable-teletextdec --disable-timidity \
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
         --disable-xvid --disable-zbar --disable-sdi --disable-hls'
-    commit = '925b65b02ed43f79a397d97e3664b8dc8d7be2a8'
+    commit = '17084a4608e21349a502de006210f2df7e9b97a3'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
             'libsrtp', 'openssl']
     use_system_libs = True
