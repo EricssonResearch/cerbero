@@ -165,7 +165,7 @@ class Recipe(recipe.Recipe):
 
         if self.config.target_platform != self.config.platform and \
            self.config.target_platform in (Platform.IOS, Platform.ANDROID):
-            if self.config.target_platform == Platform.IOS:
+            if self.config.platform == Platform.DARWIN:
                 # On OS X, we use a custom config and install everything inside
                 # a framework and not inside the default OS X prefix, so we need
                 # to read that from the config file. See:
@@ -173,6 +173,12 @@ class Recipe(recipe.Recipe):
                 config = {}
                 parse_file(os.path.join(self.config.environ_dir,
                                         "osx-x86-64.cbc"),
+                           config)
+                host_prefix = config['prefix']
+            elif self.config.platform == Platform.LINUX:
+                config = {}
+                parse_file(os.path.join(self.config.environ_dir,
+                                        "linux.cbc"),
                            config)
                 host_prefix = config['prefix']
             else:
