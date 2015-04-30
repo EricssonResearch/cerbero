@@ -86,6 +86,14 @@ class Recipe(recipe.Recipe):
                 pthread_libs_path
 
     def configure(self):
+        # Fix gcc version check. The old check fails with gcc-5.0 to 5.6
+    	shell.replace(os.path.join(self.build_dir, 'Source', 'autotools',
+                                   'CheckSystemAndBasicDependencies.m4'),
+                      {'__GNUC__ >= 4 && __GNUC_MINOR__ >= 7':
+                       '((__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || (__GNUC__ >= 5))'})
+    	shell.replace(os.path.join(self.build_dir, 'configure'),
+                      {'__GNUC__ >= 4 && __GNUC_MINOR__ >= 7':
+                       '((__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || (__GNUC__ >= 5))'})
         if self.config.target_platform == Platform.ANDROID:
             # execinfo.h isn't provided by bionic
             shutil.copy(os.path.join(self.config.recipes_dir, self.name,
