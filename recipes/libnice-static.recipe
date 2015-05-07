@@ -12,6 +12,12 @@ class Recipe(custom.GStreamerStatic):
         --enable-compile-warnings=maximum'
     deps = ['glib', 'gtk-doc-lite', 'gstreamer-1.0']
     autoreconf = True
+    patches = [
+        "0001-agent-Remove-unnecessary-NULL-check.patch",
+        "0002-Do-not-update-a-remote-candidate-s-type.patch",
+        "0003-Do-not-compare-scope-for-IPv6-address-when-scope-is-.patch",
+        "0004-Removing-no-op-assignment.patch"
+    ]
 
 
     files_plugins_net_devel = ['libgstnice']
