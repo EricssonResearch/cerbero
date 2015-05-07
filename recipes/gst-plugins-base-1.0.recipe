@@ -7,7 +7,7 @@ class Recipe(recipe.Recipe):
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
-    commit = 'b3db5883e12c679bea5bc6318cd7523016a83e75'
+    commit = '21b57412514be5e8b23c0fa933272c6daaabcb8e'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
