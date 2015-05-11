@@ -1,0 +1,16 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(recipe.Recipe):
+    name = 'gtk-osx-docbook'
+    version = '1.2'
+    stype = SourceType.TARBALL
+    url = 'http://heanet.dl.sourceforge.net/project/gtk-osx/GTK-OSX%%20Build/gtk-osx-docbook-' + version +'.tar.gz'
+    # TODO: check license
+    licenses = [License.GPLv2Plus]
+    patches = [
+        'gtk-osx-docbook/0001-Remove-DESTDIR-to-fix-prefix.patch'
+    ]
+
+    def prepare(self):
+        # This was needed to remove a preceding space?
+        self.append_env['JHBUILD_PREFIX'] = self.config.prefix.strip()

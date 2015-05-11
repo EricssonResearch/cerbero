@@ -1,0 +1,25 @@
+From 8d92fa11d72cf15c95ee87c241066d16096785e3 Mon Sep 17 00:00:00 2001
+From: Robert Swain <robert.swain@ericsson.com>
+Date: Mon, 11 May 2015 12:13:53 +0200
+Subject: [PATCH] Remove DESTDIR to fix prefix
+
+---
+ install.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/install.sh b/install.sh
+index d9ac196..9ef6bf7 100755
+--- a/install.sh
++++ b/install.sh
+@@ -6,6 +6,6 @@ if [ "x$JHBUILD_PREFIX" = x ]; then
+ fi
+ 
+ for f in `find share -type f ! -name *.png`; do
+-    mkdir -p "$DESTDIR/$JHBUILD_PREFIX/`dirname $f`"
+-    cat $f | sed -e "s,/usr/share,$JHBUILD_PREFIX/share,g" > "$DESTDIR/$JHBUILD_PREFIX/$f"
++    mkdir -p "$JHBUILD_PREFIX/`dirname $f`"
++    cat $f | sed -e "s,/usr/share,$JHBUILD_PREFIX/share,g" > "$JHBUILD_PREFIX/$f"
+ done
+-- 
+2.3.2 (Apple Git-55)
+
