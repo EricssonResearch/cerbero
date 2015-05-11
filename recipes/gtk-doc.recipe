@@ -12,5 +12,7 @@ class Recipe(recipe.Recipe):
                      Platform.DARWIN: ['docbook-xsl', 'docbook-xml']}
 
     def prepare(self):
-        if self.config.target_platform in [Platform.WINDOWS, Platform.DARWIN]:
+        if self.config.target_platform == Platform.WINDOWS:
             self.configure_options = '--with-xml-catalog=%s/etc/catalog.xml' % self.config.prefix
+        elif self.config.target_platform == Platform.DARWIN:
+            self.configure_options = '--with-xml-catalog=%s/share/xml/catalog' % self.config.prefix
