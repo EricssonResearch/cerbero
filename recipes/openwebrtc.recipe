@@ -54,7 +54,7 @@ class Recipe(recipe.Recipe):
     # Dependencies used in all builds
     deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed'] + \
            _dynamic_deps
-    platform_deps = {Platform.DARWIN: ['json-glib', 'libsoup', 'gtk-osx-docbook'],
+    platform_deps = {Platform.DARWIN: ['json-glib', 'libsoup', 'gtk-doc'],
                      Platform.LINUX: ['json-glib', 'libsoup'],
                      Platform.IOS: _static_deps,
                      Platform.ANDROID: _static_deps + ['gnustl']}
