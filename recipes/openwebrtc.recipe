@@ -146,6 +146,8 @@ class Recipe(recipe.Recipe):
                 # Use system libraries for libpulse, libv4l2, and gtk-doc
                 self.use_system_libs = True
                 self.configure_options += ' --enable-gtk-doc'
+            elif self.config.target_platform == Platform.DARWIN:
+                self.append_env['XML_CATALOG_FILES'] = self.config.prefix + '/share/xml/catalog'
         else:
             # Windows?
             pass
