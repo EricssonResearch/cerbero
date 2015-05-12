@@ -7,10 +7,19 @@ class Recipe(recipe.Recipe):
     url = 'http://heanet.dl.sourceforge.net/project/gtk-osx/GTK-OSX%%20Build/gtk-osx-docbook-' + version +'.tar.gz'
     # TODO: check license
     licenses = [License.GPLv2Plus]
-    patches = [
-        'gtk-osx-docbook/0001-Remove-DESTDIR-to-fix-prefix.patch'
-    ]
 
-    def prepare(self):
-        # This was needed to remove a preceding space?
-        self.append_env['JHBUILD_PREFIX'] = self.config.prefix.strip()
+    def configure(self):
+        def inplace_replace(filename, from_string, to_string):
+            src = open(filename).read()
+            src = src.replace(from_string, to_string)
+            dst = open(filename, 'w')
+            dst.write(src)
+            dst.flush()
+            dst.close()
+
+        # FIXME: ugly workaround for issues with append_env raciness
+        filename = os.path.join(self.build_dir, 'install.sh')
+        inplace_replace(filename, '$DESTDIR/$JHBUILD_PREFIX', self.config.prefix)
+        inplace_replace(filename, '$JHBUILD_PREFIX', self.config.prefix)
+        filename = os.path.join(self.build_dir, 'Makefile')
+        inplace_replace(filename, '$(JHBUILD_PREFIX)', self.config.prefix)
