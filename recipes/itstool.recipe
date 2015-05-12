@@ -1,0 +1,8 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(recipe.Recipe):
+    name = 'itstool'
+    version = '2.0.2'
+    stype = SourceType.TARBALL
+    url = 'http://files.itstool.org/itstool/itstool-%s.tar.bz2' % version
+    licenses = [License.GPLv3]
