@@ -22,6 +22,7 @@ class Recipe(recipe.Recipe):
     # Explicitly enable plugins
     configure_options += ' --enable-openh264 --enable-opus \
         --enable-srtp'
+    remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
     commit = '1a98face84f10d5fab4e644c6a6b05a5fd31d8d1'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
             'libsrtp', 'openssl']
@@ -109,9 +110,6 @@ class Recipe(recipe.Recipe):
         ]
 
     def prepare(self):
-        self.remotes['origin'] = ('%s/%s' % ('git://anongit.freedesktop.org/gstreamer', 'gst-plugins-bad'))
-        self.remotes['upstream'] = self.remotes['origin']
-
         self.append_env['CFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['OBJCFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['CXXFLAGS'] = " -Wno-error "

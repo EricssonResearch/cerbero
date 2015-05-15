@@ -7,6 +7,7 @@ class Recipe(recipe.Recipe):
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
+    remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
     commit = 'b74d4f972a05bffa67e5d618a24c6d525a421e69'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
@@ -76,9 +77,6 @@ class Recipe(recipe.Recipe):
         ]
 
     def prepare(self):
-        self.remotes['origin'] = ('%s/%s' % ('git://anongit.freedesktop.org/gstreamer', 'gst-plugins-base'))
-        self.remotes['upstream'] = self.remotes['origin']
-
         self.append_env['CFLAGS'] = " -Wno-error "
         self.append_env['CXXFLAGS'] = " -Wno-error "
         self.append_env['CPPFLAGS'] = " -Wno-error "
