@@ -8,7 +8,7 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = '--disable-examples --disable-oss4 --disable-oss --disable-dv1394 --disable-aalib --disable-libcaca --disable-jack --disable-shout2 '
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-good'}
-    commit = '565cd496436185c9ddbb579014872c35883c8d34'
+    commit = '8fd3e0e125f2e77d9b9df15c78ad27ca9dce8f94'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'orc', 'bzip2', 'zlib',
             'libvpx']
 
