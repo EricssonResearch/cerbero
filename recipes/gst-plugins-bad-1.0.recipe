@@ -34,6 +34,7 @@ class Recipe(recipe.Recipe):
 
     files_plugins_devel = [
         'include/gstreamer-1.0/gst/gl',
+        'lib/gstreamer-1.0/include/gst/gl'
     ]
 
     files_plugins_effects = [
