@@ -94,6 +94,8 @@ class Recipe(custom.GStreamerStatic):
             ]
     }
 
+    files_plugins_sys  = []
+
     def prepare(self):
         self.append_env['CFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['OBJCFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
@@ -101,6 +103,9 @@ class Recipe(custom.GStreamerStatic):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
+        if self.config.variants.gtk3:
+            self.deps.append("gtk+3")
+            self.files_plugins_sys = ["libgstgtksink"]
         if self.config.variants.nodebug:
             self.append_env['CFLAGS'] += ' -DGST_LEVEL_MAX=GST_LEVEL_FIXME'
 
