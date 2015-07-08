@@ -41,12 +41,17 @@ class Package(package.Package):
     deps = ['gstreamer-1.0-core', 'base-system-1.0',]
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',
-             'seed:libs', 'libusrsctp:libs',]
+             'libusrsctp:libs',]
     files_devel = ['openwebrtc-gst-plugins-static',]
 
     platform_files = {
             Platform.DARWIN: ['openwebrtc-osx-framework'],
             Platform.IOS: ['openwebrtc-girepository'],
-            Platform.LINUX: ['javascriptcoregtk:libs', 'icu:libs']
-            # TODO: Needs javascriptcore and stuff on others
+            Platform.LINUX: []
     }
+
+    def prepare(self):
+        if self.config.variants.owr_bridge:
+            self.files.append('seed:libs')
+            self.platform_files[Platform.LINUX] += ['javascriptcoregtk:libs', 'icu:libs']
+            # TODO: Needs javascriptcore and stuff on others

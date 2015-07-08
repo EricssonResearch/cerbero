@@ -52,7 +52,7 @@ class Recipe(recipe.Recipe):
     _static_deps = [i + '-static' for i in _dynamic_deps] + \
                    ['openwebrtc-girepository']
     # Dependencies used in all builds
-    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite', 'seed'] + \
+    deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite'] + \
            _dynamic_deps
     platform_deps = {Platform.DARWIN: ['json-glib', 'libsoup', 'gtk-doc'],
                      Platform.LINUX: ['json-glib', 'libsoup'],
@@ -62,9 +62,8 @@ class Recipe(recipe.Recipe):
     allow_parallel_build = False
 
     files_bins = ['openwebrtc-daemon']
-    files_libs = ['libopenwebrtc', 'libopenwebrtc_bridge']
+    files_libs = ['libopenwebrtc']
     files_devel = ['lib/pkgconfig/openwebrtc-' + _api_version + '.pc',
-                   'lib/pkgconfig/openwebrtc-bridge-' + _api_version + '.pc',
                    'include/owr']
 
     platform_files_typelibs = {
@@ -74,6 +73,12 @@ class Recipe(recipe.Recipe):
     }
 
     def prepare(self):
+        if self.config.variants.owr_bridge:
+            self.deps += ['seed']
+            self.files_libs += ['libopenwebrtc_bridge']
+            self.files_devel.insert(self.files_devel.index('include/owr'), 'lib/pkgconfig/openwebrtc-bridge-' + _api_version + '.pc')
+        else:
+            self.configure_options += ' --disable-bridge '
         if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
             # Building tests is useless while cross-compiling
             self.configure_options += ' --disable-gtk-doc --enable-static \
@@ -131,14 +136,17 @@ class Recipe(recipe.Recipe):
                 shell.check_call('$PKG_CONFIG --libs --cflags openssl',
                                  shell=True, split=False).strip()
 
-            self.files_devel = self.files_devel + [
+            self.files_devel += [
                 'lib/jni/openwebrtc.jar',
                 'lib/jni/openwebrtc-sources.jar',
-                'lib/jni/openwebrtc-javadoc.jar',
-                'lib/jni/openwebrtc_bridge.jar',
-                'lib/jni/openwebrtc_bridge-sources.jar',
-                'lib/jni/openwebrtc_bridge-javadoc.jar',
+                'lib/jni/openwebrtc-javadoc.jar'
             ]
+            if self.config.variants.bridge:
+                self.files_devel += [
+                    'lib/jni/openwebrtc_bridge.jar',
+                    'lib/jni/openwebrtc_bridge-sources.jar',
+                    'lib/jni/openwebrtc_bridge-javadoc.jar',
+                ]
         elif self.config.target_platform in (Platform.DARWIN, Platform.LINUX):
             self.configure_options += ' --enable-gtk-doc --disable-static \
                 --disable-owr-static --enable-shared --enable-tests'
@@ -248,7 +256,7 @@ class Recipe(recipe.Recipe):
         # 'libtool-link' command inside data/ndk-build/tools.mk to generate a
         # linker command that does that for us, re-create the library, and then
         # add it to the JAR file
-        if self.config.target_platform == Platform.ANDROID:
+        if self.config.target_platform == Platform.ANDROID and self.config.variants.owr_bridge:
             import tempfile
             from cerbero.tools.libtool import LibtoolLibrary
             # MASSIVE HACK: .la files contain dependency information for

@@ -38,6 +38,8 @@ class Recipe(recipe.Recipe):
 
     def install(self):
         install_name = os.path.join(self.config.prefix, 'lib', 'OpenWebRTC')
-        libs = ['openwebrtc-0.3', 'openwebrtc-bridge-0.3', 'glib-2.0', 'gobject-2.0']
+        libs = ['openwebrtc-' + self.version, 'glib-2.0', 'gobject-2.0']
+        if self.config.variants.owr_bridge:
+            libs.insert(libs.index('openwebrtc-' + self.version) + 1, 'openwebrtc-bridge-' + self.version)
         fwlib = DynamicFrameworkLibrary(install_name, install_name, libs, self.config.target_arch)
         fwlib.create()
