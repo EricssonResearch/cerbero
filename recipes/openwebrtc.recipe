@@ -141,7 +141,7 @@ class Recipe(recipe.Recipe):
                 'lib/jni/openwebrtc-sources.jar',
                 'lib/jni/openwebrtc-javadoc.jar'
             ]
-            if self.config.variants.bridge:
+            if self.config.variants.owr_bridge:
                 self.files_devel += [
                     'lib/jni/openwebrtc_bridge.jar',
                     'lib/jni/openwebrtc_bridge-sources.jar',
