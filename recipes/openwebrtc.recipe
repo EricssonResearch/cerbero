@@ -76,7 +76,7 @@ class Recipe(recipe.Recipe):
         if self.config.variants.owr_bridge:
             self.deps += ['seed']
             self.files_libs += ['libopenwebrtc_bridge']
-            self.files_devel.insert(self.files_devel.index('include/owr'), 'lib/pkgconfig/openwebrtc-bridge-' + _api_version + '.pc')
+            self.files_devel.insert(self.files_devel.index('include/owr'), 'lib/pkgconfig/openwebrtc-bridge-' + self._api_version + '.pc')
         else:
             self.configure_options += ' --disable-bridge '
         if self.config.target_platform in (Platform.IOS, Platform.ANDROID):
