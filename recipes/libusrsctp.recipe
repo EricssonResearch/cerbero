@@ -30,9 +30,9 @@ from cerbero.utils import shell
 class Recipe(recipe.Recipe):
     name = 'libusrsctp'
     version = 'master'
-    url = 'http://sctp-refimpl.googlecode.com/svn/trunk/KERN/usrsctp'
-    revision = 9168
-    stype = SourceType.SVN
+    remotes = { 'origin': 'https://github.com/sctplab/usrsctp.git' };
+    commit = 'c53d43ee76673ee281806497eb43750c239c145f';
+    stype = SourceType.GIT
     autoreconf = True
     licenses = [License.BSD_like]
     configure_options = '--disable-debug --enable-static --enable-shared'
