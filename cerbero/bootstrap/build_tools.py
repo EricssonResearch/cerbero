@@ -31,7 +31,7 @@ class BuildTools (BootstrapperBase):
                    'gobject-introspection', 'gnome-common']
     PLAT_BUILD_TOOLS = {
         Platform.DARWIN: ['intltool', 'yasm', 'bison', 'flex'],
-        Platform.WINDOWS: ['intltool', 'yasm', 'bison', 'flex'],
+        Platform.WINDOWS: ['intltool', 'yasm'],
         Platform.LINUX: ['intltool-m4'],
     }
 

@@ -8,7 +8,7 @@ class Package(package.Package):
     shortdesc = 'Crypto base dependencies'
     longdesc = 'Crypto base dependencies'
     url = "http://gstreamer.freedesktop.org"
-    version = '1.5.2'
+    version = '1.5.90'
     codename = 'Congo'
     license = License.LGPL
     vendor = 'GStreamer Project'
@@ -17,8 +17,7 @@ class Package(package.Package):
     deps = ['base-system-1.0']
 
     files = ['gmp:libs', 'gnutls:libs:libs_extra:lang',
-             'libtasn1:libs', 'nettle:libs', 'libgpg-error:libs',
-             'libgcrypt:libs']
+             'libtasn1:libs', 'nettle:libs']
 
     platform_files_devel = {
         Platform.ANDROID: ['ca-certificates:etc']

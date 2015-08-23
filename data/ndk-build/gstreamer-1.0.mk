@@ -63,6 +63,16 @@ include $(GSTREAMER_NDK_BUILD_PATH)/tools.mk
 G_IO_MODULES_PATH := $(GSTREAMER_ROOT)/lib/gio/modules/static
 
 # Host tools
+HOST_SED := $(strip $(NDK_HOST_SED))
+ifdef HOST_PREBUILT
+    ifndef HOST_SED
+        HOST_SED := $(strip $(wildcard $(HOST_PREBUILT)/sed$(HOST_EXEEXT)))
+    endif
+endif
+ifndef HOST_SED
+    HOST_CMP := sed
+endif
+
 ifeq ($(HOST_OS),windows)
     HOST_SED := $(GSTREAMER_NDK_BUILD_PATH)/tools/windows/sed
     GSTREAMER_LD :=
@@ -78,11 +88,7 @@ GSTREAMER_ANDROID_SO          := $(GSTREAMER_BUILD_DIR)/lib$(GSTREAMER_ANDROID_M
 GSTREAMER_ANDROID_C           := $(GSTREAMER_BUILD_DIR)/$(GSTREAMER_ANDROID_MODULE_NAME).c
 GSTREAMER_ANDROID_C_IN        := $(GSTREAMER_NDK_BUILD_PATH)/gstreamer_android-1.0.c.in
 GSTREAMER_DEPS                := $(GSTREAMER_EXTRA_DEPS) gstreamer-1.0
-ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
-	GSTREAMER_LD                  := -fuse-ld=mcld
-else
-	GSTREAMER_LD                  := -fuse-ld=gold
-endif
+GSTREAMER_LD                  := -fuse-ld=gold
 
 ################################
 #  NDK Build Prebuilt library  #

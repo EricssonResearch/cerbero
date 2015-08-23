@@ -52,7 +52,6 @@ class DebianBootstrapper (UnixBootstrapper):
                 'build-essential', 'devscripts', 'fakeroot', 'transfig',
                 'gperf', 'libdbus-glib-1-dev', 'wget', 'glib-networking',
                 'libxtst-dev', 'libxrandr-dev', 'libglu1-mesa-dev', 'ruby',
-                'libxtst-dev', 'libxrandr-dev', 'libglu1-mesa-dev',
                 'libegl1-mesa-dev', 'git', 'subversion', 'vim-common',
                 'xutils-dev']
     distro_packages = {
