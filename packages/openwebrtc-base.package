@@ -55,3 +55,5 @@ class Package(package.Package):
             self.files.append('seed:libs')
             self.platform_files[Platform.LINUX] += ['javascriptcoregtk:libs', 'icu:libs']
             # TODO: Needs javascriptcore and stuff on others
+        if self.config.variants.python:
+            self.files.append('gst-python-1.0')
