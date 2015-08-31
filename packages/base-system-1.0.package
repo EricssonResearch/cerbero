@@ -22,7 +22,7 @@ class Package(package.Package):
         Platform.WINDOWS: ['gettext:libs:lang', 'libiconv:libs:lang',
             'mingw-runtime', 'bionic-fixup:libs'],
         Platform.DARWIN: ['gettext:libs:lang', 'bionic-fixup:libs'],
-        Platform.LINUX: [],
+        Platform.LINUX: ['libjpeg-turbo:libs', 'libpng:libs'],
         Platform.ANDROID: ['gettext:libs:lang', 'libiconv:libs:lang', 'gnustl',
             'bionic-fixup:libs'],
         Platform.IOS: ['gettext:libs:lang', 'bionic-fixup:libs']
