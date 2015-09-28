@@ -1,0 +1,45 @@
+From 7a9fc2dd3dc924c4f696930dcdd35c6020d5c090 Mon Sep 17 00:00:00 2001
+From: Robert Swain <robert.swain@ericsson.com>
+Date: Mon, 28 Sep 2015 08:18:13 +0200
+Subject: [PATCH 6/6] Revert "build/make/configure.sh: Embed bitcode in arm
+ darwin targets."
+
+This reverts commit 9194f3c0cb880fa8a998f4af7646f059182055c4.
+---
+ build/make/configure.sh | 13 -------------
+ 1 file changed, 13 deletions(-)
+
+diff --git a/build/make/configure.sh b/build/make/configure.sh
+index 56c3d40..595e690 100644
+--- a/build/make/configure.sh
++++ b/build/make/configure.sh
+@@ -1018,12 +1018,6 @@ EOF
+           done
+ 
+           asm_conversion_cmd="${source_path}/build/make/ads2gas_apple.pl"
+-
+-          if [ "$(show_darwin_sdk_major_version iphoneos)" -gt 8 ]; then
+-            check_add_cflags -fembed-bitcode
+-            check_add_asflags -fembed-bitcode
+-            check_add_ldflags -fembed-bitcode
+-          fi
+           ;;
+ 
+         linux*)
+@@ -1234,13 +1228,6 @@ EOF
+           enabled x86 && sim_arch="-arch i386" || sim_arch="-arch x86_64"
+           add_cflags  ${sim_arch}
+           add_ldflags ${sim_arch}
+-
+-          if [ "$(show_darwin_sdk_major_version iphonesimulator)" -gt 8 ]; then
+-            # yasm v1.3.0 doesn't know what -fembed-bitcode means, so turning it
+-            # on is pointless (unless building a C-only lib). Warn the user, but
+-            # do nothing here.
+-            log "Warning: Bitcode embed disabled for simulator targets."
+-          fi
+           ;;
+         os2)
+           add_asflags -f aout
+-- 
+2.3.8 (Apple Git-58)
+
