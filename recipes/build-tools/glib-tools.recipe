@@ -2,9 +2,9 @@
 
 class Recipe(recipe.Recipe):
     name = 'glib-tools'
-    version = '2.44.1'
+    version = '2.46.1'
     stype = SourceType.TARBALL
-    url = 'http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.44/glib-%(version)s.tar.xz'
+    url = 'http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.46/glib-%(version)s.tar.xz'
     tarball_dirname = 'glib-%(version)s'
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh autogen.sh'
