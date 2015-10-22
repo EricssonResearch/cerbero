@@ -22,16 +22,15 @@ class Recipe(recipe.Recipe):
     name = 'libffi'
     version = '3.99999'
     autoreconf = True
-    remotes = {'origin': 'https://github.com/atgreen/libffi.git'}
-    commit = '17ffc3655a531c116e9eb9cc933e50bb1e5c47f8'
+    remotes = {'origin': 'https://github.com/NativeScript/libffi.git'}
+    commit = 'bf64a497b4b1da1aae4f14d61761f420ca48cc03'
     licenses = [License.BSD_like]
 
     files_libs = ['libffi']
     files_devel = ['lib/libffi-' + version + '/include/ffi.h', 'lib/pkgconfig/libffi.pc']
     # This patch will be needed for versions > 3.2 because it sets an incorrect
     # libdir (lib64 instead of lib)
-    patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch',
-               'libffi/0001-Modified-arm-sysv.S-to-remove-directives-not-allowed.patch']
+    patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch']
 
     def prepare(self):
         self.libffidir = os.path.join('lib', 'libffi-%s' % self.version)
