@@ -3,12 +3,12 @@
 
 class Recipe(recipe.Recipe):
     name = 'gst-plugins-base-1.0'
-    version = '1.5'
+    version = '1.7'
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--enable-static --program-prefix= --disable-examples "
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
-    commit = 'b1f78b5d23db1700eaabfc647806ba1ace9f00b3'
+    commit = '53f135cec7ac63b8951797568b9e8e153bd6ad2e'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
     use_system_libs = True
 
