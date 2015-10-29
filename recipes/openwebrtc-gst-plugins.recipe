@@ -47,6 +47,7 @@ class Recipe(recipe.Recipe):
     files_plugins_net = [
         'lib/gstreamer-1.0/libgstvideorepair%(mext)s',
         'lib/gstreamer-1.0/libgstsctp%(mext)s',
+        'lib/gstreamer-1.0/libgstscream%(mext)s',
     ]
     platform_files_plugins_capture = {
         Platform.ANDROID: ['lib/gstreamer-1.0/libgstandroidvideosrc%(mext)s'],
