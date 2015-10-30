@@ -29,7 +29,7 @@ from cerbero.packages import PackagerBase
 
 LAUNCH_BUNDLE_COMMAND = """# Try to discover plugins only once
 PLUGINS_SYMLINK=${HOME}/.cache/gstreamer-1.0/%(appname)s-gstplugins
-rm ${PLUGINS_SYMLINK}
+rm ${PLUGINS_SYMLINK} > /dev/null 2>&1
 ln -s ${APPDIR}/lib/gstreamer-1.0/ ${PLUGINS_SYMLINK}
 if [ $? -ne 0 ]; then
     export GST_PLUGIN_PATH=${APPDIR}/lib/gstreamer-1.0/
@@ -37,7 +37,7 @@ else
     export GST_PLUGIN_PATH=${PLUGINS_SYMLINK}
 fi
 
-which gdk-pixbuf-query-loaders
+which gdk-pixbuf-query-loaders > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     export GDK_PIXBUF_MODULE_FILE=/tmp/$(basename $APPDIR).gdk-pixbuf-loader.cache
     gdk-pixbuf-query-loaders $APPDIR/lib/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so > $GDK_PIXBUF_MODULE_FILE 2>&1
@@ -48,8 +48,22 @@ if test -z ${APP_IMAGE_TEST}; then
     cd ${APPDIR}
     ${APPDIR}/%(executable_path)s $*
 else
-    # Run a shell in test mode
-    bash;
+    if [ $SHELL = "/bin/zsh" ]; then
+        export ZDOTDIR=$(mktemp -d)
+        mkdir -p $ZDOTDIR
+        cp ~/.zshrc $ZDOTDIR
+        echo "autoload -Uz bashcompinit; bashcompinit" >> $ZDOTDIR/.zshrc
+        echo "PROMPT=[%(appname)s]\ \$PROMPT" >> $ZDOTDIR/.zshrc
+        zsh
+    elif [ $SHELL = "/bin/bash" ]; then
+        RCFILE=$(mktemp -d)/.bashrc
+        cp ~/.bashrc $RCFILE
+        echo "" >> $RCFILE
+        echo "export PS1=[%(appname)s]\ \$PS1" >> $RCFILE
+        /bin/bash --rcfile $RCFILE
+    else
+        CERBERO_ENV="[%(appname)s]" $SHELL
+    fi
 fi
 
 # Cleaning up the link to gstplugins

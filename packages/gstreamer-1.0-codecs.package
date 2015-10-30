@@ -7,7 +7,7 @@ class Package(package.Package):
     name = 'gstreamer-1.0-codecs'
     shortdesc = 'GStreamer 1.0 codecs'
     longdesc = 'GStreamer 1.0 codecs'
-    version = '1.5.90'
+    version = '1.7.0'
     codename = 'Congo'
     url = "http://gstreamer.freedesktop.org"
     license = License.LGPL
@@ -19,7 +19,8 @@ class Package(package.Package):
     files = ['flac:libs', 'libkate:libs', 'libdv:libs',
             'libogg:libs', 'schroedinger:libs', 'speex:libs',
             'libtheora:libs', 'wavpack:libs', 'libvpx:libs',
-            'taglib:libs', 'opus:libs', 'libvorbis:libs', 'openh264:libs',
+            'taglib:libs', 'opus:libs', 'libvorbis:libs',
+            'openjpeg:libs', 'openh264:libs', 'spandsp:libs',
             'gst-plugins-base-1.0:plugins_codecs', 'gst-plugins-good-1.0:plugins_codecs',
             'gst-plugins-bad-1.0:plugins_codecs', 'gst-plugins-ugly-1.0:plugins_codecs',
             ]

@@ -14,6 +14,8 @@ class Recipe(recipe.Recipe):
         Platform.WINDOWS: ['icu']
     }
     configure_options = '--enable-static --enable-glib --enable-gobject '
+    patches = [name + '/fix-dll-revision.patch']
+
     files_bins = ['hb-ot-shape-closure', 'hb-view', 'hb-shape']
     files_libs = ['libharfbuzz']
     files_devel = ['include/harfbuzz/*.h', 'lib/pkgconfig/harfbuzz.pc']
