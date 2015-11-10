@@ -35,6 +35,7 @@ from custom import generate_gir_h_from_gir
 class Recipe(recipe.Recipe):
     name = 'openwebrtc'
     version = '0.3.0'
+    owr_version_id = version
     _api_version = '0.3'
     stype = SourceType.GIT
     licenses = [License.BSD_like]
@@ -170,8 +171,6 @@ class Recipe(recipe.Recipe):
         if self.stype == SourceType.GIT:
             self.owr_version_id = git.get_hash(self.build_dir,
                                                "origin/cerbero_build").strip()
-        else:
-            self.owr_version_id = self.version
 
         if self.config.target_platform != self.config.platform and \
            self.config.target_platform in (Platform.IOS, Platform.ANDROID):
