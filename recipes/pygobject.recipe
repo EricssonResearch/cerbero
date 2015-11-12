@@ -48,8 +48,7 @@ class Recipe(recipe.Recipe):
     def prepare(self):
         if self.config.variants.python3:
             self.deps.append("Python")
-            self.deps.append('pycairo')
             self.configure_options = '--with-python=python3'
         else:
-            self.deps.append('py2cairo')
             self.configure_options = '--with-python=python2'
+        self.configure_options += ' --disable-cairo'
