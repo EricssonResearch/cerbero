@@ -49,6 +49,8 @@ class Recipe(recipe.Recipe):
         if self.config.variants.python3:
             self.deps.append("Python")
             self.configure_options = '--with-python=python3'
+        elif self.config.target_platform == Platform.DARWIN:
+            self.configure_options = '--with-python=python2.7'
         else:
             self.configure_options = '--with-python=python2'
         self.configure_options += ' --disable-cairo'
