@@ -8,7 +8,7 @@ class Recipe(custom.GStreamerStatic):
     licenses = [License.LGPLv2Plus]
     extra_configure_options = '--enable-static --disable-oss4 --disable-oss --disable-dv1394 --disable-aalib --disable-libcaca --disable-jack --disable-shout2'
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-good'}
-    commit = 'c1b66a63acd3b9eaa638ca322b4b52a55085aa53'
+    commit = '903c431d6d4ac6ca802306361144230057c232bd'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'orc', 'bzip2', 'zlib',
             'libvpx']
 
