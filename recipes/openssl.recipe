@@ -6,7 +6,7 @@ from cerbero.utils import shell, messages
 
 class Recipe(recipe.Recipe):
     name = 'openssl'
-    version = '1.0.2e'
+    version = '1.0.2f'
     licenses = [License.BSD_like]
     stype = SourceType.TARBALL
     url = 'ftp://ftp.openssl.org/source/{0}-{1}.tar.gz'.format(name, version)
