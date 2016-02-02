@@ -19,7 +19,7 @@ GLIB_CONFIG_UNVERSAL='''\
 
 class Recipe(recipe.Recipe):
     name = 'glib'
-    version = '2.46.1'
+    version = '2.46.2'
     stype = SourceType.TARBALL
     url = 'http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.46/glib-%(version)s.tar.xz'
     licenses = [License.LGPLv2Plus]
@@ -36,7 +36,6 @@ class Recipe(recipe.Recipe):
                "glib/0009-Unhide-_g_io_modules_ensure_extension_points_registe.patch",
                'glib/0014-Don-t-use-AT_FDCWD-on-iOS-for-now.patch',
                'glib/0015-Implementation-of-Cocoa-event-loop-integration-in-GM.patch',
-               'glib/0020-Include-ntdef.h-for-NTSTATUS.patch',
                'glib/0030-Library-ctor-order.patch'
               ]
 
@@ -149,7 +148,8 @@ class Recipe(recipe.Recipe):
                                                        DistroVersion.UBUNTU_SAUCY,
                                                        DistroVersion.UBUNTU_TRUSTY,
                                                        DistroVersion.UBUNTU_UTOPIC,
-                                                       DistroVersion.UBUNTU_VIVID]:
+                                                       DistroVersion.UBUNTU_VIVID,
+                                                       DistroVersion.UBUNTU_WILY]:
                 if self.config.target_arch == Architecture.X86:
                     path2 = '/usr/lib/i386-linux-gnu/gio/modules'
                 elif self.config.target_arch == Architecture.X86_64:

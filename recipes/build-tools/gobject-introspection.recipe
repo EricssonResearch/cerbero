@@ -4,10 +4,9 @@ import sys
 
 class Recipe(recipe.Recipe):
     name = 'gobject-introspection'
-    version = '1.44.0'
-    maj_ver = '.'.join(version.split('.')[:2])
+    version = '1.46.0'
     stype = SourceType.TARBALL
-    url = 'http://ftp.gnome.org/pub/GNOME/sources/{0}/{1}/{0}-{2}.tar.xz'.format(name, maj_ver, version)
+    url = 'http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/1.46/gobject-introspection-%(version)s.tar.xz'
     licenses = [License.GPLv2Plus]
     deps = ['glib']
 

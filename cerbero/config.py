@@ -93,7 +93,7 @@ class Config (object):
                    'recipes_remotes', 'ios_platform', 'extra_build_tools',
                    'distro_packages_install', 'interactive',
                    'target_arch_flags', 'sysroot', 'isysroot',
-                   'extra_lib_path', 'cached_sources']
+                   'extra_lib_path', 'cached_sources', 'tools_prefix']
 
     def __init__(self):
         self._check_uninstalled()
@@ -330,7 +330,7 @@ class Config (object):
 
     def set_property(self, name, value, force=False):
         if name not in self._properties:
-            raise ConfigurationError('Unkown key %s' % name)
+            raise ConfigurationError('Unknown key %s' % name)
         if force or getattr(self, name) is None:
             setattr(self, name, value)
 
@@ -428,18 +428,18 @@ class Config (object):
                 DEFAULT_CONFIG_FILE
             m.warning(msg)
 
-    def _load_cmd_config(self, filename):
-        if filename is not None:
+    def _load_cmd_config(self, filenames):
+        if filenames is not None:
+            for f in filenames:
+                if not os.path.exists(f):
+                    f = os.path.join(CONFIG_DIR, f + "." + CONFIG_EXT)
 
-            if not os.path.exists(filename):
-                filename = os.path.join(CONFIG_DIR, filename + "." + CONFIG_EXT)
-
-            if os.path.exists(filename):
-                self._parse(filename, reset=False)
-                self.filename = DEFAULT_CONFIG_FILE
-            else:
-                raise ConfigurationError(_("Configuration file %s doesn't "
-                                           "exists") % filename)
+                if os.path.exists(f):
+                    self._parse(f, reset=False)
+                    self.filename = DEFAULT_CONFIG_FILE
+                else:
+                    raise ConfigurationError(_("Configuration file %s doesn't "
+                                               "exists") % f)
 
     def _load_platform_config(self):
         platform_config = os.path.join(self.environ_dir, '%s.config' %
