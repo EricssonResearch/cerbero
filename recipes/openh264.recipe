@@ -5,7 +5,7 @@ from cerbero.utils import shell
 
 class Recipe(recipe.Recipe):
     name = 'openh264'
-    version = '1.4.0'
+    version = '1.5.0'
     url = 'https://github.com/cisco/%(name)s/archive/v%(version)s.tar.gz'
     stype = SourceType.TARBALL
     btype = BuildType.MAKEFILE
@@ -15,7 +15,7 @@ class Recipe(recipe.Recipe):
     # However, upstream didn't want the library to be versioned on Android, so
     # we'll need to carry forward that bit for ourselves.
     # 0002: Fixed upstream, remove patch on next update
-    patches = [name + '/0001-Add-version-suffix.patch']
+    patches = []
     files_libs = ['libopenh264']
     files_devel = ['include/wels', 'lib/pkgconfig/openh264.pc']
 
