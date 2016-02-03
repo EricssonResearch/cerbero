@@ -41,7 +41,7 @@ libsoup			|  2.48.1	|
 libvpx                  |  1.5.0        | 
 fribidi                 |  0.19.6       |
 openh264                |  1.5.0        |
-opus			|  1.1          |
+opus			|  1.1.2        |
 libgpg-error            |  1.17         |
 libgcrypt               |  1.6.2        |
 libsrtp                 |  1.5.0        |
