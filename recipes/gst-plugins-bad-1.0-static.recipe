@@ -21,7 +21,7 @@ class Recipe(custom.GStreamerStatic):
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
     commit = 'eb142736318463e6e553c21707ba0d716f85a46f'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
-            'libsrtp', 'openssl']
+            'libsrtp', 'openssl', 'graphene']
     use_system_libs = True
 
     files_plugins_effects_devel = [

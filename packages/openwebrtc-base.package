@@ -41,7 +41,7 @@ class Package(package.Package):
     deps = ['gstreamer-1.0-core', 'base-system-1.0',]
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',
-             'libusrsctp:libs',]
+             'libusrsctp:libs', 'graphene:libs']
     files_devel = ['openwebrtc-gst-plugins-static',]
 
     platform_files = {
