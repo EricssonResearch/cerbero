@@ -8,7 +8,7 @@ class Recipe(recipe.Recipe):
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = "--disable-examples --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame "
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-ugly'}
-    commit = '11904d63bea8d361e6d1d3a77cc815f4d0812651'
+    commit = '7e2f2f9e5b0b0da16fad50f23d184a273d025386'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'x264']
 
     files_plugins_codecs_restricted = [
