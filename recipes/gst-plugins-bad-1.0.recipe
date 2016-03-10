@@ -23,7 +23,7 @@ class Recipe(recipe.Recipe):
     configure_options += ' --enable-openh264 --enable-opus \
         --enable-srtp'
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
-    commit = 'b26301bc8dc2c085c1a9ac045378149c880fc185'
+    commit = '5061095e056864c08e676067d5a868fb2cb37a64'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
             'libsrtp', 'openssl']
     use_system_libs = True
