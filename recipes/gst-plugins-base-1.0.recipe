@@ -9,7 +9,7 @@ class Recipe(recipe.Recipe):
     configure_options = "--enable-static --program-prefix= --disable-examples "
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
     commit = '747bf129592de4efe12b53c303295aaeea9189ac'
-    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
+    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc', 'opus']
     use_system_libs = True
 
     files_bins = ['gst-discoverer-1.0', 'gst-play-1.0', 'gst-device-monitor-1.0']
@@ -33,6 +33,10 @@ class Recipe(recipe.Recipe):
              'lib/gstreamer-1.0/libgstvideotestsrc%(mext)s',
              'lib/gstreamer-1.0/libgstvolume%(mext)s',
     ]
+
+    files_plugins_codecs = [
+             'lib/gstreamer-1.0/libgstopus%(mext)s',
+            ]
 
     files_plugins_devel = [
             'include/gstreamer-1.0/gst/allocators',

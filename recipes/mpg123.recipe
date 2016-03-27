@@ -1,0 +1,25 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(recipe.Recipe):
+    name = 'mpg123'
+    version = '1.23.1'
+    stype = SourceType.TARBALL
+    url = 'http://downloads.sourceforge.net/project/mpg123/mpg123/1.23.1/mpg123-1.23.1.tar.bz2'
+    licenses = [License.LGPLv2_1]
+    autoreconf = True
+    configure_options = '--with-audio=dummy --enable-static'
+    patches = ['mpg123/0001-Disable-tools-and-libout123-library.patch']
+
+    files_libs = ['libmpg123']
+    files_devel = ['include/mpg123.h', 'include/fmt123.h', 'lib/pkgconfig/libmpg123.pc']
+
+    def prepare(self):
+        if self.config.target_platform in [Platform.ANDROID]:
+            if self.config.target_arch == Architecture.ARM:
+                # Disable thumb mode to get the optimizations compiled properly
+                self.new_env['CFLAGS'] = os.environ['CFLAGS'].replace('-mthumb', '')
+        if self.config.target_platform in [Platform.IOS]:
+            if self.config.target_arch == Architecture.X86:
+                # make sure we use 32bit asm
+                self.configure_options += ' --with-cpu=x86 '
+

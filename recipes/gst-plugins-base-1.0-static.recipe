@@ -9,7 +9,7 @@ class Recipe(custom.GStreamerStatic):
     extra_configure_options = "--enable-static"
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
     commit = '747bf129592de4efe12b53c303295aaeea9189ac'
-    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc']
+    deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc', 'opus']
     use_system_libs = True
 
     files_plugins_core_devel = [
@@ -25,6 +25,10 @@ class Recipe(custom.GStreamerStatic):
              'libgstvideotestsrc',
              'libgstvolume',
     ]
+
+    files_plugins_codecs_devel = [
+             'libgstopus',
+            ]
 
     def prepare(self):
         self.append_env['CFLAGS'] = " -Wno-error "

@@ -15,7 +15,7 @@ class Recipe(recipe.Recipe):
         --disable-ladspa --disable-lv2 --disable-mimic --disable-modplug \
         --disable-mpeg2enc --disable-mplex --disable-musepack --disable-mythtv \
         --disable-neon --disable-ofa --disable-openal --disable-opencv \
-        --disable-pvr --disable-sdl --disable-sndfile --disable-soundtouch \
+        --disable-pvr --disable-sdl --disable-sndfile \
         --disable-teletextdec --disable-timidity \
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
         --disable-xvid --disable-zbar --disable-sdi --disable-hls --disable-qt'
@@ -43,7 +43,6 @@ class Recipe(recipe.Recipe):
 
     files_plugins_codecs = [
              'lib/gstreamer-1.0/libgstopenh264%(mext)s',
-             'lib/gstreamer-1.0/libgstopus%(mext)s',
              'lib/gstreamer-1.0/libgstvideoparsersbad%(mext)s',
     ]
 
