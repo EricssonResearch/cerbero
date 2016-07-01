@@ -3,7 +3,7 @@
 
 class Recipe(recipe.Recipe):
     name = 'gst-plugins-bad-1.0'
-    version = '1.7'
+    version = '1.9'
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = '--enable-static --disable-introspection --disable-gsm \
@@ -34,7 +34,18 @@ class Recipe(recipe.Recipe):
 
     files_plugins_devel = [
         'include/gstreamer-1.0/gst/gl',
-        'lib/gstreamer-1.0/include/gst/gl'
+        'lib/gstreamer-1.0/include/gst/gl',
+        'include/gstreamer-1.0/gst/base',
+        'include/gstreamer-1.0/gst/audio',
+        'include/gstreamer-1.0/gst/video',
+        'include/gstreamer-1.0/gst/codecparsers',
+        'include/gstreamer-1.0/gst/interfaces',
+        'lib/pkgconfig/gstreamer-plugins-bad-1.0.pc',
+        'lib/pkgconfig/gstreamer-gl-1.0.pc',
+        'lib/pkgconfig/gstreamer-bad-base-1.0.pc',
+        'lib/pkgconfig/gstreamer-bad-audio-1.0.pc',
+        'lib/pkgconfig/gstreamer-bad-video-1.0.pc',
+        'lib/pkgconfig/gstreamer-codecparsers-1.0.pc'
     ]
 
     files_plugins_effects = [

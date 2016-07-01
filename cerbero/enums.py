@@ -56,6 +56,7 @@ class Distro:
     OS_X = 'osx'
     IOS = 'ios'
     ANDROID = 'android'
+    GENTOO = 'gentoo'
     NONE = 'none'
 
 
@@ -77,6 +78,7 @@ class DistroVersion:
     UBUNTU_UTOPIC = 'ubuntu_utopic'
     UBUNTU_VIVID = 'ubuntu_vivid'
     UBUNTU_WILY = 'ubuntu_wily'
+    UBUNTU_XENIAL = 'ubuntu_xenial'
     FEDORA_16 = 'fedora_16'
     FEDORA_17 = 'fedora_17'
     FEDORA_18 = 'fedora_18'
@@ -85,9 +87,11 @@ class DistroVersion:
     FEDORA_21 = 'fedora_21'
     FEDORA_22 = 'fedora_22'
     FEDORA_23 = 'fedora_23'
+    FEDORA_24 = 'fedora_24'
     REDHAT_6 = 'redhat_6'
     REDHAT_7 = 'redhat_7'
     ARCH_ROLLING = 'rolling'
+    GENTOO_VERSION = 'gentoo-version'
     OPENSUSE_12_1 = 'opensuse_12_1'
     OPENSUSE_12_2 = 'opensuse_12_2'
     OPENSUSE_12_3 = 'opensuse_12_3'

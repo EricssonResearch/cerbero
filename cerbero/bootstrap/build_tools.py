@@ -18,10 +18,12 @@
 
 import os
 
-from cerbero.config import Config, DEFAULT_HOME, Platform, DistroVersion
+from cerbero.config import Config, Platform, DistroVersion
 from cerbero.bootstrap import BootstrapperBase
 from cerbero.build.oven import Oven
 from cerbero.build.cookbook import CookBook
+from cerbero.utils import _
+from cerbero.errors import FatalError, ConfigurationError
 
 
 class BuildTools (BootstrapperBase):
@@ -58,10 +60,11 @@ class BuildTools (BootstrapperBase):
                 self.BUILD_TOOLS.append('yasm')
             if self.config.distro_version in [DistroVersion.REDHAT_6]:
                 self.BUILD_TOOLS.append('cmake')
-        #if self.config.target_platform == Platform.LINUX:
-        #    self.BUILD_TOOLS.append('app-image-kit')
-        #    if self.config.variants.python3:
-        #        self.BUILD_TOOLS.append('meson')
+        # if self.config.target_platform == Platform.LINUX:
+        #     if self.config.variants.appimagekit:
+        #         self.BUILD_TOOLS.append('app-image-kit')
+        #     if self.config.variants.python3:
+        #         self.BUILD_TOOLS.append('meson')
         if self.config.target_platform == Platform.IOS:
             self.BUILD_TOOLS.append('gas-preprocessor')
         if self.config.distro_version in [DistroVersion.UBUNTU_LUCID,
@@ -94,6 +97,8 @@ class BuildTools (BootstrapperBase):
         config.build_tools_cache = self.config.build_tools_cache
         config.external_recipes = self.config.external_recipes
 
+        if config.toolchain_prefix and not os.path.exists(config.toolchain_prefix):
+            raise ConfigurationError(_("Please run bootstrap without any '-c' arguments first to setup build-tools for this machine"))
         if not os.path.exists(config.prefix):
             os.makedirs(config.prefix)
         if not os.path.exists(config.sources):

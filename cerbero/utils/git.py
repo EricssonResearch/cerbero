@@ -21,6 +21,7 @@ import shutil
 
 from cerbero.config import Platform
 from cerbero.utils import shell
+from cerbero.errors import FatalError
 
 # Clean-up LD environment to avoid library version mismatches while running
 # the system subversion
@@ -31,6 +32,20 @@ if CLEAN_ENV.has_key('LD_LIBRARY_PATH'):
 GIT = 'git'
 
 
+def ensure_user_is_set(git_dir):
+    # Set the user configuration for this repository so that Cerbero never warns
+    # about it or errors out (it errors out with git-for-windows)
+    try:
+      shell.call('%s config user.email' % GIT)
+    except FatalError:
+      shell.call('%s config user.email "cerbero@gstreamer.freedesktop.org"' %
+                 GIT, git_dir)
+
+    try:
+      shell.call('%s config user.name' % GIT)
+    except FatalError:
+      shell.call('%s config user.name "Cerbero Build System"' % GIT, git_dir)
+
 def init(git_dir):
     '''
     Initialize a git repository with 'git init'
@@ -40,6 +55,7 @@ def init(git_dir):
     '''
     shell.call('mkdir -p %s' % git_dir)
     shell.call('%s init' % GIT, git_dir, env=CLEAN_ENV)
+    ensure_user_is_set(git_dir)
 
 
 def clean(git_dir):
@@ -202,6 +218,7 @@ def local_checkout(git_dir, local_git_dir, commit):
     shell.call('%s clone %s -s -b %s .' % (GIT, local_git_dir,
                                                   branch_name),
                       git_dir, env=CLEAN_ENV)
+    ensure_user_is_set(local_git_dir)
     submodules_update(git_dir, local_git_dir)
 
 def add_remote(git_dir, name, url):

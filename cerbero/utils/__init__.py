@@ -159,6 +159,8 @@ def system_info():
                 distro_version = DistroVersion.UBUNTU_VIVID
             elif d[2] in ['wily']:
                 distro_version = DistroVersion.UBUNTU_WILY
+            elif d[2] in ['xenial']:
+                distro_version = DistroVersion.UBUNTU_XENIAL
             elif d[1].startswith('6.'):
                 distro_version = DistroVersion.DEBIAN_SQUEEZE
             elif d[1].startswith('7.') or d[1].startswith('wheezy'):
@@ -187,6 +189,8 @@ def system_info():
                 distro_version = DistroVersion.FEDORA_22
             elif d[1] == '23':
                 distro_version = DistroVersion.FEDORA_23
+            elif d[1] == '24':
+                distro_version = DistroVersion.FEDORA_24
             elif d[1].startswith('6.'):
                 distro_version = DistroVersion.REDHAT_6
             elif d[1].startswith('7.'):
@@ -209,6 +213,9 @@ def system_info():
         elif d[0].strip() in ['arch']:
             distro = Distro.ARCH
             distro_version = DistroVersion.ARCH_ROLLING
+        elif d[0].strip() in ['Gentoo Base System']:
+            distro = Distro.GENTOO
+            distro_version = DistroVersion.GENTOO_VERSION
         else:
             raise FatalError("Distribution '%s' not supported" % str(d))
     elif platform == Platform.WINDOWS:
