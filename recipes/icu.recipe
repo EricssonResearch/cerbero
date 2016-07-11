@@ -46,6 +46,7 @@ class Recipe(recipe.Recipe):
         --disable-renaming --disable-samples --disable-debug \
         --disable-layout --disable-extras'
     platform_deps = {Platform.ANDROID: ['gnustl']}
+    allow_parallel_build = False
 
     files_devel = ['bin/icu-config', 'lib/pkgconfig/icu-i18n.pc',
                    'lib/pkgconfig/icu-io.pc', 'lib/pkgconfig/icu-uc.pc',
