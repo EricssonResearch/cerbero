@@ -17,7 +17,7 @@ EXCLUDED_LIBS			?=
 # archives for symbols and include only those that are needed. For OWRTC, this
 # is "openwebrtc_bridge_jni" or "openwebrtc_jni".
 DEPENDENCY_WHOLE_AR		:= $(call libtool-get-libs,$(DEPENDENCY_LIBS) $(GSTREAMER_STATIC_PLUGINS))
-HOST_SED			:= $(shell which sed)
+SED				:= $(shell which sed)
 
 # libtool-link calls libtool-parse-lib, which finds the .la file for this
 # library, and all the dependencies. This populates the link command for static
