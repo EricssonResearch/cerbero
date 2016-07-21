@@ -25,7 +25,7 @@ class Recipe(recipe.Recipe):
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
     commit = '34c88dca2d977638bf6669d321bf92eea566cbf3'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
-            'libsrtp', 'openssl']
+            'libsrtp', 'openssl', 'graphene']
     use_system_libs = True
 
     files_lang = ['gst-plugins-bad-1.0']
