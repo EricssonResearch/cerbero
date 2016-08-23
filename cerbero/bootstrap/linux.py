@@ -103,7 +103,6 @@ class DebianBootstrapper (UnixBootstrapper):
 
 class RedHatBootstrapper (UnixBootstrapper):
 
-    tool = 'su -c "yum install %s"'
     packages = ['gcc', 'gcc-c++', 'automake', 'autoconf', 'libtool',
                 'gettext-devel', 'make', 'cmake', 'bison', 'flex', 'yasm',
                 'pkgconfig', 'gtk-doc', 'curl', 'doxygen', 'texinfo',
@@ -120,15 +119,24 @@ class RedHatBootstrapper (UnixBootstrapper):
 
     def __init__(self, config):
         UnixBootstrapper.__init__(self, config)
+        if self.config.distro_version == DistroVersion.FEDORA_23 or \
+           self.config.distro_version == DistroVersion.FEDORA_24:
+            self.tool = 'dnf install %s'
+        else:
+            self.tool = 'yum install %s'
         if self.config.target_platform == Platform.WINDOWS:
             self.packages.append('mingw-w64-tools')
             if self.config.arch == Architecture.X86_64:
                 self.packages.append('glibc.i686')
+            if self.config.distro_version == DistroVersion.FEDORA_24:
+                self.packages.append('libncurses-compat-libs.i686')
         if self.config.target_platform == Platform.LINUX:
             self.packages.append('chrpath')
             self.packages.append('fuse-devel')
         # Use sudo to gain root access on everything except RHEL
-        if self.config.distro_version != DistroVersion.REDHAT_6:
+        if self.config.distro_version == DistroVersion.REDHAT_6:
+            self.tool = 'su -c "' + self.tool + '"'
+        else:
             self.tool = 'sudo ' + self.tool
 
 class OpenSuseBootstrapper (UnixBootstrapper):
@@ -182,9 +190,16 @@ class GentooBootstrapper (UnixBootstrapper):
             'media-gfx/transfig', 'x11-libs/libXrender', 'x11-libs/libXv',
             'media-libs/mesa', 'net-misc/wget', 'net-libs/glib-networking']
 
+class NoneBootstrapper (BootstrapperBase):
+
+    def start(self):
+        pass
+
+
 def register_all():
     register_bootstrapper(Distro.DEBIAN, DebianBootstrapper)
     register_bootstrapper(Distro.REDHAT, RedHatBootstrapper)
     register_bootstrapper(Distro.SUSE, OpenSuseBootstrapper)
     register_bootstrapper(Distro.ARCH, ArchBootstrapper, DistroVersion.ARCH_ROLLING)
     register_bootstrapper(Distro.GENTOO, GentooBootstrapper, DistroVersion.GENTOO_VERSION)
+    register_bootstrapper(Distro.NONE, NoneBootstrapper)

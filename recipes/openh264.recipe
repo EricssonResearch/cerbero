@@ -5,7 +5,7 @@ from cerbero.utils import shell
 
 class Recipe(recipe.Recipe):
     name = 'openh264'
-    version = '1.5.0'
+    version = '1.6.0'
     url = 'https://github.com/cisco/%(name)s/archive/v%(version)s.tar.gz'
     stype = SourceType.TARBALL
     btype = BuildType.MAKEFILE
@@ -27,10 +27,12 @@ class Recipe(recipe.Recipe):
                 make += ' ARCH=i386'
             elif self.config.target_arch == Architecture.X86_64:
                 make += ' ARCH=x86_64'
-            elif self.config.target_arch in [Architecture.ARM, Architecture.ARMv7]:
+            elif self.config.target_arch == Architecture.ARMv7:
                 make += ' ARCH=armv7'
             elif self.config.target_arch == Architecture.ARMv7S:
                 make += ' ARCH=armv7s'
+            elif self.config.target_arch == Architecture.ARM:
+                make += ' ARCH=arm APP_ABI=armeabi'
             elif self.config.target_arch == Architecture.ARM64:
                 make += ' ARCH=arm64'
         elif self.config.target_platform == Platform.DARWIN:
@@ -67,7 +69,7 @@ class Recipe(recipe.Recipe):
             # initial / by itself, /c:/foo does not work and and //c is not
             # the same as /c on Windows. //c/foo is a network path.
             if not self.config.prefix.startswith('/') and self.config.prefix[1] == ':':
-                p = self.config.prefix[0] + self.config.prefix[2:]
+                p = "/" + self.config.prefix[0] + self.config.prefix[2:]
             else:
                 p = self.config.prefix
             shell.replace(os.path.join(self.build_dir, 'Makefile'),

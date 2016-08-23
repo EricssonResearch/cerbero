@@ -20,4 +20,3 @@ class Recipe(recipe.Recipe):
         'site-packages/gi/overrides/GstPbutils.py',
         'site-packages/gi/overrides/_gi_gst.so'
     ]
-
