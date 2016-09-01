@@ -8,7 +8,7 @@ class Recipe(custom.GStreamerStatic):
     licenses = [License.LGPLv2_1Plus]
     extra_configure_options = '--enable-static'
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gstreamer'}
-    commit = '1e1ea38b8eabedc97a9a6629246c9371fc1d7858'
+    commit = '5988095f90d273fe11725deac2d73833a336ee87'
     deps = ['glib', 'gtk-doc-lite']
     # Static build will always fail on make check
     make_check = None
