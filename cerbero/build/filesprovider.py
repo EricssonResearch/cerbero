@@ -25,6 +25,34 @@ from cerbero.config import Platform
 from cerbero.utils import shell
 from cerbero.utils import messages as m
 
+def find_shlib_regex(libname, prefix, libdir, ext, regex):
+    # Use globbing to find all files that look like they might match
+    # this library to narrow down our exact search
+    fpath = os.path.join(libdir, '*{0}*{1}*'.format(libname, ext))
+    found = glob.glob(os.path.join(prefix, fpath))
+    # Find which of those actually match via an exact regex
+    # Ideally Python should provide a function for regex file 'globbing'
+    for each in found:
+        fname = os.path.basename(each)
+        if re.match(regex.format(re.escape(libname)), fname):
+            yield os.path.join(libdir, fname)
+
+def flatten_files_list(all_files):
+    """
+    Some files search functions return a list of lists instead of a flat list
+    of files. We flatten it here.
+
+    Specifically, each list is a list of files found for each entry in
+    `recipe.files_libs`.
+    """
+    flattened = []
+    for entry_files in all_files:
+        if isinstance(entry_files, list):
+            for entry_file in entry_files:
+                flattened.append(entry_file)
+        else:
+            flattened.append(entry_files)
+    return flattened
 
 class FilesProvider(object):
     '''
@@ -38,9 +66,15 @@ class FilesProvider(object):
     DEVEL_CAT = 'devel'
     LANG_CAT = 'lang'
     TYPELIB_CAT = 'typelibs'
-    _DLL_REGEX = r'^(lib)?{}(-[0-9]+){{0,2}}\.dll$'
-    _SO_REGEX = r'^lib{}\.so(\.[0-9]+){{0,2}}$'
-    _DYLIB_REGEX = r'^lib{}(\.[0-9]+){{0,3}}\.dylib$'
+    # Usually DLLs have 0 or 1 version components (just the major version), but
+    # some packages like Nettle add 2, so we check for upto 2. We don't use
+    # {m,n} here because we want to capture all the matches.
+    _DLL_REGEX = r'^(lib)?{}(-[0-9]+)?(-[0-9]+)?\.dll$'
+    # UNIX shared libraries can have between 0 and 3 version components:
+    # major, minor, micro. We don't use {m,n} here because we want to capture
+    # all the matches.
+    _SO_REGEX = r'^lib{}\.so(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?$'
+    _DYLIB_REGEX = r'^lib{}(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?\.dylib$'
 
     # Extension Glob Legend:
     # bext = binary extension
@@ -51,15 +85,15 @@ class FilesProvider(object):
     # smext = static module (plugin) extension
     # pext = python module extension (.pyd on Windows)
     EXTENSIONS = {
-        Platform.WINDOWS: {'bext': '.exe', 'sext': _DLL_REGEX, 'sdir': 'bin',
+        Platform.WINDOWS: {'bext': '.exe', 'sregex': _DLL_REGEX, 'sdir': 'bin',
             'mext': '.dll', 'smext': '.a', 'pext': '.pyd', 'srext': '.dll'},
-        Platform.LINUX: {'bext': '', 'sext': _SO_REGEX, 'sdir': 'lib',
+        Platform.LINUX: {'bext': '', 'sregex': _SO_REGEX, 'sdir': 'lib',
             'mext': '.so', 'smext': '.a', 'pext': '.so', 'srext': '.so'},
-        Platform.ANDROID: {'bext': '', 'sext': _SO_REGEX, 'sdir': 'lib',
+        Platform.ANDROID: {'bext': '', 'sregex': _SO_REGEX, 'sdir': 'lib',
             'mext': '.so', 'smext': '.a', 'pext': '.so', 'srext': '.so'},
-        Platform.DARWIN: {'bext': '', 'sext': _DYLIB_REGEX, 'sdir': 'lib',
+        Platform.DARWIN: {'bext': '', 'sregex': _DYLIB_REGEX, 'sdir': 'lib',
             'mext': '.so', 'smext': '.a', 'pext': '.so', 'srext': '.dylib'},
-        Platform.IOS: {'bext': '', 'sext': _DYLIB_REGEX, 'sdir': 'lib',
+        Platform.IOS: {'bext': '', 'sregex': _DYLIB_REGEX, 'sdir': 'lib',
             'mext': '.so', 'smext': '.a', 'pext': '.so', 'srext': '.dylib'}}
 
     def __init__(self, config):
@@ -112,9 +146,9 @@ class FilesProvider(object):
         for cat in categories:
             cat_files = self._list_files_by_category(cat)
             # The library search function returns a dict that is a mapping from
-            # library name to filename, but here we only want a list of files
+            # library name to filenames, but we only want a list of filenames
             if not isinstance(cat_files, list):
-                cat_files = cat_files.values()
+                cat_files = flatten_files_list(cat_files.values())
             files.extend(cat_files)
         return sorted(list(set(files)))
 
@@ -213,24 +247,15 @@ class FilesProvider(object):
               guess (sometimes incorrectly) based on the dll filename.
         '''
         libdir = self.extensions['sdir']
-        libregex = self.extensions['sext']
         libext = self.extensions['srext']
+        libregex = self.extensions['sregex']
 
         libsmatch = {}
         notfound = []
         for f in files:
-            # Use globbing to find all files that look like they might match
-            # this library to narrow down our exact search
-            fpath = os.path.join(libdir, '*{0}*{1}*'.format(f[3:], libext))
-            found = glob.glob(os.path.join(self.config.prefix, fpath))
-            # Find which of those actually match via an exact regex
-            # Ideally Python should provide a function for regex file 'globbing'
-            for each in found:
-                fname = os.path.basename(each)
-                if re.match(libregex.format(re.escape(f[3:])), fname):
-                    libsmatch[f] = os.path.join(libdir, fname)
-                    break
-            else:
+            libsmatch[f] = list(find_shlib_regex(f[3:], self.config.prefix,
+                                                 libdir, libext, libregex))
+            if not libsmatch[f]:
                 notfound.append(f)
 
         if notfound:
