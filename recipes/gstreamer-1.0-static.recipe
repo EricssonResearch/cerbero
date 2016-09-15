@@ -3,9 +3,6 @@
 
 class Recipe(custom.GStreamerStatic):
     name = 'gstreamer-1.0-static'
-    version = '1.9'
-    gstreamer_version = '1.0'
-    licenses = [License.LGPLv2_1Plus]
     extra_configure_options = '--enable-static'
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gstreamer'}
     commit = '5988095f90d273fe11725deac2d73833a336ee87'

@@ -3,9 +3,6 @@
 
 class Recipe(custom.GStreamerStatic):
     name = 'gst-plugins-ugly-1.0-static'
-    version = '1.9'
-    gstreamer_version = '1.0'
-    licenses = [License.LGPLv2Plus]
     extra_configure_options = "--enable-static --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame"
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-ugly'}
     commit = '3e27368ce3101d349c787cea519306c6f3d817b1'

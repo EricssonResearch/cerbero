@@ -3,9 +3,6 @@
 
 class Recipe(custom.GStreamerStatic):
     name = 'gst-plugins-bad-1.0-static'
-    version = '1.9'
-    gstreamer_version = '1.0'
-    licenses = [License.LGPLv2Plus]
     extra_configure_options = '--disable-gsm --disable-festival \
         --disable-videomaxrate --disable-bz2 --disable-libde265 \
         --disable-linsys --disable-fbdev --disable-apexsink \
