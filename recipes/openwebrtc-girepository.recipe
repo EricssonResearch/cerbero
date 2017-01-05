@@ -60,11 +60,6 @@ class Recipe(recipe.Recipe):
     def prepare(self):
         self.build_dir = os.path.join(os.path.dirname(self.build_dir),
                                       self._name + '-' + self.version)
-        if self.config.variants.python3:
-            # cerbero is python2 only, same as gobject-introspection,
-            # make sure gobject-introspection is built against the same interpretter
-            # as we are
-            self.config_sh = "PYTHON=%s %s" %(sys.executable, self.config_sh)
 
     def configure(self):
         # Don't compile tools, examples, or GIRs.
