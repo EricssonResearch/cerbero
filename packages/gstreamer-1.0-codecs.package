@@ -11,10 +11,11 @@ class Package(custom.GStreamer, package.Package):
     deps = ['gstreamer-1.0-core', 'base-crypto']
 
     files = ['flac:libs', 'libkate:libs', 'libdv:libs',
-            'libogg:libs', 'schroedinger:libs', 'speex:libs',
+            'libogg:libs', 'speex:libs',
             'libtheora:libs', 'wavpack:libs', 'libvpx:libs',
             'taglib:libs', 'opus:libs', 'libvorbis:libs',
             'openjpeg:libs', 'openh264:libs', 'spandsp:libs',
+            'sbc:libs',
             'gst-plugins-base-1.0:plugins_codecs', 'gst-plugins-good-1.0:plugins_codecs',
             'gst-plugins-bad-1.0:plugins_codecs', 'gst-plugins-ugly-1.0:plugins_codecs',
             ]

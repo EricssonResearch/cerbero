@@ -1,7 +1,7 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
 
 
-class Recipe(recipe.Recipe, custom.GStreamer):
+class Recipe(custom.GStreamer):
     name = 'gst-plugins-bad-1.0'
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
     configure_options = '--enable-static --disable-introspection --disable-gsm \
@@ -18,8 +18,6 @@ class Recipe(recipe.Recipe, custom.GStreamer):
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
         --disable-xvid --disable-zbar --disable-sdi --disable-hls --disable-qt'
     # Explicitly enable plugins
-    configure_options += ' --enable-openh264 --enable-opus \
-        --enable-srtp'
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
     commit = 'a036b7ef9ffe9fe5dac4a7e46fbc3bac92921a54'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
@@ -127,10 +125,6 @@ class Recipe(recipe.Recipe, custom.GStreamer):
         self.append_env['OBJCFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['CXXFLAGS'] = " -Wno-error "
         self.append_env['CPPFLAGS'] = " -Wno-error "
-
-        if self.config.variants.gtk3:
-            self.deps.append("gtk+3")
-            self.files_plugins_sys = ["lib/gstreamer-1.0/libgstgtksink%(mext)s"]
 
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '

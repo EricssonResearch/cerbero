@@ -88,6 +88,7 @@ class DistroVersion:
     FEDORA_22 = 'fedora_22'
     FEDORA_23 = 'fedora_23'
     FEDORA_24 = 'fedora_24'
+    FEDORA_25 = 'fedora_25'
     REDHAT_6 = 'redhat_6'
     REDHAT_7 = 'redhat_7'
     ARCH_ROLLING = 'rolling'
@@ -100,6 +101,7 @@ class DistroVersion:
     WINDOWS_7 = 'windows_7'
     WINDOWS_8 = 'windows_8'
     WINDOWS_10 = 'windows_10'
+    OS_X_SIERRA = 'osx_sierra'
     OS_X_MAVERICKS = 'osx_mavericks'
     OS_X_MOUNTAIN_LION = 'osx_mountain_lion'
     OS_X_YOSEMITE = 'osx_yosemite'
@@ -119,6 +121,8 @@ class DistroVersion:
     ANDROID_JELLY_BEAN = 'android_jelly_bean'  # API Level 16
     ANDROID_KITKAT = 'android_kitkat'  # API Level 19
     ANDROID_LOLLIPOP = 'android_lollipop' # API Level 21
+    ANDROID_MARSHMALLOW = 'android_marshmallow' # API Level 23
+    ANDROID_NOUGAT = 'android_nougat' # API Level 24
     NONE_UCLIBC = 'none_uclibc'
     NONE_GLIBC = 'none_glibc'
 

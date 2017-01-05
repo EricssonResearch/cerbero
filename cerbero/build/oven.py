@@ -103,10 +103,10 @@ class Oven (object):
                 action = shell.prompt_multiple(msg, RecoveryActions())
                 if action == RecoveryActions.SHELL:
                     shell.enter_build_environment(self.config.target_platform,
-                            self.config.target_arch, recipe.build_dir)
+                            be.arch, recipe.get_for_arch (be.arch, 'build_dir'))
                     break
                 elif action == RecoveryActions.RETRY_ALL:
-                    shutil.rmtree(recipe.build_dir)
+                    shutil.rmtree(recipe.get_for_arch (be.arch, 'build_dir'))
                     self.cookbook.reset_recipe_status(recipe.name)
                     self._cook_recipe(recipe, i, len(ordered_recipes))
                 elif action == RecoveryActions.RETRY_STEP:
@@ -144,9 +144,9 @@ class Oven (object):
                 # update status successfully
                 self.cookbook.update_step_status(recipe.name, step)
                 shell.close_logfile_output()
-            except FatalError:
+            except FatalError, e:
                 shell.close_logfile_output(dump=True)
-                self._handle_build_step_error(recipe, step)
+                self._handle_build_step_error(recipe, step, e.arch)
             except Exception:
                 shell.close_logfile_output(dump=True)
                 raise BuildStepError(recipe, step, traceback.format_exc())
@@ -156,13 +156,13 @@ class Oven (object):
             self._print_missing_files(recipe, tmp)
             tmp.close()
 
-    def _handle_build_step_error(self, recipe, step):
+    def _handle_build_step_error(self, recipe, step , arch):
         if step in [BuildSteps.FETCH, BuildSteps.EXTRACT]:
             # if any of the source steps failed, wipe the directory and reset
             # the recipe status to start from scratch next time
             shutil.rmtree(recipe.build_dir)
             self.cookbook.reset_recipe_status(recipe.name)
-        raise BuildStepError(recipe, step)
+        raise BuildStepError(recipe, step, arch=arch)
 
     def _print_missing_files(self, recipe, tmp):
         recipe_files = set(recipe.files_list())
@@ -172,11 +172,11 @@ class Oven (object):
         not_installed = list(recipe_files - installed_files)
 
         if len(not_in_recipe) != 0:
-            m.message(_("The following files where installed, but are not "
+            m.message(_("The following files were installed, but are not "
                         "listed in the recipe:"))
             m.message('\n'.join(sorted(not_in_recipe)))
 
         if len(not_installed) != 0:
             m.message(_("The following files are listed in the recipe, but "
-                        "where not installed:"))
+                        "were not installed:"))
             m.message('\n'.join(sorted(not_installed)))

@@ -51,9 +51,7 @@ def set_logfile_output(location):
     @param location: path for the log file
     @type location: str
     '''
-    if PLATFORM == Platform.WINDOWS:
-        # silently return.
-        return
+
     global LOGFILE
     if not LOGFILE is None:
         raise Exception("Logfile was already open. Forgot to call "
@@ -68,9 +66,6 @@ def close_logfile_output(dump=False):
     @param dump: dump the log file to stdout
     @type dump: bool
     '''
-    if PLATFORM == Platform.WINDOWS:
-        # silently return.
-        return
     global LOGFILE
     if LOGFILE is None:
         raise Exception("No logfile was open")
@@ -130,6 +125,7 @@ def call(cmd, cmd_dir='.', fail=True, env=None, verbose=False):
                 m.message("Running command '%s'" % cmd)
         else:
             LOGFILE.write("Running command '%s'\n" % cmd)
+            LOGFILE.flush()
         shell = True
         if PLATFORM == Platform.WINDOWS:
             # windows do not understand ./
@@ -202,9 +198,11 @@ def unpack(filepath, output_dir):
     @type output_dir: str
     '''
     logging.info("Unpacking %s in %s" % (filepath, output_dir))
-    if filepath.endswith('tar.gz') or filepath.endswith('tar.bz2') \
-       or filepath.endswith('tbz2') or filepath.endswith('tgz'):
-        tf = tarfile.open(filepath, mode='r:*')
+    if filepath.endswith('tar.gz') or filepath.endswith('tgz'):
+        tf = tarfile.open(filepath, mode='r:gz')
+        tf.extractall(path=output_dir)
+    elif filepath.endswith('tar.bz2') or filepath.endswith('tbz2'):
+        tf = tarfile.open(filepath, mode='r:bz2')
         tf.extractall(path=output_dir)
     elif filepath.endswith('tar.xz'):
         call("%s -Jxf %s" % (TAR, to_unixpath(filepath)), output_dir)
@@ -215,7 +213,7 @@ def unpack(filepath, output_dir):
         raise FatalError("Unknown tarball format %s" % filepath)
 
 
-def download(url, destination=None, recursive=False, check_cert=True):
+def download(url, destination=None, recursive=False, check_cert=True, overwrite=False):
     '''
     Downloads a file with wget
 
@@ -236,7 +234,7 @@ def download(url, destination=None, recursive=False, check_cert=True):
     if not check_cert:
         cmd += " --no-check-certificate"
 
-    if not recursive and os.path.exists(destination):
+    if not recursive and not overwrite and os.path.exists(destination):
         if LOGFILE is None:
             logging.info("File %s already downloaded." % destination)
     else:
@@ -252,11 +250,12 @@ def download(url, destination=None, recursive=False, check_cert=True):
         try:
             call(cmd, path)
         except FatalError, e:
-            os.remove(destination)
+            if os.path.exists(destination):
+                os.remove(destination)
             raise e
 
 
-def download_curl(url, destination=None, recursive=False, check_cert=True):
+def download_curl(url, destination=None, recursive=False, check_cert=True, overwrite=False):
     '''
     Downloads a file with cURL
 
@@ -277,7 +276,7 @@ def download_curl(url, destination=None, recursive=False, check_cert=True):
     else:
         cmd += "-O %s " % url
 
-    if not recursive and os.path.exists(destination):
+    if not recursive and not overwrite and os.path.exists(destination):
         logging.info("File %s already downloaded." % destination)
     else:
         if not recursive and not os.path.exists(os.path.dirname(destination)):
@@ -445,8 +444,13 @@ PS1='\[\033[01;32m\][cerbero-%s-%s]\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ 
 
 def which(pgm, path=None):
     if path is None:
-        path=os.getenv('PATH')
+        path = os.getenv('PATH')
     for p in path.split(os.path.pathsep):
-        p=os.path.join(p,pgm)
-        if os.path.exists(p) and os.access(p,os.X_OK):
+        p = os.path.join(p, pgm)
+        if os.path.exists(p) and os.access(p, os.X_OK):
             return p
+        if PLATFORM == Platform.WINDOWS:
+            for ext in os.getenv('PATHEXT').split(';'):
+                pext = p + ext
+                if os.path.exists(pext):
+                    return pext

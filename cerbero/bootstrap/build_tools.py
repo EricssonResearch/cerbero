@@ -42,7 +42,7 @@ class BuildTools (BootstrapperBase):
 
         # if cross-compiling or not on linux, make sure we have gtk-doc
         if self.config.target_platform != Platform.LINUX or\
-           not self.config.prefix_is_executable():
+           self.config.cross_compiling():
             self.BUILD_TOOLS.append('gtk-doc-lite')
 
         if self.config.platform == Platform.WINDOWS:
@@ -50,7 +50,6 @@ class BuildTools (BootstrapperBase):
             self.BUILD_TOOLS.append('gperf')
         if self.config.platform == Platform.DARWIN:
             self.BUILD_TOOLS.append('gperf')
-            self.BUILD_TOOLS.insert(0, 'tar')
             self.BUILD_TOOLS.insert(0, 'xz')
         if self.config.platform == Platform.LINUX:
             if self.config.distro_version == DistroVersion.UBUNTU_LUCID or \
@@ -60,18 +59,13 @@ class BuildTools (BootstrapperBase):
                 self.BUILD_TOOLS.append('yasm')
             if self.config.distro_version in [DistroVersion.REDHAT_6]:
                 self.BUILD_TOOLS.append('cmake')
-        # if self.config.target_platform == Platform.LINUX:
-        #     if self.config.variants.appimagekit:
-        #         self.BUILD_TOOLS.append('app-image-kit')
-        #     if self.config.variants.python3:
-        #         self.BUILD_TOOLS.append('meson')
         if self.config.target_platform == Platform.IOS:
             self.BUILD_TOOLS.append('gas-preprocessor')
         if self.config.distro_version in [DistroVersion.UBUNTU_LUCID,
                                           DistroVersion.UBUNTU_NATTY]:
             self.BUILD_TOOLS.append('glib-tools')
-        if self.config.platform != Platform.LINUX and\
-                not self.config.prefix_is_executable():
+        if self.config.platform != Platform.LINUX and not \
+           self.config.prefix_is_executable():
             # For glib-mkenums and glib-genmarshal
             self.BUILD_TOOLS.append('glib-tools')
         if self.config.target_platform == Platform.ANDROID:
@@ -87,7 +81,6 @@ class BuildTools (BootstrapperBase):
         config.prefix = self.config.build_tools_prefix
         config.home_dir = self.config.home_dir
         config.load()
-        config.variants.python3 = False
 
         config.prefix = self.config.build_tools_prefix
         config.build_tools_prefix = self.config.build_tools_prefix

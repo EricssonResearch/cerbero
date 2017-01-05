@@ -48,9 +48,9 @@ License = enums.License
 class Variants(object):
 
     __disabled_variants = ['x11', 'alsa', 'pulse', 'cdparanoia', 'v4l2', 'sdl',
-                           'gi', 'python3', 'gtk3', 'owr_extra_codecs',
-                           'owr_testing', 'gnutls', 'appimagekit', 'unwind']
-    __enabled_variants = ['debug', 'clutter', 'python', 'testspackage', 'owr_bridge']
+                           'gi', 'unwind',
+                           'owr_extra_codecs', 'owr_testing', 'gnutls']
+    __enabled_variants = ['debug', 'python', 'testspackage', 'owr_bridge']
 
     def __init__(self, variants):
         for v in self.__enabled_variants:
@@ -92,7 +92,8 @@ class Config (object):
                    'recipes_remotes', 'ios_platform', 'extra_build_tools',
                    'distro_packages_install', 'interactive',
                    'target_arch_flags', 'sysroot', 'isysroot',
-                   'extra_lib_path', 'cached_sources', 'tools_prefix']
+                   'extra_lib_path', 'cached_sources', 'tools_prefix',
+                   'ios_min_version']
 
     def __init__(self):
         self._check_uninstalled()
@@ -122,12 +123,6 @@ class Config (object):
         # Next, if a config file is provided use it to override the settings
         # from the main configuration file
         self._load_cmd_config(filename)
-
-        # We need to set py_prefix as soon as possible
-        if "python3" in self.variants:
-            # FIXME Find a smarter way to figure out what version of python3
-            # is built.
-            self.py_prefix = 'lib/python3.3'
 
         # Create a copy of the config for each architecture in case we are
         # building Universal binaries
@@ -176,9 +171,9 @@ class Config (object):
 
         # Build variants before copying any config
         self.variants = Variants(self.variants)
-        if self.cross_compiling() and self.variants.gi:
-            m.warning(_("gobject introspection is not supported "
-                        "cross-compiling, 'gi' variant will be removed"))
+        if not self.prefix_is_executable() and self.variants.gi:
+            m.warning(_("gobject introspection requires an executable "
+                        "prefix, 'gi' variant will be removed"))
             self.variants.gi = False
 
         for c in self.arch_config.values():
@@ -255,7 +250,7 @@ class Config (object):
         path = self._join_path(
             os.path.join(self.build_tools_prefix, 'bin'), path)
 
-        if self.prefix_is_executable():
+        if not self.cross_compiling():
             ld_library_path = libdir
         else:
             ld_library_path = ""
@@ -296,9 +291,6 @@ class Config (object):
                'MONO_GAC_PREFIX': prefix,
                'GSTREAMER_ROOT': prefix
                }
-
-        if self.variants.python3:
-           env['PYTHON'] = "python3"
 
         return env
 
@@ -382,10 +374,20 @@ class Config (object):
         return {}
 
     def cross_compiling(self):
+        "Are we building for the host platform or not?"
+        # On Windows, building 32-bit on 64-bit is not cross-compilation since
+        # 32-bit Windows binaries run on 64-bit Windows via WOW64.
+        if self.platform == Platform.WINDOWS:
+            if self.arch == Architecture.X86_64 and \
+               self.target_arch == Architecture.X86:
+                return False
         return self.target_platform != self.platform or \
-                self.target_arch != self.arch
+                self.target_arch != self.arch or \
+                self.target_distro_version != self.distro_version
 
     def prefix_is_executable(self):
+        """Can the binaries from the target platform can be executed in the
+        build env?"""
         if self.target_platform != self.platform:
             return False
         if self.target_arch != self.arch:

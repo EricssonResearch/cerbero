@@ -20,6 +20,7 @@ import os
 
 from cerbero.config import Architecture
 from cerbero.utils import shell, to_unixpath
+from cerbero.utils import messages as m
 
 
 class GenLib(object):
@@ -32,10 +33,8 @@ class GenLib(object):
     DLLTOOL_TPL = '$DLLTOOL -d %s -l %s -D %s'
     LIB_TPL = '%s /DEF:%s /OUT:%s /MACHINE:%s'
 
-    def create(self, libname, dllpath, arch, outputdir=None):
+    def create(self, libname, dllpath, arch, outputdir):
         bindir, dllname = os.path.split(dllpath)
-        if outputdir is None:
-            outputdir = bindir
 
         # Create the .def file
         shell.call('gendef %s' % dllpath, outputdir)
@@ -60,13 +59,17 @@ class GenLib(object):
                 arch = 'x64'
             shell.call(self.LIB_TPL % (lib_path, defname, implib, arch), outputdir)
         else:
+            m.warning("Using dlltool instead of lib.exe! Resulting .lib files"
+                " will have problems with Visual Studio, see "
+                " http://sourceware.org/bugzilla/show_bug.cgi?id=12633")
             shell.call(self.DLLTOOL_TPL % (defname, implib, dllname), outputdir)
         return os.path.join(outputdir, implib)
 
     def _get_vc_tools_path(self):
-        if 'VS100COMNTOOLS' in os.environ:
-            path = os.path.join(os.environ['VS100COMNTOOLS'], '..', '..',
-                'VC', 'bin', 'amd64')
-            if os.path.exists (path):
-                return path
+        for version in ['100', '110', '120', '130', '140', '150']:
+            variable = 'VS{0}COMNTOOLS'.format(version)
+            if variable in os.environ:
+                path = os.path.join(os.environ[variable], '..', '..', 'VC', 'bin', 'amd64')
+                if os.path.exists (path):
+                    return path
         return None

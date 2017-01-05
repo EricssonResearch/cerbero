@@ -18,12 +18,17 @@
 
 import os
 import shutil
+import tarfile
+import urllib
+import urlparse
 
 from cerbero.config import Platform
 from cerbero.utils import git, svn, shell, _
 from cerbero.errors import FatalError, InvalidRecipeError
 import cerbero.utils.messages as m
 
+# Must end in a / for urlparse.urljoin to work correctly
+TARBALL_MIRROR = 'https://gstreamer.freedesktop.org/src/mirror/'
 
 class Source (object):
     '''
@@ -81,6 +86,7 @@ class Tarball (Source):
     url = None
     tarball_name = None
     tarball_dirname = None
+    mirror_url = None
 
     def __init__(self):
         Source.__init__(self)
@@ -97,27 +103,46 @@ class Tarball (Source):
             self.tarball_dirname = \
                 self.replace_name_and_version(self.tarball_dirname)
         self.download_path = os.path.join(self.repo_dir, self.tarball_name)
+        # URL-encode spaces and other special characters in the URL's path
+        split = list(urlparse.urlsplit(self.url))
+        split[2] = urllib.quote(split[2])
+        self.url = urlparse.urlunsplit(split)
+        self.mirror_url = urlparse.urljoin(TARBALL_MIRROR, self.tarball_name)
 
-    def fetch(self):
+    def fetch(self, redownload=False):
         if not os.path.exists(self.repo_dir):
             os.makedirs(self.repo_dir)
 
         cached_file = os.path.join(self.config.cached_sources,
                                    self.package_name, self.tarball_name)
-        if os.path.isfile(cached_file):
+        if not redownload and os.path.isfile(cached_file):
             m.action(_('Copying cached tarball from %s to %s instead of %s') %
                      (cached_file, self.download_path, self.url))
             shutil.copy(cached_file, self.download_path)
             return
         m.action(_('Fetching tarball %s to %s') %
                  (self.url, self.download_path))
-        shell.download(self.url, self.download_path, check_cert=False)
+        # Enable certificate checking Linux for now
+        # FIXME: Add more platforms here after testing
+        cc = self.config.platform == Platform.LINUX
+        try:
+            shell.download(self.url, self.download_path, check_cert=cc,
+                           overwrite=redownload)
+        except FatalError:
+            # Try our mirror
+            shell.download(self.mirror_url, self.download_path, check_cert=cc,
+                           overwrite=redownload)
 
     def extract(self):
         m.action(_('Extracting tarball to %s') % self.build_dir)
         if os.path.exists(self.build_dir):
             shutil.rmtree(self.build_dir)
-        shell.unpack(self.download_path, self.config.sources)
+        try:
+            shell.unpack(self.download_path, self.config.sources)
+        except (IOError, tarfile.ReadError):
+            m.action(_('Corrupted or partial tarball, redownloading...'))
+            self.fetch(redownload=True)
+            shell.unpack(self.download_path, self.config.sources)
         if self.tarball_dirname is not None:
             os.rename(os.path.join(self.config.sources, self.tarball_dirname),
                     self.build_dir)

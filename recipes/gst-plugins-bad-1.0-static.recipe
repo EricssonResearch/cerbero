@@ -114,9 +114,6 @@ class Recipe(custom.GStreamerStatic):
             self.configure_options += \
                 ' --disable-cog --disable-sdl '\
                 '--disable-cdaudio'
-        if self.config.variants.gtk3:
-            self.deps.append("gtk+3")
-            self.files_plugins_sys = ["libgstgtksink"]
         if self.config.variants.nodebug:
             self.append_env['CFLAGS'] += ' -DGST_LEVEL_MAX=GST_LEVEL_FIXME'
 

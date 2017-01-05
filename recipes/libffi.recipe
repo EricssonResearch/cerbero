@@ -1,6 +1,7 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
 import shutil
 import glob
+from cerbero.utils import needs_xcode8_sdk_workaround
 
 FFI_H_UNVERSAL='''\
 #ifdef __i386__
@@ -23,17 +24,19 @@ class Recipe(recipe.Recipe):
     version = '3.99999'
     autoreconf = True
     remotes = {'origin': 'https://github.com/atgreen/libffi.git'}
-    commit = '6ba2a49e226b859ddde9a37c34973cf85380c525'
+    commit = '60e4250a77eb3fde500bfd68ec40519fe34b21bd'
     licenses = [License.BSD_like]
 
     files_libs = ['libffi']
-    files_devel = ['lib/libffi-' + version + '/include/ffi.h', 'lib/pkgconfig/libffi.pc']
-    # This patch will be needed for versions > 3.2 because it sets an incorrect
-    # libdir (lib64 instead of lib)
+    files_devel = ['lib/libffi-3.99999/include/ffi.h', 'lib/pkgconfig/libffi.pc']
     patches = ['libffi/0001-libffi-Don-t-be-smart-about-toolexeclibdir.patch']
 
     def prepare(self):
         self.libffidir = os.path.join('lib', 'libffi-%s' % self.version)
+
+        if needs_xcode8_sdk_workaround(self.config):
+            self.append_env['ac_cv_func_mkostemp'] = 'no'
+
         if self.config.target_platform  in [Platform.DARWIN, Platform.IOS]:
             arch = self.config.target_arch
             if self.config.target_arch == Architecture.X86_64:

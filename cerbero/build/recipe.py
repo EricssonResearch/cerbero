@@ -217,17 +217,22 @@ class Recipe(FilesProvider):
         '''
         Generates library files (.lib) for the dll's provided by this recipe
         '''
+        if output_dir is None:
+            output_dir = os.path.join(self.config.prefix,
+                                      'lib' + self.config.lib_suffix)
         genlib = GenLib()
         for (libname, dllpaths) in self.libraries().items():
             if len(dllpaths) > 1:
                 m.warning("BUG: Found multiple DLLs for libname {}:\n{}".format(libname, '\n'.join(dllpaths)))
+                continue
             if len(dllpaths) == 0:
                 m.warning("Could not create {}.lib, no matching DLLs found".format(libname))
+                continue
             try:
                 implib = genlib.create(libname,
                     os.path.join(self.config.prefix, dllpaths[0]),
                     self.config.target_arch,
-                    os.path.join(self.config.prefix, 'lib'))
+                    output_dir)
                 logging.debug('Created %s' % implib)
             except:
                 m.warning("Could not create {}.lib, gendef might be missing".format(libname))
@@ -256,6 +261,9 @@ class Recipe(FilesProvider):
 
     def _remove_steps(self, steps):
         self._steps = [x for x in self._steps if x not in steps]
+
+    def get_for_arch (self, arch, name):
+        return getattr (self, name)
 
 
 class MetaUniversalRecipe(type):
@@ -324,11 +332,21 @@ class UniversalRecipe(object):
             for o in self._recipes.values():
                 setattr(o, name, value)
 
+    def get_for_arch (self, arch, name):
+        if arch:
+            return getattr (self._recipes[arch], name)
+        else:
+            return getattr (self, name)
+
     def _do_step(self, step):
         if step in BuildSteps.FETCH:
             # No, really, let's not download a million times...
             stepfunc = getattr(self._recipes.values()[0], step)
-            stepfunc()
+            try:
+                stepfunc()
+            except FatalError, e:
+                e.arch = arch
+                raise e
             return
 
         for arch, recipe in self._recipes.iteritems():
@@ -337,7 +355,11 @@ class UniversalRecipe(object):
             stepfunc = getattr(recipe, step)
 
             # Call the step function
-            stepfunc()
+            try:
+                stepfunc()
+            except FatalError, e:
+                e.arch = arch
+                raise e
 
 
 class UniversalFlatRecipe(UniversalRecipe):

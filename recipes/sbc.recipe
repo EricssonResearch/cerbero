@@ -1,0 +1,23 @@
+# -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+
+class Recipe(recipe.Recipe):
+    name = 'sbc'
+    version = '1.3'
+    stype = SourceType.TARBALL
+    url = 'http://www.kernel.org/pub/linux/bluetooth/sbc-1.3.tar.gz'
+    licenses = [License.LGPLv2_1Plus]
+    files_libs = ['libsbc']
+    files_devel = ['include/sbc/sbc.h', 'lib/pkgconfig/sbc.pc']
+    configure_options = '--disable-tester --disable-tools'
+    patches = ['sbc/0001-sbc-Use-stdint.h.patch',
+    	       'sbc/0002-Don-t-use-NEON-with-aarch64-on-Clang.patch']
+
+    def compile(self):
+        if self.config.target_platform != Platform.LINUX:
+            # Don't use --version-script on platforms other than GNU/Linux.
+            # ld does not support that on non-GNU platforms. This is not done
+            # via a patch to Makefile.am because the Autotools build system
+            # doesn't regenerate after the Autofoo sources are changed.
+            shell.replace(os.path.join(self.build_dir, 'Makefile'),
+                          {'-Wl,--version-script=$(top_srcdir)/sbc/sbc.sym': '$(NULL)'})
+        super(Recipe, self).compile()

@@ -4,15 +4,17 @@ from cerbero.utils.shell import which
 
 class Recipe(recipe.Recipe):
     name = 'glib-networking'
-    version = '2.48.2'
+    version = '2.50.0'
     licenses = [License.LGPLv2Plus]
     stype = SourceType.TARBALL
-    url = 'http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.48/glib-networking-%(version)s.tar.xz'
+    url = 'http://ftp.gnome.org/pub/gnome/sources/glib-networking/2.50/glib-networking-%(version)s.tar.xz'
     autoreconf = True
     configure_options = "--without-ca-certificates --enable-more-warnings"
     deps = ['glib', 'gnutls']
     patches = ['glib-networking/0001-Add-support-for-static-modules.patch',
-               'glib-networking/0002-Get-the-CA-certificate-path-from-the-environment-var.patch']
+               'glib-networking/0002-Get-the-CA-certificate-path-from-the-environment-var.patch',
+               'glib-networking/0003-gnutls-Use-db-relative-to-libglib-2.0-if-needed.patch',
+               'glib-networking/0004-gtlsbackend-gnutls-Get-anchor-file-relative-to-libgi.patch']
 
     files_misc = ['lib/gio/modules/libgiognutls%(mext)s']
     files_lang = ['glib-networking']
@@ -27,7 +29,7 @@ class Recipe(recipe.Recipe):
           if os.path.exists(arch_path):
               querymodule_path = arch_path
 
-        if not self.config.prefix_is_executable():
+        if self.config.cross_compiling():
           querymodule_path = which('true')
 
         if self.config.target_platform in [Platform.ANDROID]:

@@ -1,10 +1,11 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
 
 from cerbero.utils import shell
+from cerbero.utils import needs_xcode8_sdk_workaround
 
 class Recipe(recipe.Recipe):
     name = 'gnutls'
-    version = '3.4.9'
+    version = '3.4.17'
     maj_ver = '.'.join(version.split('.')[0:2])
     url = 'ftp://ftp.gnutls.org/gcrypt/{0}/v{1}/{0}-{2}.tar.xz'.format(name, maj_ver, version)
     stype = SourceType.TARBALL
@@ -22,9 +23,7 @@ class Recipe(recipe.Recipe):
         Platform.DARWIN: ['bionic-fixup']
     }
     patches = [name + "/0001-configure-vasprintf-is-defined-in-stdio.h.patch",
-               name + "/0002-configure-Android-is-ELF-too.patch",
-               name + "/0003-Disable-ncrypt-support.patch",
-               name + "/0004-Stop-using-weak-linked-_gnutls_global_init_skip-in-l.patch"]
+               name + "/0003-Disable-ncrypt-support.patch"]
     autoreconf = True
 
     files_libs = ['libgnutls', 'libgnutlsxx']
@@ -34,6 +33,9 @@ class Recipe(recipe.Recipe):
     files_lang = ['gnutls']
 
     def prepare(self):
+        if needs_xcode8_sdk_workaround(self.config):
+            self.append_env['ac_cv_func_clock_gettime'] = 'no'
+            self.append_env['ac_cv_func_clock_settime'] = 'no'
         if self.config.target_platform == Platform.WINDOWS:
             self.configure_options += ' --enable-threads=win32'
             self.can_use_configure_cache = False
@@ -45,6 +47,12 @@ class Recipe(recipe.Recipe):
             self.configure_options += ' --disable-cxx'
 
     def configure(self):
+        if needs_xcode8_sdk_workaround(self.config):
+            # There is no env var that can be set to make the AC_COMPILE_IFELSE
+            # macro that checks this evaluate to 'no', so we change the symbol.
+            # Edit configure.ac and not configure because we autoreconf later.
+            shell.replace(os.path.join(self.build_dir, 'configure.ac'),
+                          {'getentropy': 'getentropy_DISABLED_NOT_FOR_MACOS10_12'})
         if self.config.target_platform == Platform.ANDROID:
             # On Android, SIZE_MAX is define under limits.h
             shell.replace(os.path.join(self.build_dir, 'gl', 'read-file.c'),
