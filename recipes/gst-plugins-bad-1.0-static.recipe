@@ -107,9 +107,6 @@ class Recipe(custom.GStreamerStatic):
         self.append_env['CPPFLAGS'] = " -Wno-error "
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '
-        if self.config.variants.gtk3:
-            self.deps.append("gtk+3")
-            self.files_plugins_sys = ["libgstgtksink"]
         if self.config.target_platform == Platform.WINDOWS:
             self.configure_options += \
                 ' --disable-cog --disable-sdl '\
