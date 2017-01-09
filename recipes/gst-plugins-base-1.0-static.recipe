@@ -5,7 +5,7 @@ class Recipe(custom.GStreamerStatic):
     name = 'gst-plugins-base-1.0-static'
     extra_configure_options = "--enable-static"
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
-    commit = 'cf18fae9deb02f0867b67593f678b932f8eb931a'
+    commit = '87f21a925c5e404add906e7ddd134b52d4367698'
     deps = ['glib', 'gstreamer-1.0', 'zlib', 'orc', 'opus']
     use_system_libs = True
 
