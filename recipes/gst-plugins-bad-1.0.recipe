@@ -16,7 +16,8 @@ class Recipe(custom.GStreamer):
         --disable-pvr --disable-sdl --disable-sndfile \
         --disable-teletextdec --disable-timidity \
         --disable-vdpau --disable-voamrwbenc --disable-wildmidi \
-        --disable-xvid --disable-zbar --disable-sdi --disable-hls --disable-qt'
+        --disable-xvid --disable-zbar --disable-sdi --disable-hls --disable-qt \
+        --enable-decklink'
     # Explicitly enable plugins
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
     commit = 'aceb64a21c6a0e8478bb405796d60501a422e525'
@@ -26,7 +27,7 @@ class Recipe(custom.GStreamer):
 
     files_lang = ['gst-plugins-bad-1.0']
 
-    files_libs = ['libgstcodecparsers-1.0', 'libgstgl-1.0', 'libgstbadbase-1.0', 'libgstbadvideo-1.0']
+    files_libs = ['libgstcodecparsers-1.0', 'libgstgl-1.0', 'libgstbadbase-1.0', 'libgstbadvideo-1.0', 'libgstbadallocators-1.0']
 
     files_plugins_devel = [
         'include/gstreamer-1.0/gst/gl',
@@ -41,11 +42,16 @@ class Recipe(custom.GStreamer):
         'lib/pkgconfig/gstreamer-bad-base-1.0.pc',
         'lib/pkgconfig/gstreamer-bad-audio-1.0.pc',
         'lib/pkgconfig/gstreamer-bad-video-1.0.pc',
-        'lib/pkgconfig/gstreamer-codecparsers-1.0.pc'
+        'lib/pkgconfig/gstreamer-codecparsers-1.0.pc',
+        'lib/pkgconfig/gstreamer-bad-allocators-1.0.pc'
     ]
 
     files_plugins_effects = [
              'lib/gstreamer-1.0/libgstinter%(mext)s',
+    ]
+
+    files_plugins_effects_devel = [
+             'lib/gstreamer-1.0/libgstinter.a', 'lib/gstreamer-1.0/libgstinter.la',
     ]
 
     files_plugins_codecs = [
@@ -53,7 +59,17 @@ class Recipe(custom.GStreamer):
              'lib/gstreamer-1.0/libgstvideoparsersbad%(mext)s',
     ]
 
+    files_plugins_codecs_devel = [
+             'lib/gstreamer-1.0/libgstopenh264.a', 'lib/gstreamer-1.0/libgstopenh264.la',
+             'lib/gstreamer-1.0/libgstvideoparsersbad.a', 'lib/gstreamer-1.0/libgstvideoparsersbad.la',
+    ]
+
     platform_files_plugins_codecs = {
+        Platform.ANDROID: [
+            ]
+    }
+
+    platform_files_plugins_codecs_devel = {
         Platform.ANDROID: [
             ]
     }
@@ -61,10 +77,19 @@ class Recipe(custom.GStreamer):
     files_plugins_codecs_gpl = [
     ]
 
+    files_plugins_codecs_gpl_devel = [
+    ]
+
     files_plugins_codecs_restricted = [
     ]
 
+    files_plugins_codecs_restricted_devel = [
+    ]
+
     files_plugins_dvd = [
+    ]
+
+    files_plugins_dvd_devel = [
     ]
 
     files_plugins_net = [
@@ -72,12 +97,22 @@ class Recipe(custom.GStreamer):
              'lib/gstreamer-1.0/libgstdtls%(mext)s',
     ]
 
+    files_plugins_net_devel = [
+             'lib/gstreamer-1.0/libgstsrtp.a', 'lib/gstreamer-1.0/libgstsrtp.la',
+             'lib/gstreamer-1.0/libgstdtls.a', 'lib/gstreamer-1.0/libgstdtls.la',
+    ]
+
     files_plugins_net_restricted = [
     ]
 
-    files_plugins_capture = [
-            ]
+    files_plugins_net_restricted_devel = [
+    ]
 
+    files_plugins_capture = [
+    ]
+
+    files_plugins_capture_devel = [
+    ]
 
     platform_files_plugins_capture = {
         Platform.LINUX: [
@@ -88,8 +123,20 @@ class Recipe(custom.GStreamer):
             ]
     }
 
-    files_plugins_vis = [
+    platform_files_plugins_capture_devel = {
+        Platform.LINUX: [
+            ],
+        Platform.WINDOWS: [
+             'lib/gstreamer-1.0/libgstdirectsoundsrc.a', 'lib/gstreamer-1.0/libgstdirectsoundsrc.la',
+             'lib/gstreamer-1.0/libgstwinks.a', 'lib/gstreamer-1.0/libgstwinks.la',
             ]
+    }
+
+    files_plugins_vis = [
+    ]
+
+    files_plugins_vis_devel = [
+    ]
 
     platform_files_plugins_sys = {
         Platform.LINUX: [
@@ -98,7 +145,8 @@ class Recipe(custom.GStreamer):
             ],
         Platform.WINDOWS: [
              'lib/gstreamer-1.0/libgstd3dvideosink%(mext)s',
-             'lib/gstreamer-1.0/libgstopengl%(mext)s'
+             'lib/gstreamer-1.0/libgstopengl%(mext)s',
+             'lib/gstreamer-1.0/libgstdecklink%(mext)s',
             ],
         Platform.DARWIN: [
              'lib/gstreamer-1.0/libgstapplemedia%(mext)s',
@@ -107,24 +155,61 @@ class Recipe(custom.GStreamer):
             ],
         Platform.IOS: [
              'lib/gstreamer-1.0/libgstapplemedia%(mext)s',
-             'lib/gstreamer-1.0/libgstopengl%(mext)s'
+             'lib/gstreamer-1.0/libgstopengl%(mext)s',
             ],
         Platform.ANDROID: [
              'lib/gstreamer-1.0/libgstopensles%(mext)s',
-             'lib/gstreamer-1.0/libgstopengl%(mext)s'
+             'lib/gstreamer-1.0/libgstopengl%(mext)s',
             ]
     }
+
+    platform_files_plugins_sys_devel = {
+        Platform.LINUX: [
+             'lib/gstreamer-1.0/libgstopengl.a', 'lib/gstreamer-1.0/libgstopengl.la',
+             'lib/gstreamer-1.0/libgstdecklink.a', 'lib/gstreamer-1.0/libgstdecklink.la',
+            ],
+        Platform.WINDOWS: [
+             'lib/gstreamer-1.0/libgstd3dvideosink.a', 'lib/gstreamer-1.0/libgstd3dvideosink.la',
+             'lib/gstreamer-1.0/libgstopengl.a', 'lib/gstreamer-1.0/libgstopengl.la',
+             'lib/gstreamer-1.0/libgstdecklink.a', 'lib/gstreamer-1.0/libgstdecklink.la',
+            ],
+        Platform.DARWIN: [
+             'lib/gstreamer-1.0/libgstapplemedia.a', 'lib/gstreamer-1.0/libgstapplemedia.la',
+             'lib/gstreamer-1.0/libgstopengl.a', 'lib/gstreamer-1.0/libgstopengl.la',
+             'lib/gstreamer-1.0/libgstdecklink.a', 'lib/gstreamer-1.0/libgstdecklink.la',
+            ],
+        Platform.IOS: [
+             'lib/gstreamer-1.0/libgstapplemedia.a', 'lib/gstreamer-1.0/libgstapplemedia.la',
+             'lib/gstreamer-1.0/libgstopengl.a', 'lib/gstreamer-1.0/libgstopengl.la',
+            ],
+        Platform.ANDROID: [
+             'lib/gstreamer-1.0/libgstopensles.a', 'lib/gstreamer-1.0/libgstopensles.la',
+             'lib/gstreamer-1.0/libgstopengl.a', 'lib/gstreamer-1.0/libgstopengl.la',
+            ]
+    }
+
     files_typelibs = [
         'GstGL-1.0',
         ]
 
-    files_plugins_sys  = []
+    platform_files_codecs_devel = {
+        Platform.ANDROID: [
+              'share/gst-android/ndk-build',
+            ]
+    }
 
     def prepare(self):
         self.append_env['CFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['OBJCFLAGS'] = " -Wno-error -DGSTREAMER_GLIB_COCOA_NSAPPLICATION=1 "
         self.append_env['CXXFLAGS'] = " -Wno-error "
         self.append_env['CPPFLAGS'] = " -Wno-error "
+
+        if self.config.platform == Platform.WINDOWS:
+            # FIXME: This will almost certainly fail to build on Windows due to
+			# https://bugzilla.gnome.org/show_bug.cgi?id=770264
+			# See also, -static and gstreamer-1.0-effects.package
+			self.deps.remove('webrtc-audio-processing')
+			self.files_plugins_effects.remove('lib/gstreamer-1.0/libgstwebrtcdsp%(mext)s')
 
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += '--disable-gtk-doc '

@@ -50,8 +50,7 @@ class Recipe(recipe.Recipe):
                      'gst-plugins-good-1.0', 'gst-plugins-bad-1.0',
                      'openwebrtc-gst-plugins']
     # Dependencies used only in the static build of OWRTC
-    _static_deps = [i + '-static' for i in _dynamic_deps] + \
-                   ['openwebrtc-girepository']
+    _static_deps = _dynamic_deps + ['openwebrtc-girepository']
     # Dependencies used in all builds
     deps = ['gettext', 'glib', 'libffi', 'gtk-doc-lite'] + \
            _dynamic_deps
@@ -130,7 +129,7 @@ class Recipe(recipe.Recipe):
                 gst_plugins += ['applemedia', 'osxaudio']
             # Convert the array of plugin names to a string of library names
             libdir = self.config.prefix + '/lib' + self.config.lib_suffix
-            gst_plugins_path = '-L' + libdir + '/gstreamer-1.0/static '
+            gst_plugins_path = '-L' + libdir + '/gstreamer-1.0 '
             self.gst_plugins_libs = ' '.join(['-lgst' + l for l in gst_plugins])
             # This env variable will get substituted in the Makefile
             self.append_env['OPENWEBRTC_GST_PLUGINS_LIBS'] = \

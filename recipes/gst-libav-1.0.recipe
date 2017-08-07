@@ -1,5 +1,8 @@
 # -*- Mode: Python -*- vi:si:et:sw=4:sts=4:ts=4:syntax=python
+import shutil
+
 from cerbero.utils import shell
+from cerbero.tools.libtool import LibtoolLibrary
 
 class Recipe(custom.GStreamer):
     name = 'gst-libav-1.0'
@@ -7,11 +10,19 @@ class Recipe(custom.GStreamer):
     #        the linked libs
     licenses = [License.LGPLv2Plus]
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
-    configure_options = "--enable-lgpl --disable-examples "
+    configure_options = "--enable-lgpl --disable-examples --enable-static "
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-libav'}
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'bzip2', 'zlib' ]
 
     files_plugins_codecs_restricted = ['lib/gstreamer-1.0/libgstlibav%(mext)s']
+    files_plugins_codecs_restricted_devel = [
+        'lib/gstreamer-1.0/libgstlibav.a', 'lib/gstreamer-1.0/libgstlibav.la',
+        'lib/libavcodec.a', 'lib/libavcodec.la',
+        'lib/libavformat.a', 'lib/libavformat.la',
+        'lib/libavutil.a', 'lib/libavutil.la',
+        'lib/libswresample.a', 'lib/libswresample.la',
+        'lib/libavfilter.a', 'lib/libavfilter.la',
+    ]
 
     def prepare(self):
         self.append_env['CFLAGS'] = " -Wno-error "
@@ -20,6 +31,10 @@ class Recipe(custom.GStreamer):
 
         if self.config.target_platform != Platform.LINUX:
             self.configure_options += ' --disable-gtk-doc'
+
+        # Default AS is $CC, except iOS (set below)
+        if Architecture.is_arm(self.config.target_arch):
+            self.new_env = {'AS': os.environ.get('CC', '')}
 
         if self.config.target_platform == Platform.DARWIN:
             if self.config.target_arch == Architecture.X86_64:
@@ -31,8 +46,15 @@ class Recipe(custom.GStreamer):
             if self.config.target_arch == Architecture.X86:
               # libav internally aligns stacks, while Android doesn't
               self.configure_options += ' --with-libav-extra-configure="--extra-cflags=\'-mincoming-stack-boundary=4\'"'
+        elif self.config.target_platform == Platform.IOS:
+            if Architecture.is_arm(self.config.target_arch):
+                if 'GAS' in os.environ:
+                    self.new_env = {'AS': os.environ['GAS']}
         if self.config.variants.nodebug:
             self.append_env['CFLAGS'] += ' -DGST_LEVEL_MAX=GST_LEVEL_FIXME'
+
+        super(Recipe, self).prepare()
+
 
     def configure(self):
         super(recipe.Recipe, self).configure()
@@ -58,3 +80,4 @@ class Recipe(custom.GStreamer):
                 replacements = {'HAVE_LOG2 1': 'HAVE_LOG2 0',
                                 'HAVE_LOG2F 1': 'HAVE_LOG2F 0',}
                 shell.replace(os.path.join(libav_path, 'config.h'), replacements)
+

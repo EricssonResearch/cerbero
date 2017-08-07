@@ -49,11 +49,22 @@ class Recipe(recipe.Recipe):
         'lib/gstreamer-1.0/libgstsctp%(mext)s',
         'lib/gstreamer-1.0/libgstscream%(mext)s',
     ]
+    files_plugins_net_devel = [
+        'lib/gstreamer-1.0/libgstvideorepair.a', 'lib/gstreamer-1.0/libgstvideorepair.la',
+        'lib/gstreamer-1.0/libgstsctp.a', 'lib/gstreamer-1.0/libgstsctp.la',
+        'lib/gstreamer-1.0/libgstscream.a', 'lib/gstreamer-1.0/libgstscream.la',
+    ]
     platform_files_plugins_capture = {
         Platform.ANDROID: ['lib/gstreamer-1.0/libgstandroidvideosrc%(mext)s'],
     }
+    platform_files_plugins_capture_devel = {
+        Platform.ANDROID: ['lib/gstreamer-1.0/libgstandroidvideosrc.a', 'lib/gstreamer-1.0/libgstandroidvideosrc.la'],
+    }
     platform_files_plugins_core = {
         Platform.IOS: ['lib/gstreamer-1.0/libgstercolorspace%(mext)s'],
+    }
+    platform_files_plugins_core_devel = {
+        Platform.IOS: ['lib/gstreamer-1.0/libgstercolorspace.a', 'lib/gstreamer-1.0/libgstercolorspace.la'],
     }
 
     def prepare(self):
@@ -61,9 +72,9 @@ class Recipe(recipe.Recipe):
         self.configure_options = ' \
             --enable-shared \
             --enable-static \
+            --enable-static-plugins \
             --disable-erdtls \
             --disable-debug \
-            --disable-static-plugins \
             --disable-android-plugins \
             --disable-osx-plugins \
             --disable-linux-plugins'

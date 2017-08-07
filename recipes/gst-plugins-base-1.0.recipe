@@ -32,9 +32,27 @@ class Recipe(custom.GStreamer):
              'lib/gstreamer-1.0/libgstvolume%(mext)s',
     ]
 
+    files_plugins_core_devel = [
+             'lib/gstreamer-1.0/libgstapp.a', 'lib/gstreamer-1.0/libgstapp.la',
+             'lib/gstreamer-1.0/libgstaudioconvert.a', 'lib/gstreamer-1.0/libgstaudioconvert.la',
+             'lib/gstreamer-1.0/libgstaudiorate.a', 'lib/gstreamer-1.0/libgstaudiorate.la',
+             'lib/gstreamer-1.0/libgstaudioresample.a', 'lib/gstreamer-1.0/libgstaudioresample.la',
+             'lib/gstreamer-1.0/libgstaudiotestsrc.a', 'lib/gstreamer-1.0/libgstaudiotestsrc.la',
+             'lib/gstreamer-1.0/libgsttypefindfunctions.a', 'lib/gstreamer-1.0/libgsttypefindfunctions.la',
+             'lib/gstreamer-1.0/libgstvideoconvert.a', 'lib/gstreamer-1.0/libgstvideoconvert.la',
+             'lib/gstreamer-1.0/libgstvideorate.a', 'lib/gstreamer-1.0/libgstvideorate.la',
+             'lib/gstreamer-1.0/libgstvideoscale.a', 'lib/gstreamer-1.0/libgstvideoscale.la',
+             'lib/gstreamer-1.0/libgstvideotestsrc.a', 'lib/gstreamer-1.0/libgstvideotestsrc.la',
+             'lib/gstreamer-1.0/libgstvolume.a', 'lib/gstreamer-1.0/libgstvolume.la',
+    ]
+
     files_plugins_codecs = [
              'lib/gstreamer-1.0/libgstopus%(mext)s',
-            ]
+    ]
+
+    files_plugins_codecs_devel = [
+             'lib/gstreamer-1.0/libgstopus.a', 'lib/gstreamer-1.0/libgstopus.la',
+    ]
 
     files_plugins_devel = [
             'include/gstreamer-1.0/gst/allocators',

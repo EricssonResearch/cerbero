@@ -42,7 +42,7 @@ class Package(package.Package):
 
     files = ['openwebrtc', 'openwebrtc-gst-plugins',
              'libusrsctp:libs']
-    files_devel = ['openwebrtc-gst-plugins-static',]
+    files_devel = ['openwebrtc-gst-plugins:plugins_core_devel',]
 
     platform_files = {
             Platform.DARWIN: ['openwebrtc-osx-framework'],

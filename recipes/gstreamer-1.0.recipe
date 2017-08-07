@@ -23,6 +23,9 @@ class Recipe(custom.GStreamer):
     }
 
     files_plugins_core = ['lib/gstreamer-1.0/libgstcoreelements%(mext)s']
+    files_plugins_core_devel = [
+        'lib/gstreamer-1.0/libgstcoreelements.a', 'lib/gstreamer-1.0/libgstcoreelements.la',
+    ]
 
     files_misc = ['libexec/gstreamer-1.0/gst-plugin-scanner%(bext)s']
 

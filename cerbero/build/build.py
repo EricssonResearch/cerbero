@@ -130,6 +130,9 @@ class MakefilesBase (Build):
         # Make sure user's env doesn't mess up with our build.
         self.new_env['MAKEFLAGS'] = None
 
+        # Disable site config, which is set on openSUSE
+        self.new_env['CONFIG_SITE'] = None
+
     @modify_environment
     def configure(self):
         if not os.path.exists(self.make_dir):
@@ -219,7 +222,7 @@ class Autotools (MakefilesBase):
     autoreconf_sh = 'autoreconf -f -i'
     config_sh = './configure'
     configure_tpl = "%(config-sh)s --prefix %(prefix)s "\
-                    "--libdir %(libdir)s %(options)s"
+                    "--libdir %(libdir)s"
     make_check = 'make check'
     add_host_build_target = True
     can_use_configure_cache = True
@@ -286,6 +289,9 @@ class Autotools (MakefilesBase):
         if use_configure_cache and self.can_use_configure_cache:
             cache = os.path.join(self.config.sources, '.configure.cache')
             self.configure_tpl += ' --cache-file=%s' % cache
+
+        # Add at the very end to allow recipes to override defaults
+        self.configure_tpl += "  %(options)s "
 
         MakefilesBase.configure(self)
 

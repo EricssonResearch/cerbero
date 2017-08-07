@@ -6,7 +6,7 @@ include $(CERBERO_DATA_PATH)/ndk-build/tools.mk
 
 # You can also set the following:
 LIBRARY_PATH			?= $(PREFIX)/lib
-GSTREAMER_STATIC_PLUGINS_PATH	?= $(LIBRARY_PATH)/gstreamer-1.0/static
+GSTREAMER_STATIC_PLUGINS_PATH	?= $(LIBRARY_PATH)/gstreamer-1.0
 DEPENDENCY_LIBS			?= -L$(LIBRARY_PATH) -l$(INPUT_LIBRARY)
 # Static libraries to exclude from the final link command (if, for instance,
 # they are provided by a shared library dependency)

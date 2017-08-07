@@ -4,7 +4,7 @@
 class Recipe(custom.GStreamer):
     name = 'gst-plugins-ugly-1.0'
     config_sh = 'sh ./autogen.sh --noconfigure && ./configure'
-    configure_options = "--disable-examples --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame "
+    configure_options = "--enable-static --disable-examples --disable-iec958 --disable-mpegstream --disable-cdio --disable-sidplay --disable-twolame "
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-ugly'}
     commit = '8d045b4197b601c164ba60817abe85f1923e05c6'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'x264']
@@ -13,7 +13,14 @@ class Recipe(custom.GStreamer):
              'lib/gstreamer-1.0/libgstx264%(mext)s',
     ]
 
+    files_plugins_codecs_restricted_devel = [
+             'lib/gstreamer-1.0/libgstx264.a', 'lib/gstreamer-1.0/libgstx264.la',
+    ]
+
     files_plugins_dvd = [
+    ]
+
+    files_plugins_dvd_devel = [
     ]
 
     files_lang = ['gst-plugins-ugly-1.0']

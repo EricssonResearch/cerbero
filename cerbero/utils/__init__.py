@@ -159,6 +159,19 @@ def system_info():
                 # FIXME: the python2.7 platform module does not support Arch Linux.
                 # Mimic python3.4 platform.linux_distribution() output.
                 d = ('arch', 'Arch', 'Linux')
+            elif os.path.exists('/etc/os-release'):
+                with open('/etc/os-release', 'r') as f:
+                    if 'ID="amzn"\n' in f.readlines():
+                        d = ('RedHat', 'amazon', '')
+                    else:
+                        f.seek(0, 0)
+                        for line in f:
+                            k,v = line.rstrip().split("=")
+                            if k == 'NAME':
+                                name = v.strip('"')
+                            elif k == 'VERSION_ID':
+                                version = v.strip('"')
+                        d = (name, version, '');
 
         if d[0] in ['Ubuntu', 'debian', 'LinuxMint']:
             distro = Distro.DEBIAN
@@ -194,8 +207,10 @@ def system_info():
                 distro_version = DistroVersion.DEBIAN_WHEEZY
             elif d[1].startswith('8.') or d[1].startswith('jessie'):
                 distro_version = DistroVersion.DEBIAN_JESSIE
-            elif d[1].startswith('stretch'):
+            elif d[1].startswith('9.') or d[1].startswith('stretch'):
                 distro_version = DistroVersion.DEBIAN_STRETCH
+            elif d[1].startswith('10.') or d[1].startswith('buster'):
+                distro_version = DistroVersion.DEBIAN_BUSTER
             else:
                 raise FatalError("Distribution '%s' not supported" % str(d))
         elif d[0] in ['RedHat', 'Fedora', 'CentOS', 'Red Hat Enterprise Linux Server', 'CentOS Linux']:
@@ -220,25 +235,30 @@ def system_info():
                 distro_version = DistroVersion.FEDORA_24
             elif d[1] == '25':
                 distro_version = DistroVersion.FEDORA_25
+            elif d[1] == '26':
+                distro_version = DistroVersion.FEDORA_26
             elif d[1].startswith('6.'):
                 distro_version = DistroVersion.REDHAT_6
             elif d[1].startswith('7.'):
                 distro_version = DistroVersion.REDHAT_7
+            elif d[1] == 'amazon':
+                distro_version = DistroVersion.AMAZON_LINUX
             else:
                 # FIXME Fill this
                 raise FatalError("Distribution '%s' not supported" % str(d))
         elif d[0].strip() in ['openSUSE']:
             distro = Distro.SUSE
-            if d[1] == '12.1':
-                distro_version = DistroVersion.OPENSUSE_12_1
-            elif d[1] == '12.2':
-                distro_version = DistroVersion.OPENSUSE_12_2
-            elif d[1] == '12.3':
-                distro_version = DistroVersion.OPENSUSE_12_3
+            if d[1] == '42.2':
+                distro_version = DistroVersion.OPENSUSE_42_2
+            elif d[1] == '42.3':
+                distro_version = DistroVersion.OPENSUSE_42_3
             else:
                 # FIXME Fill this
                 raise FatalError("Distribution OpenSuse '%s' "
                                  "not supported" % str(d))
+        elif d[0].strip() in ['openSUSE Tumbleweed']:
+            distro = Distro.SUSE
+            distro_version = DistroVersion.OPENSUSE_TUMBLEWEED
         elif d[0].strip() in ['arch']:
             distro = Distro.ARCH
             distro_version = DistroVersion.ARCH_ROLLING
@@ -255,7 +275,8 @@ def system_info():
                 '7': DistroVersion.WINDOWS_7,
                 'post2008Server': DistroVersion.WINDOWS_8,
                 '8': DistroVersion.WINDOWS_8,
-                '8.1': DistroVersion.WINDOWS_8,
+                'post2012Server': DistroVersion.WINDOWS_8_1,
+                '8.1': DistroVersion.WINDOWS_8_1,
                 '10': DistroVersion.WINDOWS_10}
         if win32_ver in dmap:
             distro_version = dmap[win32_ver]
@@ -353,7 +374,7 @@ def add_system_libs(config, new_env):
     if arch == Architecture.X86:
         arch = 'i386'
     elif arch == Architecture.X86_64:
-        if config.distro == Distro.REDHAT:
+        if config.distro == Distro.REDHAT or config.distro == Distro.SUSE:
             libdir = 'lib64'
 
     sysroot = '/'

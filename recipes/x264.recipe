@@ -8,7 +8,7 @@ class Recipe(recipe.Recipe):
     licenses = [License.GPL]
     stype = SourceType.TARBALL
     configure_tpl = "%(config-sh)s --prefix=%(prefix)s "\
-                    "--libdir=%(libdir)s %(options)s"
+                    "--libdir=%(libdir)s"
     configure_options = '--enable-shared --enable-static --enable-pic ' \
                         '--disable-strip --disable-lavf'
     url = 'http://download.videolan.org/pub/x264/snapshots/x264-snapshot-20161218-2245-stable.tar.bz2'
@@ -34,7 +34,6 @@ class Recipe(recipe.Recipe):
                 enable_asm = False
         if self.config.target_platform == Platform.WINDOWS:
             self.configure_options += ' --enable-win32thread'
-        self.configure_options += ' --host=%s-pc-%s' % (arch, self.config.target_platform)
         if self.config.target_arch == Architecture.ARM:
             # FIXME : Is disabling asm on ARM (< v7) still needed ?
             enable_asm = False
