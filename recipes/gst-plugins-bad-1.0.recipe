@@ -20,7 +20,7 @@ class Recipe(custom.GStreamer):
         --enable-decklink'
     # Explicitly enable plugins
     remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-bad'}
-    commit = 'aceb64a21c6a0e8478bb405796d60501a422e525'
+    commit = 'c28f2f6ce82ff44bf4749c9f2376c21980e58af3'
     deps = ['gstreamer-1.0', 'gst-plugins-base-1.0', 'zlib', 'openh264', 'opus',
             'libsrtp', 'openssl', 'graphene']
     use_system_libs = True
